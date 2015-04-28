@@ -91,6 +91,8 @@ string to_string(unsigned long i);
 
 string ShortenORFId(const string &s, regex_t *r);
 
+string ShortenORFId(const string &s);
+
 #define MAX_ERROR_MSG 0x1000
 int compile_regex (regex_t * r, const char * regex_text);
 

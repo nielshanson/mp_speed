@@ -10,7 +10,7 @@ OutputParser::OutputParser(const Options &options, const GLOBAL_PARAMS &params){
     this->params = params;
     this->ln2 =  0.69314718055994530941;
     this->lnk = log(params.k);
-    this->BATCH_SIZE = options.num_threads*10000;
+    this->BATCH_SIZE = options.num_threads*1000000;
 
     this->r = new regex_t;
     this->regex_text = "([[:digit:]]+[_][[:digit:]]+)$";
@@ -112,10 +112,11 @@ void OutputParser::create_refBitScores() {
    while( std::getline(this->input, line ).good()) {
       split(line, fields, this->buf,'\t');
       if( fields.size()!=2) continue;
-      orfid = ShortenORFId(fields[0], r) ;
+      orfid = ShortenORFId(fields[0]) ;
+   //   std::cout << orfid << "\n";
       refBitScores[orfid] = int((params.lambda*float(atof(fields[1])) - this->lnk )/this->ln2);
       if (count%1000000==0) 
-         std::cout << "x" << count << std::endl;
+         std::cout << "x " << count << std::endl;
       count++;
    }   
    this->input.close();
@@ -147,19 +148,32 @@ void OutputParser::distributeInput(THREAD_DATA *thread_data) {
     vector<string>::iterator it;
     int bucketIndex;
 
+
+    for(int i=0; i< options.num_threads; i++) {
+      thread_data[bucketIndex].lines.clear();
+    }
+
     int *counts  = (int *)calloc(options.num_threads, sizeof(int));
 
+    std::cout << "input size " << this->inputbuffer.size() << std::endl;
+
     for(it = this->inputbuffer.begin(); it != this->inputbuffer.end(); it++) {
+         
       split(*it, fields, this->buf,'\t');
       if( fields.size()!=12) continue;
-      orfid = ShortenORFId(fields[0], r) ;
+      orfid = ShortenORFId(fields[0]) ;
       bucketIndex = hashIntoBucket(orfid.c_str(), options.num_threads); 
-     // std::cout << bucketIndex <<std::endl;
-      counts[bucketIndex]++;
+      thread_data[bucketIndex].lines.push_back(*it);
+  //    counts[bucketIndex]++;
     }
+
+
+
+/*
     std::cout << "done " << std::endl;
     for( int i =0; i < options.num_threads; i++) 
        std::cout << i << "  "<< counts[i] << std::endl;
+*/
 
 
 }
@@ -167,6 +181,8 @@ bool OutputParser::readABatch() {
    int bucketIndex ; 
    int count = 0;
    string line;
+
+   this->inputbuffer.clear();
 
    while( std::getline(this->input, line ).good()) {
       this->inputbuffer.push_back(line); 

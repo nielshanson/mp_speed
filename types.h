@@ -11,9 +11,7 @@ typedef struct _GLOBAL_PARAMS {
 
 
 typedef struct _THREAD_DATA {
-
-
-
+   vector<string>  lines;
 
 } THREAD_DATA;
 

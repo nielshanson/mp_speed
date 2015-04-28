@@ -174,6 +174,7 @@ string to_string(unsigned long i) {
 
 
 char BUFFER[1000];
+
 string ShortenORFId(const string &s, regex_t *r) {
     const char * p = s.c_str();
     char *buf = BUFFER;
@@ -192,6 +193,47 @@ string ShortenORFId(const string &s, regex_t *r) {
     *buf = '\0';
     return string(BUFFER);
 }
+
+string ShortenORFId(const string &s) {
+
+    const char * p = s.c_str();
+    char BUFFER[200];
+    strcpy(BUFFER, p);
+
+    char *c;
+    
+    c = BUFFER ;
+
+    c = c + strlen(BUFFER)-1;
+
+    unsigned int S =0;
+
+    while( c >= BUFFER ) {
+        if(S==0) {
+            if( isdigit(*c) || *c=='_') {
+                if( *c=='_') S++;
+            }
+            else{ 
+               return string(BUFFER);
+            }
+        }
+        else if(S==1) {
+            if( isdigit(*c)) 
+               S++;
+            else
+               return string(BUFFER);
+        }
+        else {
+            if( !isdigit(*c) ) {
+               break; 
+            }
+        }
+        c--;
+    }
+
+    return string(c+1);
+}
+
 
 
 int compile_regex(regex_t * r, const char * regex_text)
