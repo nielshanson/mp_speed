@@ -10,6 +10,13 @@ typedef struct _GLOBAL_PARAMS {
 } GLOBAL_PARAMS;
 
 
+typedef struct _THREAD_DATA {
+
+
+
+
+} THREAD_DATA;
+
 #endif //__RPKM_TYPE
 
 

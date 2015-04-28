@@ -24,6 +24,9 @@ private:
         float Lambda;
 
         int i;
+        int BATCH_SIZE; 
+        regex_t *r ;
+        const char * regex_text;
 /*
         self.hits_counts = {}
         self.data = {}
@@ -33,6 +36,7 @@ private:
         map<std::string, bool> query_dictionary;
         map<std::string, unsigned int> refBitScores;
         map<std::string, std::string> annot_map;
+        vector<string> inputbuffer;
 
 
 public:
@@ -46,6 +50,10 @@ public:
       void create_query_dictionary();
       void create_annotation_dictionary();
       void create_refBitScores();
+      bool readABatch();
+      void closeBatchReading();
+      void initializeBatchReading();
+      void distributeInput(THREAD_DATA *thread_data);
 
 };
 

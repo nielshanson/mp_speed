@@ -19,6 +19,7 @@ void Options::print_usage(char *arg) {
              << "      : --limit              <limit>        [OPTIONAL, deafult 5]\n"\
              << "      : --lambda             <lambda>       [OPTIONAL]\n"\
              << "      : --k                  <k>            [OPTIONAL]\n"\
+             << "      : --num_threads        <t>            [OPTIONAL, default 1]\n"\
              << std::endl;
 }
 
@@ -53,6 +54,9 @@ bool Options::SetOptions(int argc, char *argv[]) {
        }
        else if( strncmp(argv[i], "--min_length", strlen("--min_length")) == 0 ) {   
           this->min_length = atoi(argv[++i]);
+       }
+       else if( strncmp(argv[i], "--num_threads", strlen("--num_threads")) == 0 ) {   
+          this->num_threads = atoi(argv[++i]);
        }
        else if( strncmp(argv[i], "--min_identity", strlen("--min_identity")) == 0 ) {   
           this->min_identity = atof( argv[++i]);
@@ -169,8 +173,8 @@ string to_string(unsigned long i) {
 }
 
 
+char BUFFER[1000];
 string ShortenORFId(const string &s, regex_t *r) {
-    char BUFFER[1000];
     const char * p = s.c_str();
     char *buf = BUFFER;
     regmatch_t m[1];
@@ -186,7 +190,6 @@ string ShortenORFId(const string &s, regex_t *r) {
       buf++;  p++;
     }
     *buf = '\0';
-    std::cout << BUFFER << std::endl;
     return string(BUFFER);
 }
 
@@ -203,3 +206,68 @@ int compile_regex(regex_t * r, const char * regex_text)
     }
     return 0;
 }
+
+
+int hashIntoBucket(const char *str, unsigned int index) {
+    int hashValue = 0;
+    char buffer[1000];
+
+    char *first, *second;
+    first  = buffer;
+
+    char *x = buffer;
+    const char *p =str; 
+    
+    // Extract contig id and orf_id from string
+    while( *p != '\0') {
+      if( *p=='_' ) {
+         *x = '\0';
+         second = x +1;
+      }
+      else 
+         *x = *p;
+
+      p++; 
+      x++;
+    }
+    *x = '\0';
+
+    //std::cout << str <<  "  " << first << "  " << second << std::endl;
+    
+    // Find the longer of the two ids
+    char *dest, *destfixed,  *src; 
+    dest = first;
+    src = second;
+    int lenextra = strlen(second) - strlen(first);
+    if( lenextra > 0)  {
+      dest = second;
+      src = first;
+    }
+    else
+        lenextra = -lenextra;
+
+    destfixed = dest; // always remember the initial point of longer
+
+    dest = dest + lenextra; // move to aligned position
+    
+    // XOR aligned bits of source and destination starting at aligned position
+    while(*src != '\0') {
+       *dest = (*dest ) ^ (*src);
+       dest++; src++;
+    }
+    
+    // feed into uniform hasing algorithm
+    while( *destfixed != '\0') {
+       //hashValue = (hashValue << 4) + (unsigned int)(*destfixed);
+       hashValue = hashValue + (unsigned int)(*destfixed);
+/*
+       int hiBits = hashValue  & 0xF0000000;
+       if(hiBits!=0) 
+          hashValue ^= hiBits>> 24; 
+       hashValue &= ~hiBits;
+*/
+       destfixed++;
+    }   
+    return hashValue%index;
+}
+

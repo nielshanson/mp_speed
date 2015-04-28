@@ -24,6 +24,7 @@ struct Options {
     float min_bsr;
     float max_evalue;
     float lambda, k;
+    unsigned int num_threads;
     unsigned int min_length;
     float min_identity;
     unsigned int limit;
@@ -54,6 +55,7 @@ struct Options {
        min_identity = 30;
        limit = 5;
        lambda = -1;
+       num_threads = 1;
        k = -1;
     };
     
@@ -91,5 +93,7 @@ string ShortenORFId(const string &s, regex_t *r);
 
 #define MAX_ERROR_MSG 0x1000
 int compile_regex (regex_t * r, const char * regex_text);
+
+int hashIntoBucket(const char *str, unsigned int index);
 #endif //_UTILITIES
 

@@ -10,8 +10,17 @@ OutputParser::OutputParser(const Options &options, const GLOBAL_PARAMS &params){
     this->params = params;
     this->ln2 =  0.69314718055994530941;
     this->lnk = log(params.k);
+    this->BATCH_SIZE = options.num_threads*10000;
+
+    this->r = new regex_t;
+    this->regex_text = "([[:digit:]]+[_][[:digit:]]+)$";
+    compile_regex(r, regex_text);
 
 }
+
+
+
+
 
 
 void OutputParser::initialize() {
@@ -19,7 +28,7 @@ void OutputParser::initialize() {
     std::cout << "done  create query " << std::endl;
 //    this->create_annotation_dictionary();
     std::cout << "done  create dciotnary query " << std::endl;
-    this->create_refBitScores() ;
+//    this->create_refBitScores() ;
     std::cout << "done  refscore " << std::endl;
 
 }
@@ -46,8 +55,6 @@ void OutputParser::create_query_dictionary() {
    }   
        
    this->input.close();
-
-
 }
 
 
@@ -91,11 +98,6 @@ void OutputParser::create_annotation_dictionary(){
 
 }
 void OutputParser::create_refBitScores() {
-   regex_t *r = new regex_t;
-
-   const char * regex_text = "([[:digit:]]+[_][[:digit:]]+)$";
-
-   compile_regex(r, regex_text);
 
    string filename  = options.refscore_file;
    this->input.open(filename.c_str(), std::ifstream::in);
@@ -104,7 +106,6 @@ void OutputParser::create_refBitScores() {
          return ;
    }
 
-   
    int count =0;
    string line;
    string orfid;
@@ -117,11 +118,71 @@ void OutputParser::create_refBitScores() {
          std::cout << "x" << count << std::endl;
       count++;
    }   
+   this->input.close();
        
 };
 
 
-OutputParser::~OutputParser() {
+void  OutputParser::closeBatchReading() {
+   this->input.close();
 
+   return ;
+}
+
+
+void  OutputParser::initializeBatchReading() {
+   string filename  = options.input_blastout;
+   this->input.open(filename.c_str(), std::ifstream::in);
+   if(!this->input.good()){
+          std::cerr << "Error opening '"<< filename <<"'. Bailing out." << std::endl;
+         return ;
+   }
+
+   return ;
+
+}
+
+void OutputParser::distributeInput(THREAD_DATA *thread_data) {
+    string orfid;
+    vector<string>::iterator it;
+    int bucketIndex;
+
+    int *counts  = (int *)calloc(options.num_threads, sizeof(int));
+
+    for(it = this->inputbuffer.begin(); it != this->inputbuffer.end(); it++) {
+      split(*it, fields, this->buf,'\t');
+      if( fields.size()!=12) continue;
+      orfid = ShortenORFId(fields[0], r) ;
+      bucketIndex = hashIntoBucket(orfid.c_str(), options.num_threads); 
+     // std::cout << bucketIndex <<std::endl;
+      counts[bucketIndex]++;
+    }
+    std::cout << "done " << std::endl;
+    for( int i =0; i < options.num_threads; i++) 
+       std::cout << i << "  "<< counts[i] << std::endl;
+
+
+}
+bool OutputParser::readABatch() {
+   int bucketIndex ; 
+   int count = 0;
+   string line;
+
+   while( std::getline(this->input, line ).good()) {
+      this->inputbuffer.push_back(line); 
+
+      count++;
+      if(count > this->BATCH_SIZE - 1) { return true;}
+
+      if(count %10000==0) 
+        std::cout << count << std::endl;
+   }
+
+   if(count>0) return true; 
+
+   return false;
+}
+
+OutputParser::~OutputParser() {
 
 }
