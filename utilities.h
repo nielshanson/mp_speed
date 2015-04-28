@@ -7,6 +7,7 @@
 #include <vector>
 #include <string.h>
 #include <stdlib.h>
+#include <regex.h>
 
 using namespace std;
 
@@ -86,5 +87,9 @@ std::string extract_sequence_name(const std::string &name);
 
 string to_string(unsigned long i);
 
+string ShortenORFId(const string &s, regex_t *r);
+
+#define MAX_ERROR_MSG 0x1000
+int compile_regex (regex_t * r, const char * regex_text);
 #endif //_UTILITIES
 

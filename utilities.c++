@@ -167,3 +167,39 @@ string to_string(unsigned long i) {
 
     return string(c);
 }
+
+
+string ShortenORFId(const string &s, regex_t *r) {
+    char BUFFER[1000];
+    const char * p = s.c_str();
+    char *buf = BUFFER;
+    regmatch_t m[1];
+    int nomatch = regexec(r, p, 1, m, 0);
+    if (nomatch) {
+        return s;
+    }
+    p += m[0].rm_so;
+    int d = m[0].rm_eo - m[0].rm_so;
+    while( d > 0) {
+      *buf = *p;
+      d--;
+      buf++;  p++;
+    }
+    *buf = '\0';
+    std::cout << BUFFER << std::endl;
+    return string(BUFFER);
+}
+
+
+int compile_regex(regex_t * r, const char * regex_text)
+{
+    int status = regcomp(r, regex_text, REG_EXTENDED|REG_NEWLINE);
+    if (status != 0) {
+    char error_message[MAX_ERROR_MSG];
+    regerror (status, r, error_message, MAX_ERROR_MSG);
+        printf ("Regex error compiling '%s': %s\n",
+                 regex_text, error_message);
+        return 1;
+    }
+    return 0;
+}

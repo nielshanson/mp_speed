@@ -6,6 +6,7 @@
 #include <fstream>
 #include <math.h>
 #include <map>
+#include <regex.h>
 #include "utilities.h"
 #include "types.h"
 

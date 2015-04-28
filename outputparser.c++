@@ -15,9 +15,9 @@ OutputParser::OutputParser(const Options &options, const GLOBAL_PARAMS &params){
 
 
 void OutputParser::initialize() {
-    this->create_query_dictionary();
+ //   this->create_query_dictionary();
     std::cout << "done  create query " << std::endl;
-    this->create_annotation_dictionary();
+//    this->create_annotation_dictionary();
     std::cout << "done  create dciotnary query " << std::endl;
     this->create_refBitScores() ;
     std::cout << "done  refscore " << std::endl;
@@ -80,7 +80,7 @@ void OutputParser::create_annotation_dictionary(){
 
       annot_map[name] = annotation;
       if (count%1000000==0) 
-       std::cout << count << std::endl;
+         std::cout << count << std::endl;
       count++;
    }   
        
@@ -91,6 +91,11 @@ void OutputParser::create_annotation_dictionary(){
 
 }
 void OutputParser::create_refBitScores() {
+   regex_t *r = new regex_t;
+
+   const char * regex_text = "([[:digit:]]+[_][[:digit:]]+)$";
+
+   compile_regex(r, regex_text);
 
    string filename  = options.refscore_file;
    this->input.open(filename.c_str(), std::ifstream::in);
@@ -99,19 +104,20 @@ void OutputParser::create_refBitScores() {
          return ;
    }
 
+   
    int count =0;
    string line;
+   string orfid;
    while( std::getline(this->input, line ).good()) {
       split(line, fields, this->buf,'\t');
       if( fields.size()!=2) continue;
-      refBitScores[fields[0]] = int((params.lambda*float(atof(fields[1])) - this->lnk )/this->ln2);
+      orfid = ShortenORFId(fields[0], r) ;
+      refBitScores[orfid] = int((params.lambda*float(atof(fields[1])) - this->lnk )/this->ln2);
       if (count%1000000==0) 
-         std::cout << count << std::endl;
+         std::cout << "x" << count << std::endl;
       count++;
    }   
        
-
-
 };
 
 
