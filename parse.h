@@ -4,6 +4,7 @@
 #include <algorithm>
 #include <vector>
 #include "utilities.h"
+#include "types.h"
 #include "process_blastoutput.h"
 
 #endif 

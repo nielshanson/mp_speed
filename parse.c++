@@ -6,14 +6,8 @@
 
 using namespace std;
 
-typedef struct _GLOBAL_PARAMS {
-   float lambda;
-   float k;
-} GLOBAL_PARAMS;
-
 
 GLOBAL_PARAMS params;
-
 
 int main( int argc, char **argv ){
     // parse options
@@ -37,7 +31,7 @@ int main( int argc, char **argv ){
       }
     }
 
-    process_blastoutput(options);
+    process_blastoutput(options, params);
     //options.print_options();
 
 } 
