@@ -23,6 +23,7 @@ void *compute_refscores( void *_data) {
 
 bool isWithinCutoffs(const string &orfid, const vector<char *> &fields, BLASTOUT_DATA &data, THREAD_DATA *thread_data) {
 
+  
   try{
      data.query = orfid; 
      data.target = fields[1];
@@ -37,10 +38,27 @@ bool isWithinCutoffs(const string &orfid, const vector<char *> &fields, BLASTOUT
      else
         data.product= "hypothetical protein";
 
+     data.ec = getECNo(data.product.c_str(), 3);
+     //std::cout << data.product << std::endl;
+    // std::cout << "<<" << data.ec  << ">>"  << std::endl;
+
+
+//    std::cout << "passed 0" << std::endl;  
+    if(data.q_length < thread_data->options.min_length) return false;
+    if(data.bitscore < thread_data->options.min_score) return false;
+ //   std::cout << "passed 1" << std::endl;  
+  //  std::cout <<  data.expect << "   " <<  thread_data->options.max_evalue << std::endl;
+    if(data.expect > thread_data->options.max_evalue) return false;
+   // std::cout << "passed 2" << std::endl;  
+    if(data.identity < thread_data->options.min_identity) return false;
+    if(data.bsr < thread_data->options.min_bsr) return false;
+
    }
+
    catch(...) {
       return false;
    }
+   
    return true;
 }
 
@@ -55,7 +73,6 @@ void *process_lines( void *_data) {
     map<string, unsigned int> hit_counts;
     BLASTOUT_DATA blastout_data;
 
-    std::cout << "Processing lines in buffer " << data->b << std::endl;
     int work =0;
     for(it = data->lines.begin(); it != data->lines.end(); it++) {
        split(*it, fields, buf,'\t');
@@ -69,6 +86,7 @@ void *process_lines( void *_data) {
            continue;
 
        blastout_data.setDefault();
+
        if( !isWithinCutoffs(orfid,  fields, blastout_data, data ))
          continue;
 
@@ -121,7 +139,8 @@ void create_threads_parse(int num_threads, THREAD_DATA *thread_data, WRITER_DATA
     }
     int rc;
 
-     std::cout << " create threads \n";
+    std::cout << "Number of threads created to process lines " << num_threads << std::endl;
+
     for(int i = 0; i < num_threads; i++) {
        if((rc = pthread_create(&threads[i], NULL, process_lines, (void *)(thread_data+i)))) {
          cout << "Error:unable to create thread," << rc << endl;
@@ -168,8 +187,12 @@ void process_blastoutput(const Options& options, const GLOBAL_PARAMS &params) {
         thread_data[i].options = options;
     }
 
+    std::cout << "Read  annotation map \n";
+    parser.create_annotation_dictionary(annot_map);
+    
     std::cout << "Reading  refscores \n";
     parser.create_refBitScores(thread_data);
+
     
     std::cout << "Computing refscores \n";
     create_threads_refscores(options.num_threads, thread_data);
@@ -187,17 +210,13 @@ void process_blastoutput(const Options& options, const GLOBAL_PARAMS &params) {
     writer_data->num_threads = options.num_threads;
 
     while(parser.readABatch()) {  // main loop
-       std::cout << "Distributing input \n";
        parser.distributeInput(thread_data);
-
-       std::cout << "Creating Threads \n";
-       create_threads_parse(options.num_threads, thread_data, writer_data);
 
        for(unsigned int i = 0; i < options.num_threads; i++) 
          thread_data[i].b = b;
 
+       create_threads_parse(options.num_threads, thread_data, writer_data);
        b = (b+1)%2;
-   
     } 
 
     for(unsigned int i = 0; i < options.num_threads; i++) 
@@ -222,7 +241,7 @@ void *write_results(void *_writer_data ) {
     vector< BLASTOUT_DATA >::iterator it;
     for(unsigned int i = 0; i < num_threads; i++) {
        b =  (thread_data[i].b+1)%2;
-       std::cout << "Writing results from thread " << i << " buffer " << b << std::endl;
+    //   std::cout << "Writing results from thread " << i << " buffer " << b << std::endl;
        for(it = thread_data[i].output[b].begin(); it != thread_data[i].output[b].end(); it++) {
            writer_data->output << it->query << "\t" <<  it->target << "\t" << it->q_length\
                   <<"\t" <<it->bitscore << "\t" << it->bsr <<"\t" << it->expect\

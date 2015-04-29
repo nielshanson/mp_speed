@@ -2,7 +2,8 @@
 
 
 using namespace std;
-
+#define PRINT_INTERVAL 5000000
+#define BATCH_SIZE_PER_CORE 1000000
 
 
 OutputParser::OutputParser(const Options &options, const GLOBAL_PARAMS &params){
@@ -10,7 +11,7 @@ OutputParser::OutputParser(const Options &options, const GLOBAL_PARAMS &params){
     this->params = params;
     this->ln2 =  0.69314718055994530941;
     this->lnk = log(params.k);
-    this->BATCH_SIZE = options.num_threads*1000000;
+    this->BATCH_SIZE = options.num_threads*BATCH_SIZE_PER_CORE;
 
     this->r = new regex_t;
     this->regex_text = "([[:digit:]]+[_][[:digit:]]+)$";
@@ -21,22 +22,17 @@ OutputParser::OutputParser(const Options &options, const GLOBAL_PARAMS &params){
 
 
 
-
-
 void OutputParser::initialize() {
- //   this->create_query_dictionary();
-    std::cout << "done  create query " << std::endl;
-//    this->create_annotation_dictionary();
-    std::cout << "done  create dciotnary query " << std::endl;
-//    this->create_refBitScores() ;
-    std::cout << "done  refscore " << std::endl;
-
+    std::cout << "Reading the query names " << std::endl;
+    this->create_query_dictionary();
+    std::cout <<  "Collected " << query_dictionary.size() << " unique  queries" << std::endl;
 }
 
 
 
 void OutputParser::create_query_dictionary() {
    string filename  = options.input_blastout;
+   std::cout << "Filename : "  << filename <<  std::endl;
    this->input.open(filename.c_str(), std::ifstream::in);
    if(!this->input.good()){
           std::cerr << "Error opening '"<< filename <<"'. Bailing out." << std::endl;
@@ -49,20 +45,23 @@ void OutputParser::create_query_dictionary() {
       split(line, fields, this->buf,'\t');
       if( fields.size()!= 12) continue;
       query_dictionary[fields[1]] = true;
-      if (count%1000000==0) 
+      if (count%PRINT_INTERVAL==0) 
        std::cout << count << std::endl;
       count++;
    }   
        
    this->input.close();
+   std::cout <<  "Read " << count << " lines" << std::endl;
 }
 
 
 
 
-void OutputParser::create_annotation_dictionary( map<string, string> &annot_map ){
+void OutputParser::create_annotation_dictionary( map<string, string> *annot_map ){
 
    string filename  = options.database_map;
+   std::cout << "Reading annotation dictionary " <<  std::endl;
+   std::cout << "File Name " <<  filename << std::endl;
    this->input.open(filename.c_str(), std::ifstream::in);
    if(!this->input.good()){
           std::cerr << "Error opening '"<< filename <<"'. Bailing out." << std::endl;
@@ -75,22 +74,33 @@ void OutputParser::create_annotation_dictionary( map<string, string> &annot_map 
 
    while( std::getline(this->input, line ).good()) {
 
+  //    std::cout << line << std::endl;
+
       if( line.size()==0 or  line[0]!='>') continue;
 
-      split(line, fields, this->buf,'\t');
-      name = (fields[0] +1);
+      split_seq_name(line, fields, this->buf);
+
+      name = (fields[0]);
+
+    //  std::cout << name << std::endl;
+      //std::cout << fields[1] << std::endl;
 
       if( fields.size()< 2) 
         annotation = "hypothetical protein";
       else
         annotation = string(fields[1]);
 
-      annot_map[name] = annotation;
-      if (count%1000000==0) 
+      if( query_dictionary.find(name) != query_dictionary.end() )
+         annot_map->insert(std::make_pair(name,annotation));
+
+      if (count%PRINT_INTERVAL==0) 
          std::cout << count << std::endl;
       count++;
    }   
        
+   std::cout << "Number of annotatons scanned " << count << std::endl;
+   std::cout << "Number of annotation loaded " <<  annot_map->size() << std::endl;
+
    this->input.close();
 
 
@@ -100,6 +110,9 @@ void OutputParser::create_annotation_dictionary( map<string, string> &annot_map 
 void OutputParser::create_refBitScores(THREAD_DATA *thread_data) {
 
    string filename  = options.refscore_file;
+     
+   std::cout << "Reading refscores " <<  std::endl;
+   std::cout << "Filename " << filename << "\n";
    this->input.open(filename.c_str(), std::ifstream::in);
    if(!this->input.good()){
           std::cerr << "Error opening '"<< filename <<"'. Bailing out." << std::endl;
@@ -120,7 +133,7 @@ void OutputParser::create_refBitScores(THREAD_DATA *thread_data) {
       //refBitScores[orfid] = int((params.lambda*float(atof(fields[1])) - this->lnk )/this->ln2);
 
       counts[bucketIndex]++;
-      if (count%1000000==0) 
+      if (count%PRINT_INTERVAL==0) 
          std::cout << "x " << count << std::endl;
       count++;
    }   
@@ -133,6 +146,7 @@ void OutputParser::create_refBitScores(THREAD_DATA *thread_data) {
        thread_data->lambda = params.lambda;
    }
 
+   std::cout << "Number of refscores loaded " <<  count << std::endl;
 /*
    std::cout << "done " << std::endl;
    for( int i =0; i < options.num_threads; i++) 
@@ -189,7 +203,6 @@ void OutputParser::distributeInput(THREAD_DATA *thread_data) {
     }
 
 
-
 /*
     std::cout << "done " << std::endl;
     for( int i =0; i < options.num_threads; i++) 
@@ -212,7 +225,7 @@ bool OutputParser::readABatch() {
       count++;
       if(count > this->BATCH_SIZE - 1) { return true;}
 
-      if(count %1000000==0) 
+      if(count %PRINT_INTERVAL==0) 
         std::cout << count << std::endl;
    }
 

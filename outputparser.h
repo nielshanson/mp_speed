@@ -47,7 +47,7 @@ public:
       OutputParser(const Options &options, const GLOBAL_PARAMS &params);
       ~OutputParser();
       void create_query_dictionary();
-      void create_annotation_dictionary(map<string, string> & annot_map);
+      void create_annotation_dictionary(map<string, string> * annot_map);
       void create_refBitScores(THREAD_DATA *thread_data);
       bool readABatch();
       void closeBatchReading();
