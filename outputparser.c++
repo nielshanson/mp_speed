@@ -60,7 +60,7 @@ void OutputParser::create_query_dictionary() {
 
 
 
-void OutputParser::create_annotation_dictionary(){
+void OutputParser::create_annotation_dictionary( map<string, string> &annot_map ){
 
    string filename  = options.database_map;
    this->input.open(filename.c_str(), std::ifstream::in);
@@ -97,7 +97,7 @@ void OutputParser::create_annotation_dictionary(){
 
 
 }
-void OutputParser::create_refBitScores() {
+void OutputParser::create_refBitScores(THREAD_DATA *thread_data) {
 
    string filename  = options.refscore_file;
    this->input.open(filename.c_str(), std::ifstream::in);
@@ -106,20 +106,41 @@ void OutputParser::create_refBitScores() {
          return ;
    }
 
-   int count =0;
+   int count =0, bucketIndex;
+
+   int *counts  = (int *)calloc(options.num_threads, sizeof(int));
    string line;
    string orfid;
    while( std::getline(this->input, line ).good()) {
       split(line, fields, this->buf,'\t');
       if( fields.size()!=2) continue;
       orfid = ShortenORFId(fields[0]) ;
-   //   std::cout << orfid << "\n";
-      refBitScores[orfid] = int((params.lambda*float(atof(fields[1])) - this->lnk )/this->ln2);
+      bucketIndex = hashIntoBucket(orfid.c_str(), options.num_threads); 
+      thread_data[bucketIndex].refscorePairs.push_back( std::make_pair<string, string>(orfid, fields[1]));
+      //refBitScores[orfid] = int((params.lambda*float(atof(fields[1])) - this->lnk )/this->ln2);
+
+      counts[bucketIndex]++;
       if (count%1000000==0) 
          std::cout << "x " << count << std::endl;
       count++;
    }   
    this->input.close();
+
+
+   for(unsigned int i =0; i < options.num_threads; i++)  {
+       thread_data->ln2 = this->ln2;
+       thread_data->lnk = this->lnk;
+       thread_data->lambda = params.lambda;
+   }
+
+/*
+   std::cout << "done " << std::endl;
+   for( int i =0; i < options.num_threads; i++) 
+      std::cout << i << "  "<< counts[i] << std::endl;
+*/
+    
+
+
        
 };
 
@@ -149,8 +170,8 @@ void OutputParser::distributeInput(THREAD_DATA *thread_data) {
     int bucketIndex;
 
 
-    for(int i=0; i< options.num_threads; i++) {
-      thread_data[bucketIndex].lines.clear();
+    for(unsigned int i=0; i< options.num_threads; i++) {
+      thread_data[i].lines.clear();
     }
 
     int *counts  = (int *)calloc(options.num_threads, sizeof(int));
@@ -178,6 +199,7 @@ void OutputParser::distributeInput(THREAD_DATA *thread_data) {
 
 }
 bool OutputParser::readABatch() {
+   std::cout << "Reading a new batch\n";
    int bucketIndex ; 
    int count = 0;
    string line;
@@ -190,7 +212,7 @@ bool OutputParser::readABatch() {
       count++;
       if(count > this->BATCH_SIZE - 1) { return true;}
 
-      if(count %10000==0) 
+      if(count %1000000==0) 
         std::cout << count << std::endl;
    }
 

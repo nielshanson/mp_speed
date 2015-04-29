@@ -2,6 +2,8 @@
 #define _PARSE_BLASTOUTPUT
 #include <pthread.h>
 #include <stdio.h>
+#include <fstream>
+
 
 #include "utilities.h"
 #include "types.h"
