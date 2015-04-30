@@ -64,20 +64,19 @@ int processParsedBlastout(string db_name, float weight, string blastoutput, MPAn
     if (options.debug) cout << "In processParsedBlastout()" << endl;
 
     // Inputs
-    string filename = blastoutput; // BLAST/LASTout.parsed.txt
+    string filename = options.blast_dir + "/" + blastoutput; // BLAST/LASTout.parsed.txt
     std::ifstream input; // input filestream
-    char buf[1000]; // buffer
+    char buf[10000]; // buffer
     vector <char *> fields; // vector for parsed fields
     int count = 0; // line count
 
     if (options.debug) {
-        cout << "Reading ParsedBlastout: " <<  endl;
-        cout << " Filename: " << filename << "\n";
+        cout << "Reading ParsedBlastout: " << filename << "\n";
     }
 
     input.open(filename.c_str(), std::ifstream::in);
     if(!input.good()){
-        std::cerr << "Error opening '"<< filename <<"'. Bailing out." << std::endl;
+        std::cerr << "Error opening '" << filename << "'. Bailing out." << std::endl;
         exit(1);
     }
 
@@ -88,26 +87,23 @@ int processParsedBlastout(string db_name, float weight, string blastoutput, MPAn
 
     while( std::getline(input, line ).good()) {
         split(line, fields, buf,'\t');
-        if( fields.size()!=12) {
-            // not a blast file
+        if( fields.size()!=10) {
+            // Not a parsed blast file
+            cerr << "Parsed BLAST/LASTout file " <<  filename << " did not have the 10 columns." << endl;
             query_id.clear();
             input.close();
-            continue;
+            return 1;
         }
         query_id = fields[0];
-
-
-
 
         if (count%PRINT_INTERVAL==0)
             std::cout << "x " << count << std::endl;
         count++;
     }
+    cout << "Made it to the end..." << endl;
     input.close();
 
-
-
-    std::cout << "Number of contig lengths loaded " <<  count << std::endl;
+    std::cout << "Number of parsed BLAST/LAST results loaded " <<  count << std::endl;
 }
 
 /*

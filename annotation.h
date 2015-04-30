@@ -24,4 +24,6 @@ int getBlastFileNames(string blastdir, string sample_name, DB_INFO &db_info);
 
 int processParsedBlastout(string db_name, float weight, string blastoutput, MPAnnotateOptions options, map<string, ANNOTATION> annotation_results);
 
+
+
 #endif //MP_SPEED_ANNOTATION_H

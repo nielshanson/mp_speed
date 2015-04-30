@@ -15,7 +15,7 @@ int main( int argc, char** argv) {
         exit(1);
     }
 
-    if (options.debug) cout << "mp_annotate:\n" << endl;
+    if (options.debug) { cout << "Beginning of MPAnnotate():" << endl;}
 
     if (options.debug) {
         options.printOptions();
@@ -50,8 +50,12 @@ int main( int argc, char** argv) {
     const unsigned int priority = 6000;
 
     // Process parsed blastout for each dbname, blastoutput, and weight
-    for (int i =0; i < db_info.input_blastouts.size(); i++ ){
-        int count = processParsedBlastout( db_info.db_names[i], db_info.weight_dbs[i], db_info.input_blastouts[i], options, results_dictionary[db_info.db_names[i]] );
+    for (int i=0; i < db_info.input_blastouts.size(); i++ ) {
+        int count = processParsedBlastout( db_info.db_names[i],
+                                           db_info.weight_dbs[i],
+                                           db_info.input_blastouts[i],
+                                           options,
+                                           results_dictionary[db_info.db_names[i]] );
     }
 
 
@@ -72,8 +76,7 @@ int main( int argc, char** argv) {
 
 
 
-
-    cout << "Hello from MPAnnotate" << endl;
+    if (options.debug) { cout << "End of MPAnnotate()" << endl;}
 
 }
 
