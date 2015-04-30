@@ -109,8 +109,6 @@ bool Options::check_arguments(){
     return true;
 }
 
-
-
 void Options::print_options() {
 }
 

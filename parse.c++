@@ -6,15 +6,17 @@
 
 using namespace std;
 
-
 GLOBAL_PARAMS params;
 
 int main( int argc, char **argv ){
-    // parse options
+    // Parse options
     Options options;
-   // if (argc < 9) { options.print_usage(argv[0]); exit(1); }
-    if (options.SetOptions(argc, argv)==false) { options.print_usage(argv[0]); exit(0); }
-    if( !options.check_arguments()) return 0;
+    // if (argc < 9) { options.print_usage(argv[0]); exit(1); }
+    if (options.SetOptions(argc, argv)==false) {
+        // Something went wrong in arguments, print usage
+        options.print_usage(argv[0]); exit(0);
+    }
+    if( !options.check_arguments() ) return 0;
 
 
     params.lambda = options.lambda; 

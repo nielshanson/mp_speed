@@ -52,7 +52,7 @@ bool matchString(const string &str, const string & stringtomatch, bool fromstart
     unsigned long pos = str.find(stringtomatch);
     if(fromstart &&  pos ==0 ) return true;
 
-    if( !fromstart && pos >= 0) return true;
+    if( !fromstart && pos > 0) return true;
     return false;
 
 }
@@ -73,7 +73,8 @@ string to_string(unsigned long i) {
            j = i%10;
            i = (i - j)/10;
            *p =  z + j;
-           *p++;
+           p++;
+           //*p++;
         }
     }
     *p = '\0';
