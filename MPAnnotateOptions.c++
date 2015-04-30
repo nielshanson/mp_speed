@@ -52,6 +52,9 @@ bool MPAnnotateOptions::SetOptions(int argc, char *argv[]) {
         else if( strncmp(argv[i], "--num_threads", strlen("--num_threads")) == 0 ) {
             this->input_gff = atoi(argv[++i]);
         }
+        else if( strncmp(argv[i], "--debug", strlen("--debug")) == 0 ) {
+            this->debug = true;
+        }
         else {
             cout << "ERROR: Cannot recognize argument " << argv[i] << std::endl;;
             return false;
@@ -62,10 +65,37 @@ bool MPAnnotateOptions::SetOptions(int argc, char *argv[]) {
 
 };
 
+
+/*
+ * Print current options
+ */
+
+void MPAnnotateOptions::printOptions() {
+    cout << "CURRENT OPTIONS:\n"\
+         << "---------------\n"
+         << "input_blastout:    " <<  input_blastout << "\n"\
+         << "algorithm:         " <<  algorithm << "\n"\
+         << "contig_map_file:   " <<  contig_map_file << "\n"\
+         << "database_name:     " <<  database_name << "\n"\
+         << "blast_dir:         " <<  blast_dir << "\n"\
+         << "rRNA_16S:          " <<  rRNA_16S  << "\n"\
+         << "tRNA:              " <<  tRNA << "\n"\
+         << "sample_name:       " <<  sample_name << "\n"\
+         << "taxonomy:          " <<  taxonomy << "\n"\
+         << "output_gff:        " <<  output_gff << "\n"\
+         << "output_comp_annot: " <<  output_comp_annot << "\n"\
+         << "input_gff:         " <<  input_gff << "\n"\
+         << "num_threads:       " <<  num_threads << "\n"\
+         << "weight_db:         " <<  weight_db << "\n"\
+         << "debug:             " <<  debug << "\n"
+         << "---------------\n\n";
+    
+}
+
 /*
  * Print usage information.
  */
-void MPAnnotateOptions::print_usage(char *arg) {
+void MPAnnotateOptions::printUsage(char *arg) {
     std::cout << "USAGE : "   << arg <<"\n"\
               << "      : -b  <blastoutput>                                               [REQUIRED]\n"\
               << "      : -d  <database name>                                             [REQUIRED]\n"\

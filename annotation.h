@@ -11,6 +11,7 @@
 #include <string>
 #include <iostream>
 #include <vector>
+#include <dirent.h>
 #include "utilities.h"
 #include "types.h"
 #include "MPAnnotateOptions.h"
@@ -19,7 +20,7 @@ using namespace std;
 
 void readContigLengths(string contig_map_file, map<string, unsigned int> &contig_lengths);
 
-void getBlastFileNames(const MPAnnotateOptions &options, DB_INFO &db_info);
+int getBlastFileNames(string blastdir, string sample_name, DB_INFO &db_info);
 
 int processParsedBlastout(string db_name, float weight, string blastoutput, MPAnnotateOptions options, map<string, ANNOTATION> annotation_results);
 

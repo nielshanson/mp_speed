@@ -37,6 +37,9 @@ struct MPAnnotateOptions {
     // Threading options
     unsigned int num_threads;
 
+    // DEBUG options
+    bool debug;
+
     // Constructor with default settings
     MPAnnotateOptions() {
         input_blastout = "";
@@ -53,9 +56,11 @@ struct MPAnnotateOptions {
         input_gff = "";
         num_threads = 1;
         weight_db = 1.0;
+        debug = false;
     };
 
-    void print_usage(char *arg);
+    void printUsage(char *arg);
+    void printOptions();
 
     // bool CheckArguments();
     bool SetOptions(int argc, char *argv[]);

@@ -146,9 +146,7 @@ string ShortenORFId(const string &s) {
 }
 
 
-
-int compile_regex(regex_t * r, const char * regex_text)
-{
+int compile_regex(regex_t * r, const char * regex_text) {
     int status = regcomp(r, regex_text, REG_EXTENDED|REG_NEWLINE);
     if (status != 0) {
     char error_message[MAX_ERROR_MSG];
@@ -160,6 +158,24 @@ int compile_regex(regex_t * r, const char * regex_text)
     return 0;
 }
 
+string getpattern(regex_t *r , const char *to_match, unsigned int no ) {
+    /* "P" is a pointer into the string which points to the end of the previous match. */
+    const char * p = to_match;
+    /* "N_matches" is the maximum number of matches allowed. */ /* "M" contains the matches found. */
+    regmatch_t m[100];
+    char buf[1000];
+    int i = no;
+    int nomatch = regexec(r, p, no+1, m, 0);
+    if (nomatch)  return string();
+    int start;
+    int finish;
+    if (m[i].rm_so == -1) return string();
+    start = m[i].rm_so + (p - to_match);
+    finish = m[i].rm_eo + (p - to_match);
+    memcpy(buf, to_match+ start, finish-start);
+    buf[finish-start]='\0';
+    return string(buf);
+}
 
 int hashIntoBucket(const char *str, unsigned int index) {
     int hashValue = 0;

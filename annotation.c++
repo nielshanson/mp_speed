@@ -59,30 +59,9 @@ void readContigLengths(string file, map<string, unsigned int> &contig_lengths) {
 
 }
 
-void getBlastFileNames(const MPAnnotateOptions &options, DB_INFO &db_info) {
-    // Get blastout files from BlastDB directory
-
-    //TODO: Kishori to write
-    // Load dummy annotation results results
-    db_info.db_names.push_back("metacyc-v4-2011-07-03");
-    db_info.db_names.push_back("COG_2013-12-27");
-    db_info.db_names.push_back("CAZY_2014_09_04");
-
-    db_info.input_blastouts.push_back("data/mp_output/hmp_airways_SRS014682/blast_results/hmp_airways_SRS014682.metacyc-v4-2011-07-03.LASTout.parsed.txt");
-    db_info.input_blastouts.push_back("data/mp_output/hmp_airways_SRS014682/blast_results/hmp_airways_SRS014682.COG_2013-12-27.LASTout.parsed.txt");
-    db_info.input_blastouts.push_back("data/mp_output/hmp_airways_SRS014682/blast_results/hmp_airways_SRS014682.CAZY_2014_09_04.LASTout.parsed.txt");
-
-    db_info.weight_dbs.push_back(1);
-    db_info.weight_dbs.push_back(1);
-    db_info.weight_dbs.push_back(1);
-
-    return;
-}
-
 int processParsedBlastout(string db_name, float weight, string blastoutput, MPAnnotateOptions options, map<string, ANNOTATION> annotation_results) {
-    // 'q_length', 'bitscore', 'bsr', 'expect', 'aln_length', 'identity', 'ec'
-    // blastparser =  BlastOutputTsvParser(db_name, blastoutput);
 
+    if (options.debug) cout << "In processParsedBlastout()" << endl;
 
     // Inputs
     string filename = blastoutput; // BLAST/LASTout.parsed.txt
@@ -91,8 +70,11 @@ int processParsedBlastout(string db_name, float weight, string blastoutput, MPAn
     vector <char *> fields; // vector for parsed fields
     int count = 0; // line count
 
-    cout << "Reading ParsedBlastout: " <<  endl;
-    cout << " Filename: " << filename << "\n";
+    if (options.debug) {
+        cout << "Reading ParsedBlastout: " <<  endl;
+        cout << " Filename: " << filename << "\n";
+    }
+
     input.open(filename.c_str(), std::ifstream::in);
     if(!input.good()){
         std::cerr << "Error opening '"<< filename <<"'. Bailing out." << std::endl;
@@ -126,4 +108,54 @@ int processParsedBlastout(string db_name, float weight, string blastoutput, MPAn
 
 
     std::cout << "Number of contig lengths loaded " <<  count << std::endl;
+}
+
+/*
+ * Given a string with the location of the blast_results directory, getBLASTFileNames returns
+ * a list of the out.parsed.txt files.
+ */
+int getBlastFileNames(string blastdir, string sample_name, DB_INFO &db_info) {
+    regex_t regex;
+    int reti;
+    char msgbuf[1000];
+    char tempbuf[1000];
+
+    string algorithm = string("last");
+
+    int i =0;
+    for(i =0; i < algorithm.size(); i++ )
+        tempbuf[i] = std::toupper(algorithm[i]);
+    tempbuf[i]='\0';
+
+    algorithm = string(tempbuf);
+    string regexp_text = sample_name + "[.](.*)[.]" + algorithm + "out.parsed.txt";
+    reti = compile_regex(&regex, regexp_text.c_str());
+
+
+    vector<string> files;
+    DIR *dp;
+    struct dirent *dirp;
+    if((dp  = opendir(blastdir.c_str())) == NULL) {
+        cout << "Error(" << errno << ") opening " << blastdir << endl;
+        return errno;
+    }
+
+    while ((dirp = readdir(dp)) != NULL) {
+        files.push_back(string(dirp->d_name));
+    }
+    closedir(dp);
+
+    string database;
+    cout << "Printing files:" << endl;
+    for (unsigned int i = 0;i < files.size();i++) {
+        cout << files[i].c_str() << endl;
+        database = getpattern(&regex, files[i].c_str(), 1) ;
+        if( database.size() > 0)  {
+            // cout << database << " " << files[i] <<  endl;
+            db_info.db_names.push_back(database);
+            db_info.input_blastouts.push_back(files[i]);
+            db_info.weight_dbs.push_back(1.0);
+        }
+    }
+    return 0;
 }

@@ -99,6 +99,8 @@ string ShortenORFId(const string &s);
 #define MAX_ERROR_MSG 0x1000
 int compile_regex (regex_t * r, const char * regex_text);
 
+string getpattern(regex_t *r , const char *to_match, unsigned int no );
+
 int hashIntoBucket(const char *str, unsigned int index);
 
 string getECNo(const char *str, unsigned int d);

@@ -8,11 +8,17 @@ using namespace std;
 
 int main( int argc, char** argv) {
     // Parse options
-    cout << "Hello from MPAnnotate" << endl;
+
     MPAnnotateOptions options;
     if ( ! options.SetOptions(argc, argv) ) {
-        options.print_usage(argv[0]);
+        options.printUsage(argv[0]);
         exit(1);
+    }
+
+    if (options.debug) cout << "mp_annotate:\n" << endl;
+
+    if (options.debug) {
+        options.printOptions();
     }
 
     // Data structures
@@ -24,16 +30,21 @@ int main( int argc, char** argv) {
 
     cout << options.blast_dir.size() << endl;
     cout << options.sample_name.size() << endl;
-
     DB_INFO db_info;
-    if (options.blast_dir.size() > 0 && options.sample_name.size() > 0) {
-        cout << "found" << endl;
 
-        getBlastFileNames(options, db_info);
-    } else {
-        db_info.db_names.push_back(options.database_name);
-        db_info.input_blastouts.push_back(options.sample_name);
-        db_info.weight_dbs.push_back(options.weight_db);
+    if (options.blast_dir.size() > 0 && options.sample_name.size() > 0) {
+        if (options.debug) cout << "blast_dir and sample_size options found" << endl;
+
+        getBlastFileNames(options.blast_dir, options.sample_name, db_info);
+
+        if (options.debug) {
+            cout << "Printing files detected by getBlastFileNames():" << endl;
+            for (int i =0; i < db_info.input_blastouts.size(); i++ ) {
+                cout << "db_info: " << db_info.db_names[i] << endl;
+                cout << "input_blastouts: " << db_info.input_blastouts[i] << endl;
+                cout << "weight_dbs: " << db_info.weight_dbs[i] << endl;
+            }
+        }
     }
 
     const unsigned int priority = 6000;
