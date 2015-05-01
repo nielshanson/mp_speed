@@ -55,7 +55,7 @@ typedef struct _WRITER_DATA {
 // Annotation data structure
 typedef struct _ANNOTATION {
     float bsr, value;
-    string ec, product;
+    string ec, product, taxonomy;
 } ANNOTATION;
 
 // Annotation map

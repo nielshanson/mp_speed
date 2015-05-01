@@ -35,10 +35,11 @@ int main( int argc, char** argv) {
     if (options.blast_dir.size() > 0 && options.sample_name.size() > 0) {
         if (options.debug) cout << "blast_dir and sample_size options found" << endl;
 
-        getBlastFileNames(options.blast_dir, options.sample_name, db_info);
+        getBlastFileNames(options.blast_dir, options.sample_name, options, db_info);
 
         if (options.debug) {
             cout << "Printing files detected by getBlastFileNames():" << endl;
+            cout << "Input_blastouts size: " << db_info.input_blastouts.size() << endl;
             for (int i =0; i < db_info.input_blastouts.size(); i++ ) {
                 cout << "db_info: " << db_info.db_names[i] << endl;
                 cout << "input_blastouts: " << db_info.input_blastouts[i] << endl;

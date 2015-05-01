@@ -50,7 +50,7 @@ struct MPAnnotateOptions {
         rRNA_16S = "";
         tRNA = "";
         sample_name = "";
-        taxonomy = false;
+        taxonomy = true;
         output_gff = "";
         output_comp_annot = "";
         input_gff = "";

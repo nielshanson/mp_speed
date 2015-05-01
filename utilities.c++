@@ -1,46 +1,44 @@
 #include "utilities.h"
-//#include <iostream>
-//#include <fstream>
 
 
 void split(const string  &strn, std::vector<char *> &v, char *buf, char d) {
-  strcpy(buf, strn.c_str());
-  char *s1 = buf;
-  v.clear();
-  v.push_back(s1);
-  while(*s1 != '\0') {
-     if(*s1==d) { 
-       *s1 = '\0';
-       v.push_back(s1+1);
-     }
-     s1++;
-  }
+    strcpy(buf, strn.c_str());
+    char *s1 = buf;
+    v.clear();
+    v.push_back(s1);
+    while(*s1 != '\0') {
+        if(*s1==d) {
+            *s1 = '\0';
+            v.push_back(s1+1);
+        }
+        s1++;
+    }
 }
 
 void split_seq_name(const string  &strn, std::vector<char *> &v, char *buf) {
-  strcpy(buf, strn.c_str());
+    strcpy(buf, strn.c_str());
 
-  if(buf[0]!='>') {
-      v.push_back(buf); 
-      return;
-  }
+    if(buf[0]!='>') {
+        v.push_back(buf);
+        return;
+    }
 
-  char *s1 = buf+1;
-  v.clear();
-  v.push_back(s1);
+    char *s1 = buf+1;
+    v.clear();
+    v.push_back(s1);
 
-  while(*s1 != '\0') {
-     if(*s1==' ') { 
-       *s1 = '\0';
-       v.push_back(s1+1);
-       break;
-     }
-     s1++;
-  }
+    while(*s1 != '\0') {
+        if(*s1==' ') {
+            *s1 = '\0';
+            v.push_back(s1+1);
+            break;
+        }
+        s1++;
+    }
 }
 
 std::string get_orf_name(std::string  &strn, std::vector<char *> &v, char *buf) {
-    split(strn, v, buf, ';'); 
+    split(strn, v, buf, ';');
     if(v.size() == 0)  return std::string("");
     split(std::string(v[0]), v, buf, '=');
     if(v.size() < 2)  return std::string("");
@@ -64,17 +62,17 @@ string to_string(unsigned long i) {
     char z = '0';
 
     while( i > 0 ) {
-       if(i< 10) {
-         *p='0' + i;
-          p++;
-          break;
-       } 
-       else {
-           j = i%10;
-           i = (i - j)/10;
-           *p =  z + j;
-           p++;
-           //*p++;
+        if(i< 10) {
+            *p='0' + i;
+            p++;
+            break;
+        }
+        else {
+            j = i%10;
+            i = (i - j)/10;
+            *p =  z + j;
+            p++;
+            //*p++;
         }
     }
     *p = '\0';
@@ -97,9 +95,9 @@ string ShortenORFId(const string &s, regex_t *r) {
     p += m[0].rm_so;
     int d = m[0].rm_eo - m[0].rm_so;
     while( d > 0) {
-      *buf = *p;
-      d--;
-      buf++;  p++;
+        *buf = *p;
+        d--;
+        buf++;  p++;
     }
     *buf = '\0';
     return string(BUFFER);
@@ -112,7 +110,7 @@ string ShortenORFId(const string &s) {
     strcpy(BUFFER, p);
 
     char *c;
-    
+
     c = BUFFER ;
 
     c = c + strlen(BUFFER)-1;
@@ -124,19 +122,19 @@ string ShortenORFId(const string &s) {
             if( isdigit(*c) || *c=='_') {
                 if( *c=='_') S++;
             }
-            else{ 
-               return string(BUFFER);
+            else{
+                return string(BUFFER);
             }
         }
         else if(S==1) {
-            if( isdigit(*c)) 
-               S++;
+            if( isdigit(*c))
+                S++;
             else
-               return string(BUFFER);
+                return string(BUFFER);
         }
         else {
             if( !isdigit(*c) ) {
-               break; 
+                break;
             }
         }
         c--;
@@ -149,10 +147,10 @@ string ShortenORFId(const string &s) {
 int compile_regex(regex_t * r, const char * regex_text) {
     int status = regcomp(r, regex_text, REG_EXTENDED|REG_NEWLINE);
     if (status != 0) {
-    char error_message[MAX_ERROR_MSG];
-    regerror (status, r, error_message, MAX_ERROR_MSG);
+        char error_message[MAX_ERROR_MSG];
+        regerror (status, r, error_message, MAX_ERROR_MSG);
         printf ("Regex error compiling '%s': %s\n",
-                 regex_text, error_message);
+                regex_text, error_message);
         return 1;
     }
     return 0;
@@ -185,32 +183,32 @@ int hashIntoBucket(const char *str, unsigned int index) {
     first  = buffer;
 
     char *x = buffer;
-    const char *p =str; 
-    
+    const char *p =str;
+
     // Extract contig id and orf_id from string
     while( *p != '\0') {
-      if( *p=='_' ) {
-         *x = '\0';
-         second = x +1;
-      }
-      else 
-         *x = *p;
+        if( *p=='_' ) {
+            *x = '\0';
+            second = x +1;
+        }
+        else
+            *x = *p;
 
-      p++; 
-      x++;
+        p++;
+        x++;
     }
     *x = '\0';
 
     //std::cout << str <<  "  " << first << "  " << second << std::endl;
-    
+
     // Find the longer of the two ids
-    char *dest, *destfixed,  *src; 
+    char *dest, *destfixed,  *src;
     dest = first;
     src = second;
     int lenextra = strlen(second) - strlen(first);
     if( lenextra > 0)  {
-      dest = second;
-      src = first;
+        dest = second;
+        src = first;
     }
     else
         lenextra = -lenextra;
@@ -218,83 +216,118 @@ int hashIntoBucket(const char *str, unsigned int index) {
     destfixed = dest; // always remember the initial point of longer
 
     dest = dest + lenextra; // move to aligned position
-    
+
     // XOR aligned bits of source and destination starting at aligned position
     while(*src != '\0') {
-       *dest = (*dest ) ^ (*src);
-       dest++; src++;
+        *dest = (*dest ) ^ (*src);
+        dest++; src++;
     }
-    
+
     // feed into uniform hasing algorithm
     while( *destfixed != '\0') {
-       //hashValue = (hashValue << 4) + (unsigned int)(*destfixed);
-       hashValue = hashValue + (unsigned int)(*destfixed);
+        //hashValue = (hashValue << 4) + (unsigned int)(*destfixed);
+        hashValue = hashValue + (unsigned int)(*destfixed);
 /*
        int hiBits = hashValue  & 0xF0000000;
-       if(hiBits!=0) 
-          hashValue ^= hiBits>> 24; 
+       if(hiBits!=0)
+          hashValue ^= hiBits>> 24;
        hashValue &= ~hiBits;
 */
-       destfixed++;
-    }   
+        destfixed++;
+    }
     return hashValue%index;
 }
 
+/*
+ * Process the product field of the BLAST/LASTout.parsed file to extract taxonomy
+ * contained in square brackets '[' ']'. Returns the expected taxonomy if found. Returns
+ * 'no-taxonomy' otherwise.
+ */
+string getTaxonomyFromProduct(const char *str) {
+    char buf[10000];
+    const char *c, *b, *e;
+    bool found = false;
+    c = str;
 
+    bool front = false;
+// TODO: Basic implementaiton. Occassionally will run into problems with double taxonomies and '[[' ']]'
+    while( *c!='\0') {
+        // continue iterating through string until end
+        if(*c=='[') {
+            front = true;
+            b = c+1;
+            c++;
+            continue;
+        }
+        if(*c==']' && front) {
+            e = c;
+            found = true;
+        }
+        c++;
+    }
+
+    if( found ) {
+        unsigned int len = e - b;
+        memcpy(buf,b, len);
+        buf[len] ='\0';
+        return string(buf);
+    }
+
+    return "no-taxonomy";
+}
 
 string getECNo(const char *str, unsigned int d) {
     char buf[100];
-    unsigned int S=0; 
+    unsigned int S=0;
     const char *c, *b, *e;
     bool found = false;
 
     c = str;
     while( *c!='\0') {
 
-       if(S%2==0)  { 
-         if( isdigit(*c)) {
-            if(S==0) b = c;
-            S++;
-            if(S==2*d+1) {
-               found = true;
-               e = c+1;
-            }
-         }
-         else 
-            S=0;
-       }
-       else {// S%2 ==1   
-          if(S < 2*d +1 ) {
-             if( isdigit(*c))
-               ;
-             else if(*c=='.')
+        if(S%2==0)  {
+            if( isdigit(*c)) {
+                if(S==0) b = c;
                 S++;
-             else
+                if(S==2*d+1) {
+                    found = true;
+                    e = c+1;
+                }
+            }
+            else
                 S=0;
-          }
-          else  {//(S = 2*d +1 )
-            if(!isdigit(*c)) {
-               e = c;
-               break;
+        }
+        else {// S%2 ==1
+            if(S < 2*d +1 ) {
+                if( isdigit(*c))
+                    ;
+                else if(*c=='.')
+                    S++;
+                else
+                    S=0;
             }
-            else{
-               e = c+1;
+            else  {//(S = 2*d +1 )
+                if(!isdigit(*c)) {
+                    e = c;
+                    break;
+                }
+                else{
+                    e = c+1;
+                }
+
             }
-      
-          }
         }
         c++;
     }
 
-    
+
     if( found ) {
-      unsigned int len = e - b;
-      memcpy(buf,b, len); 
-      buf[len] ='\0';
-      return string(buf);
+        unsigned int len = e - b;
+        memcpy(buf,b, len);
+        buf[len] ='\0';
+        return string(buf);
     }
 
     buf[0]='\0';
     return string(buf);
-
 }
