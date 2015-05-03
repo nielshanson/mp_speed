@@ -120,7 +120,7 @@ float computeAnnotationValue(ANNOTATION annotation) {
 
 }
 
-int processParsedBlastout(string db_name, float weight, string blastoutput, MPAnnotateOptions options, map<string, ANNOTATION> annotation_results) {
+int processParsedBlastout(string db_name, float weight, string blastoutput, MPAnnotateOptions options, map<string, ANNOTATION> &annotation_results) {
 
     if (options.debug) cout << "In processParsedBlastout()" << endl;
 
@@ -259,7 +259,6 @@ int getBlastFileNames(string blastdir, string sample_name, MPAnnotateOptions opt
 
     // Check to see if files match parsed.txt pattern
     string database;
-    if (options.debug) {cout << "Searching for files in blast_results directory" << endl;}
     for (unsigned int i = 0;i < files.size();i++) {
         database = getpattern(&regex, files[i].c_str(), 1) ;
         if( database.size() > 0)  {
@@ -271,4 +270,48 @@ int getBlastFileNames(string blastdir, string sample_name, MPAnnotateOptions opt
     }
 
     return 0;
+}
+
+/*
+ *
+ */
+void createAnnotation(map<string, float> dbname_weight, ANNOTATION_RESULTS results_dictionary, MPAnnotateOptions options, map<string, unsigned int> contig_lengths) {
+    // create_annotation(dbname_weight, results_dictionary, opts.input_gff, opts.rRNA_16S, opts.tRNA, opts.output_gff, opts.output_comparative_annotation, contig_lengths)
+    // orf_dictionary={};
+
+    if (options.debug) {
+        cout << "In createAnnotation()" << endl;
+    }
+    string input_gff = options.input_gff;
+    string rRNA_16S = options.rRNA_16S;
+    string tRNA = options.tRNA;
+    string output_gff = options.output_gff;
+    string output_comp_annot = options.output_comp_annot;
+
+    // read input ORFs the input GFF file
+    cout << options.input_gff << endl;
+
+    // Prepare inputs and buffers
+    string filename = options.blast_dir + "/" + blastoutput; // BLAST/LASTout.parsed.txt
+    std::ifstream input; // Input filestream
+    char buf[10000]; // Temp buffer TODO check to see if multiple buffers nessisary
+    vector <char *> fields; // Vector for parsed fields
+    int count = 0; // Line count
+    char tempbuf[1000];
+
+
+//    output_gff_tmp = output_gff + ".tmp";
+//    outputgff_file = open( output_gff_tmp, 'w');
+//    output_comp_annot_file1 = open( output_comparative_annotation + '.1.txt', 'w');
+//    output_comp_annot_file2 = open( output_comparative_annotation + '.2.txt', 'w');
+//
+//    output_comp_annot_file1_Str = 'orf_id\tref dbname\tEC\tproduct\tvalue';
+//    fprintf(output_comp_annot_file1,'%s\n', output_comp_annot_file1_Str);
+//
+//    output_comp_annot_file2_Str = 'orf_id'
+//    dbnames = dbname_weight.keys()
+//    for dbname in dbnames:
+//    weight = dbname_weight[dbname]
+//    output_comp_annot_file2_Str += '\t{0}(EC) \t{0}(product)\t{0}(value)'.format(dbname)
+//    fprintf(output_comp_annot_file2,'%s\n', output_comp_annot_file2_Str)
 }

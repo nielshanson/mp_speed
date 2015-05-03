@@ -26,7 +26,7 @@ bool MPAnnotateOptions::SetOptions(int argc, char *argv[]) {
             this->blast_dir =argv[++i];
         }
         else if( strncmp(argv[i], "--input_gff", strlen("--input_gff")) == 0 ) {
-            this->input_gff = atoi(argv[++i]);
+            this->input_gff = argv[++i];
         }
         else if( strncmp(argv[i], "--rRNA_16S", strlen("--rRNA_16S")) == 0 ) {
             this->rRNA_16S = argv[++i];

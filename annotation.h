@@ -22,7 +22,9 @@ void readContigLengths(string contig_map_file, map<string, unsigned int> &contig
 
 int getBlastFileNames(string blastdir, string sample_name, MPAnnotateOptions options, DB_INFO &db_info);
 
-int processParsedBlastout(string db_name, float weight, string blastoutput, MPAnnotateOptions options, map<string, ANNOTATION> annotation_results);
+int processParsedBlastout(string db_name, float weight, string blastoutput, MPAnnotateOptions options, map<string, ANNOTATION> &annotation_results);
+
+void createAnnotation(map<string, float> dbname_weight, ANNOTATION_RESULTS results_dictionary, MPAnnotateOptions options, map<string, unsigned int> contig_lengths);
 
 
 
