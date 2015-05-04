@@ -30,4 +30,14 @@ void createAnnotation(map<string, float> dbname_weight, ANNOTATION_RESULTS resul
 
 string orf_extractor_from_gff(string line);
 
+
+void create_threads_annotate(int num_threads, THREAD_DATA_ANNOT *thread_data, WRITER_DATA_ANNOT *writer_data);
+
+void *annotateOrfsForDBs( void *_data) ;
+
+void *writeAnnotatedGFFs( void *_data) ;
+
+
+int process_all_parsed_blastout(THREAD_DATA_ANNOT *thread_data);
+
 #endif //MP_SPEED_ANNOTATION_H

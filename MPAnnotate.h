@@ -18,6 +18,7 @@
 #include "MPAnnotate.h"
 #include "MPAnnotateOptions.h"
 #include "annotation.h"
+#include "mpannotateparser.h"
 
 
 #endif //MP_SPEED_MP_ANNOTATE_H

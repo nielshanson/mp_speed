@@ -120,6 +120,109 @@ float computeAnnotationValue(ANNOTATION annotation) {
 
 }
 
+
+
+
+int processParsedBlastout(THREAD_DATA_ANNOT *thread_data) {
+
+    ANNOTATION annotation;
+    string line;
+    string query_id;
+    string bsr;
+    string ec;
+    string product;
+    string taxonomy = "";
+    float value;
+
+/*    // Parse each line and create ANNOTATION objects
+    while( std::getline(input, line ).good()) {
+        split(line, fields, buf,'\t');
+        if (count == 0) { count++; continue; };
+
+        if( fields.size()!=10) {
+            // Not a parsed blast file
+            cerr << "Parsed BLAST/LASTout file " <<  filename << " did not have the 10 columns." << endl;
+            query_id.clear();
+            input.close();
+            return 1;
+        }
+
+        query_id = fields[0];
+        bsr = fields[4];
+        ec = fields[8];
+        product = fields[9];
+
+        int i =0;
+        for(i =0; i < db_name.size(); i++ )
+            tempbuf[i] = std::toupper(db_name[i]);
+        tempbuf[i]='\0';
+        db_name = string(tempbuf);
+
+
+        // Construct annotation
+        ANNOTATION annotation;
+        annotation.bsr = atof(bsr.c_str());
+        annotation.ec = ec;
+        annotation.product = product;
+
+        // Extract RefSeq taxonomy from product field
+        if (options.taxonomy && (db_name.find("REFSEQ") != std::string::npos)) {
+            // TODO: Could be more reliable to get taxonomy from GI number.
+            taxonomy = getTaxonomyFromProduct(product.c_str());
+        }
+        annotation.taxonomy = taxonomy;
+
+
+        // Compute information score of current annotation.
+        annotation.value = computeAnnotationValue(annotation) * weight;
+
+        // Check to see if current query_id is already in this database's annotation_results
+        if (annotation_results.count(query_id) <= 0) {
+            annotation_results[query_id] = annotation;
+        }
+        else {
+            // Replace existing ANNOTATION with the current annotation if strong annotation score
+            if (annotation_results[query_id].value < annotation.value) {
+                annotation_results[query_id] = annotation;
+            }
+        }
+
+        if (options.debug) {
+            if (count%PRINT_INTERVAL==0)
+                std::cout << "x " << count << std::endl;
+        }
+
+        count++;
+    }
+    input.close();
+
+    if (options.debug) {
+        std::cout << "Number of parsed BLAST/LAST results loaded " <<  count << std::endl;
+    }
+*/
+    int count =0;
+    return count;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 int processParsedBlastout(string db_name, float weight, string blastoutput, MPAnnotateOptions options, map<string, ANNOTATION> &annotation_results) {
 
     if (options.debug) cout << "In processParsedBlastout()" << endl;
@@ -221,6 +324,10 @@ int processParsedBlastout(string db_name, float weight, string blastoutput, MPAn
     return count;
 }
 
+
+
+
+
 /*
  * Given a string with the location of the blast_results directory, getBLASTFileNames returns
  * a list of the out.parsed.txt files.
@@ -239,7 +346,7 @@ int getBlastFileNames(string blastdir, string sample_name, MPAnnotateOptions opt
     algorithm = string(tempbuf);
 
     // Create regular expression pattern for BLAST/LASTout.parsed.txt files
-    string regexp_text = sample_name + "[.](.*)[.]" + algorithm + "out.parsed.txt";
+    string regexp_text = sample_name + "[.](.*)[.]" + algorithm + "out.parsed.txt$";
     compile_regex(&regex, regexp_text.c_str());
 
     // Open directory
@@ -333,3 +440,137 @@ string orf_extractor_from_gff(string line){
    return orfid;
 }
 
+
+void create_threads_annotate(int num_threads, THREAD_DATA_ANNOT *thread_data, WRITER_DATA_ANNOT *writer_data) {
+    pthread_t *threads;
+    if((threads = (pthread_t *)malloc(sizeof(pthread_t)*num_threads))==0) {
+      std::cout << "Error in allocating threads" << std::endl;
+    }   
+    int rc; 
+
+    std::cout << "Number of threads created to process lines " << num_threads << std::endl;
+
+    for(int i = 0; i < num_threads; i++) {
+       if((rc = pthread_create(&threads[i], NULL, annotateOrfsForDBs, (void *)(thread_data+i)))) {
+         cout << "Error:unable to create thread," << rc << endl;
+         exit(-1);
+       }   
+    }   
+
+    pthread_t writer_thread; //(pthread_t *)malloc(sizeof(pthread_t)); 
+    //create writer thread
+    if((rc = pthread_create(&writer_thread, NULL, writeAnnotatedGFFs, (void *)(writer_data)))) {
+         cout << "Error:unable to create thread," << rc << endl;
+         exit(-1);
+    }   
+
+
+    void *status;
+    for(int i=0; i<num_threads; i++) {
+      rc = pthread_join(threads[i], &status);
+      if (rc) {
+         printf("ERROR; return code from pthread_join() is %d\n", rc);
+         exit(-1);
+      }   
+     }   
+
+    rc = pthread_join(writer_thread, &status);
+      if (rc) {
+         printf("ERROR; return code from pthread_join() is %d\n", rc);
+         exit(-1);
+    }   
+}
+
+
+
+void *annotateOrfsForDBs( void *_data) {
+    THREAD_DATA *data = static_cast<THREAD_DATA *>(_data);
+    std::cout << "Creating worker thread alone is enough \n";
+ 
+    ANNOTATION annotation;
+    string line;
+    string query_id;
+    string bsr;
+    string ec;
+    string product;
+    string taxonomy = "";
+    float value;
+
+    // Parse each line and create ANNOTATION objects
+/*
+    while( std::getline(input, line ).good()) {
+        split(line, fields, buf,'\t');
+        if (count == 0) { count++; continue; };
+
+        if( fields.size()!=10) {
+            // Not a parsed blast file
+            cerr << "Parsed BLAST/LASTout file " <<  filename << " did not have the 10 columns." << endl;
+            query_id.clear();
+            input.close();
+            return 1;
+        }
+
+        query_id = fields[0];
+        bsr = fields[4];
+        ec = fields[8];
+        product = fields[9];
+
+        int i =0;
+        for(i =0; i < db_name.size(); i++ )
+            tempbuf[i] = std::toupper(db_name[i]);
+        tempbuf[i]='\0';
+        db_name = string(tempbuf);
+
+
+        // Construct annotation
+        ANNOTATION annotation;
+        annotation.bsr = atof(bsr.c_str());
+        annotation.ec = ec;
+        annotation.product = product;
+
+        // Extract RefSeq taxonomy from product field
+        if (options.taxonomy && (db_name.find("REFSEQ") != std::string::npos)) {
+            // TODO: Could be more reliable to get taxonomy from GI number.
+            taxonomy = getTaxonomyFromProduct(product.c_str());
+        }
+        annotation.taxonomy = taxonomy;
+
+
+        // Compute information score of current annotation.
+        annotation.value = computeAnnotationValue(annotation) * weight;
+
+        // Check to see if current query_id is already in this database's annotation_results
+        if (annotation_results.count(query_id) <= 0) {
+            annotation_results[query_id] = annotation;
+        }
+        else {
+            // Replace existing ANNOTATION with the current annotation if strong annotation score
+            if (annotation_results[query_id].value < annotation.value) {
+                annotation_results[query_id] = annotation;
+            }
+        }
+
+        if (options.debug) {
+            if (count%PRINT_INTERVAL==0)
+                std::cout << "x " << count << std::endl;
+        }
+
+        count++;
+    }
+    input.close();
+*/
+
+
+    return (void *)NULL;
+
+}
+
+
+void *writeAnnotatedGFFs( void *_data) {
+    THREAD_DATA *data = static_cast<THREAD_DATA *>(_data);
+    std::cout << "Writing makes it complete\n";
+
+
+    return (void *)NULL;
+
+}

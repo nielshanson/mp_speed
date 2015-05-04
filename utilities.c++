@@ -352,3 +352,12 @@ string getECNo(const char *str, unsigned int d) {
     buf[0]='\0';
     return string(buf);
 }
+
+
+string orf_extractor_from_blast(string line){
+    char buf[10000];
+    string orfid  = split_n_pick(line, buf, '\t', 0); 
+    return orfid;
+}
+
+

@@ -11,7 +11,9 @@ OBJECTS= $(SOURCES:.c++=.o)
 HEADERS= $(SOURCES:.c++=.h)
 
 MPANNO= mp_annotate
-MPANNO_SOURCES= MPAnnotate.c++ MPAnnotateOptions.c++  utilities.c++  outputparser.c++ annotation.c++  options.c++  externalsort.c++ heapsort.c++  linereader.c++
+MPANNO_SOURCES= MPAnnotate.c++ MPAnnotateOptions.c++  utilities.c++ outputparser.c++\
+                 annotation.c++  options.c++  externalsort.c++ heapsort.c++\
+                  linereader.c++ mpannotateparser.c++
 MPANNO_OBJECTS= $(MPANNO_SOURCES:.c++=.o)
 MPANNO_HEADERS= $(MPANNO_SOURCES:.c++=.h)
 

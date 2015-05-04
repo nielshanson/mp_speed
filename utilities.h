@@ -44,5 +44,8 @@ string getECNo(const char *str, unsigned int d);
 
 string getTaxonomyFromProduct(const char *str);
 
+string orf_extractor_from_blast(string line);
+
+
 #endif //_UTILITIES
 

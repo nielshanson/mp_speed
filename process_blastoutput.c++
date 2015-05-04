@@ -5,15 +5,6 @@
 void *write_results(void *writer_data) ;
 
 
-string orf_extractor_from_blast(string line){
-    char buf[1000];
-    string orfid  = split_n_pick(line, buf, '\t', 0);
-    return orfid;
-}
-
-
-
-
 void *compute_refscores( void *_data) {
     THREAD_DATA *data = static_cast<THREAD_DATA *>(_data);
     vector< std::pair<string, string> >::iterator it;

@@ -6,6 +6,7 @@
 #include <map>
 
 #include "options.h"
+#include "MPAnnotateOptions.h"
 #include "utilities.h"
 
 typedef struct _GLOBAL_PARAMS {
@@ -26,6 +27,17 @@ typedef struct _THREAD_DATA {
    map<std::string, std::string> *annot_map;
    unsigned int b;
 } THREAD_DATA;
+
+
+typedef struct _DB_INFO {
+    vector<string> db_names;
+    vector<string> input_blastouts;
+    vector<float> weight_dbs;
+} DB_INFO;
+
+
+
+
 
 typedef struct _BLASTOUT_DATA {
     string query, target, product, ec, taxonomy; 
@@ -52,22 +64,40 @@ typedef struct _WRITER_DATA {
     std::ofstream output;
 } WRITER_DATA;
 
+
 // Annotation data structure
 typedef struct _ANNOTATION {
-    float bsr, value;
+    float bsr, value; 
     string ec, product, taxonomy;
 } ANNOTATION;
 
+typedef map<string, map<string, ANNOTATION> > ANNOTATION_RESULTS;
+
+typedef struct _THREAD_DATA_ANNOT {
+   vector<ANNOTATION>  lines;
+
+   ANNOTATION_RESULTS annot_objects;
+
+   vector<ANNOTATION>  output[2];
+   MPAnnotateOptions options;
+   unsigned int b;
+   unsigned int tot_annot;
+   map<string, unsigned int> dbwise_annot_count;
+   DB_INFO db_info; 
+
+   _THREAD_DATA_ANNOT() {
+     tot_annot=0;
+   }
+} THREAD_DATA_ANNOT;
+
+typedef struct _WRITER_DATA_ANNOT {
+    THREAD_DATA_ANNOT  *thread_data;
+    unsigned int num_threads;
+    std::ofstream output;
+} WRITER_DATA_ANNOT;
+
 // Annotation map
-typedef map<string, map<string, ANNOTATION> >
-    ANNOTATION_RESULTS;
-
-typedef struct _DB_INFO {
-    vector<string> db_names;
-    vector<string> input_blastouts;
-    vector<float> weight_dbs;
-
-} DB_INFO;
+typedef map<string, map<string, ANNOTATION> > ANNOTATION_RESULTS;
 
 #endif //__RPKM_TYPE
 

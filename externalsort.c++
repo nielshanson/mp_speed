@@ -48,7 +48,6 @@ int disk_sort_file(string outputdir, string tobe_sorted_file_name, string sorted
     while( std::getline(inputfile, line ).good()) {
            
          string orfid = key_extractor(line);
-         std::cout << "orf id " << orfid << std::endl;
          //string orfid = key_extractor(line) fields, buf,'\t');
 
          lineptr = new Line;

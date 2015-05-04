@@ -50,7 +50,7 @@ bool MPAnnotateOptions::SetOptions(int argc, char *argv[]) {
             this->weight_db = atof(argv[++i]);
         }
         else if( strncmp(argv[i], "--num_threads", strlen("--num_threads")) == 0 ) {
-            this->input_gff = atoi(argv[++i]);
+            this->num_threads = atoi(argv[++i]);
         }
         else if( strncmp(argv[i], "--debug", strlen("--debug")) == 0 ) {
             this->debug = true;

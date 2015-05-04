@@ -150,13 +150,6 @@ void OutputParser::create_refBitScores(THREAD_DATA *thread_data) {
    }
 
    std::cout << "Number of refscores loaded " <<  count << std::endl;
-/*
-   std::cout << "done " << std::endl;
-   for( int i =0; i < options.num_threads; i++) 
-      std::cout << i << "  "<< counts[i] << std::endl;
-*/
-    
-
 
        
 };
@@ -191,8 +184,6 @@ void OutputParser::distributeInput(THREAD_DATA *thread_data) {
       thread_data[i].lines.clear();
     }
 
-    //int *counts  = (int *)calloc(options.num_threads, sizeof(int));
-
     std::cout << "input size " << this->inputbuffer.size() << std::endl;
 
     for(it = this->inputbuffer.begin(); it != this->inputbuffer.end(); it++) {
@@ -202,16 +193,7 @@ void OutputParser::distributeInput(THREAD_DATA *thread_data) {
       orfid = ShortenORFId(fields[0]) ;
       bucketIndex = hashIntoBucket(orfid.c_str(), options.num_threads); 
       thread_data[bucketIndex].lines.push_back(*it);
-  //    counts[bucketIndex]++;
     }
-
-
-/*
-    std::cout << "done " << std::endl;
-    for( int i =0; i < options.num_threads; i++) 
-       std::cout << i << "  "<< counts[i] << std::endl;
-*/
-
 
 }
 bool OutputParser::readABatch() {

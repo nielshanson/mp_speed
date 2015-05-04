@@ -59,9 +59,47 @@ int main( int argc, char** argv) {
 
 
 
+
+    // do useful work 
+    MPAnnotateParser parser(options, db_info);
+
+    THREAD_DATA_ANNOT  *thread_data = new THREAD_DATA_ANNOT[options.num_threads];
+
+    for(unsigned int i = 0; i < options.num_threads; i++) {
+        thread_data[i].options = options;
+    }   
+
+
+    WRITER_DATA_ANNOT *writer_data = new WRITER_DATA_ANNOT;
+    writer_data->output.open(options.output_gff.c_str(), std::ofstream::out);
+    writer_data->thread_data = thread_data;
+    writer_data->num_threads = options.num_threads;
+
+    unsigned int b = 0;
+    std::cout << " begin processing  \n"; 
+    parser.initializeBatchReading();
+    while(parser.readABatch()) {  // main loop
+       std::cout << " just  read a batch \n"; 
+
+       parser.distributeInput(thread_data);
+
+       for(unsigned int i = 0; i < options.num_threads; i++) 
+         thread_data[i].b = b;
+
+        create_threads_annotate(options.num_threads, thread_data, writer_data);
+
+       b = (b+1)%2;
+    }   
+    std::cout << " done processing batches \n"; 
+    writer_data->output.close();
+
+    
+
+    return 0;
+
     // Process parsed blastout for each dbname, blastoutput, and weight
     for (unsigned int i=0; i < db_info.input_blastouts.size(); i++ ) {
-        int count = processParsedBlastout( db_info.db_names[i],
+        processParsedBlastout( db_info.db_names[i],
                                            db_info.weight_dbs[i],
                                            db_info.input_blastouts[i],
                                            options,
@@ -88,6 +126,8 @@ int main( int argc, char** argv) {
 
     // TODO: Create_annotations from the hits
     createAnnotation(dbname_weight, results_dictionary, options, contig_lengths);
+
+
 
 
     if (options.debug) { cout << "End of MPAnnotate()" << endl;}
