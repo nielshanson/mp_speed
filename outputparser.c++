@@ -191,7 +191,7 @@ void OutputParser::distributeInput(THREAD_DATA *thread_data) {
       thread_data[i].lines.clear();
     }
 
-    int *counts  = (int *)calloc(options.num_threads, sizeof(int));
+    //int *counts  = (int *)calloc(options.num_threads, sizeof(int));
 
     std::cout << "input size " << this->inputbuffer.size() << std::endl;
 
@@ -216,7 +216,6 @@ void OutputParser::distributeInput(THREAD_DATA *thread_data) {
 }
 bool OutputParser::readABatch() {
    std::cout << "Reading a new batch\n";
-   int bucketIndex ; 
    int count = 0;
    string line;
 

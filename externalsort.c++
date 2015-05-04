@@ -17,8 +17,10 @@ void free_lines(vector<Line *> &v) {
 
 }
 // Sort the input sequences and divide them into blocks; return the number of blocks created
-int sort_parsed_blastouput(string outputdir, string tobe_sorted_file_name, string sorted_file_name, int chunk_size) {
+int disk_sort_file(string outputdir, string tobe_sorted_file_name, string sorted_file_name,\
+    int chunk_size, string(*key_extractor)(const string) ) {
     char buf[10000];
+    std::cout << " going to sort \n";
     
     string sorted_fname = outputdir + "/sorted.fasta";
     string sorted_fname_tmp = sorted_fname + ".tmp.";
@@ -39,23 +41,23 @@ int sort_parsed_blastouput(string outputdir, string tobe_sorted_file_name, strin
 	vector< Line *>  lines;
 	pair<string, int> orfid_num;
     string line;	
-    vector<char *> fields;
     int count = 0;
     Line *lineptr = new Line;
 
     // Split input fasta into chunks to sort individually
     while( std::getline(inputfile, line ).good()) {
-         split(line, fields, buf,'\t');
-         if( fields.size()<2) continue;
+           
+         string orfid = key_extractor(line);
+         std::cout << "orf id " << orfid << std::endl;
+         //string orfid = key_extractor(line) fields, buf,'\t');
 
          lineptr = new Line;
-         lineptr->orfid = fields[0];
+         lineptr->orfid = orfid;
 		 lineptr->line = line;
 
-    //     std::cout <<  lineptr->orfid << "   " << lineptr->line << std::endl;
          lines.push_back(lineptr);
-         //std::cout << line << std::endl;
          if (curr_size >= chunk_size) {
+
 			// Sort the vector of sequence ids/lengths            
             sort(lines.begin(), lines.end(), comp_lines);
 			// Write the sequences to a file
@@ -72,13 +74,6 @@ int sort_parsed_blastouput(string outputdir, string tobe_sorted_file_name, strin
         }
         curr_size++;
         count++;
-     //   std::cout << curr_size << std::endl;
-       // if (count > 8000) break;
-
-/*
-        if (curr_size%PRINT_INTERVAL==0)
-           std::cout << "x " << count << std::endl;
-*/
     }
 
     inputfile.close();
@@ -94,6 +89,7 @@ int sort_parsed_blastouput(string outputdir, string tobe_sorted_file_name, strin
    
 
     // Merge the sorted files and write into blocks
+    std::cout << " going to merge \n";
 	int num_blocks = merge_sorted_files_create_blocks(filenames, chunk_size, outputdir, sorted_file_name);
 	
 	// Remove the individual sorted files
@@ -113,7 +109,6 @@ int merge_sorted_files_create_blocks(vector<string>& filenames, float block_mb, 
 	
 	vector< istream_iterator<Line> > f_its;
 	istream_iterator<Line> empty_it;
-    char buf[5000];
 
 	// Open an istream_iterator for each fasta file
 	int i;
@@ -128,12 +123,9 @@ int merge_sorted_files_create_blocks(vector<string>& filenames, float block_mb, 
 	
 	vector< pair<int, Line *> >  values;
     pair< int, Line *> mod_line;  
-    char * field;
 
 	for (i = 0; i<S; i++) {
       if (f_its[i] != empty_it) {
-//		Line *curr_line =  new Line;
- //     *curr_line = *f_its[i];
 		curr_lines[i] = *(f_its[i]);
         mod_line.first = i; 
         mod_line.second = curr_lines+i;  
@@ -146,8 +138,6 @@ int merge_sorted_files_create_blocks(vector<string>& filenames, float block_mb, 
 	// Set up variables for keeping track of blocks
 	int block_num = 0;
 	int block_curr_bytes = 0;
-	int max_bytes = 1024*1024*block_mb;
-    char buffer[STR_BUFFER_SIZE];
 	
 	// Open the output file
 	ofstream outputfile;
@@ -172,12 +162,10 @@ int merge_sorted_files_create_blocks(vector<string>& filenames, float block_mb, 
 		int seqlength = line.line.size();
 		block_curr_bytes += seqlength;
 
-		// Advance the iterator
 		f_its[iter_id]++;
 
 		// Add the next sequence to the top of the heap
 		if (f_its[iter_id] != empty_it) {
-		 //   Line *curr_line =  new Line;
 			curr_lines[iter_id] = *(f_its[iter_id]);
             mod_line.first = iter_id; 
             mod_line.second = curr_lines + iter_id;  

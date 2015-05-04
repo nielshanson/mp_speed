@@ -5,6 +5,15 @@
 void *write_results(void *writer_data) ;
 
 
+string orf_extractor_from_blast(string line){
+    char buf[1000];
+    string orfid  = split_n_pick(line, buf, '\t', 0);
+    return orfid;
+}
+
+
+
+
 void *compute_refscores( void *_data) {
     THREAD_DATA *data = static_cast<THREAD_DATA *>(_data);
     vector< std::pair<string, string> >::iterator it;
@@ -22,8 +31,6 @@ void *compute_refscores( void *_data) {
 
 
 bool isWithinCutoffs(const string &orfid, const vector<char *> &fields, BLASTOUT_DATA &data, THREAD_DATA *thread_data) {
-
-  
   try{
      data.query = orfid; 
      data.target = fields[1];
@@ -229,7 +236,7 @@ void process_blastoutput(const Options& options, const GLOBAL_PARAMS &params) {
     writer_data->output.close();
 
     // sort the output 
-    sort_parsed_blastouput(string("/tmp/"), temp_parsed_output, options.parsed_output, 1000000);
+    disk_sort_file(string("/tmp/"), temp_parsed_output, options.parsed_output, 1000000, orf_extractor_from_blast);
 
     remove(temp_parsed_output.c_str());
     parser.closeBatchReading();

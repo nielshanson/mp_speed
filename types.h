@@ -29,7 +29,7 @@ typedef struct _THREAD_DATA {
 
 typedef struct _BLASTOUT_DATA {
     string query, target, product, ec, taxonomy; 
-    unsigned int q_length, aln_length, ;
+    unsigned int q_length, aln_length ;
     float bitscore, bsr, expect, identity;
     void setDefault() {
          query = "";
@@ -51,6 +51,24 @@ typedef struct _WRITER_DATA {
     unsigned int num_threads;
     std::ofstream output;
 } WRITER_DATA;
+
+// Annotation data structure
+typedef struct _ANNOTATION {
+    float bsr, value;
+    string ec, product, taxonomy;
+} ANNOTATION;
+
+// Annotation map
+typedef map<string, map<string, ANNOTATION> >
+    ANNOTATION_RESULTS;
+
+typedef struct _DB_INFO {
+    vector<string> db_names;
+    vector<string> input_blastouts;
+    vector<float> weight_dbs;
+
+} DB_INFO;
+
 #endif //__RPKM_TYPE
 
 
