@@ -3,6 +3,27 @@
 //#include <fstream>
 
 
+char *split_n_pick(const string  &strn,  char *buf, char d, unsigned int n) {
+  strcpy(buf, strn.c_str());
+   
+  char *v=buf;
+  char *s1 = buf;
+  v=s1;
+
+  unsigned int i =0; 
+
+  while(*s1 != '\0') {
+     if(*s1==d) { 
+       *s1 = '\0';
+       i++;
+       if(i > n) return  v ;
+       v=s1+1;
+     }
+     s1++;
+  }
+  return v;
+}
+
 void split(const string  &strn, std::vector<char *> &v, char *buf, char d) {
   strcpy(buf, strn.c_str());
   char *s1 = buf;

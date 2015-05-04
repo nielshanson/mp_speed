@@ -14,13 +14,14 @@ using namespace std;
 
 // Structure for RPKM input options
 struct Options {
-   
     string input_blastout;
     string database_name;
     string parsed_output;
     string refscore_file;
     string database_map;
     string algorithm;
+    string sample_name;
+
     float min_score;
     float min_bsr;
     float max_evalue;
@@ -48,6 +49,7 @@ struct Options {
        parsed_output="";
        refscore_file="";
        database_map ="";
+       sample_name = "";
        algorithm ="BLAST";
        min_score = 20;
        max_evalue  = 1e-6;

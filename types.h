@@ -5,7 +5,7 @@
 #include <iostream>
 #include <map>
 
-
+#include "options.h"
 #include "utilities.h"
 
 typedef struct _GLOBAL_PARAMS {

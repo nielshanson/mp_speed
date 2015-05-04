@@ -10,7 +10,8 @@ void Options::print_usage(char *arg) {
              << "      : -o  <parsedoutput>   [REQUIRED]\n"\
              << "      : -r  <refscorefile>   [REQUIRED]\n"
              << "      : -m  <databaemap>     [REQUIRED]\n"\
-             << "      : -a  <algorihm>       [OPTIONAL,     default: BLAST]\n"\
+             << "      : -a/--algorithm  <algorihm>       [OPTIONAL,     default: BLAST]\n"\
+             << "      : -s  <sample_name>    [OPTIONAL,     default: BLAST]\n"\
              << "      : --min_score          <min_score>,   default: 20 \n"\
              << "      : --max_evalue         <maxEvalue>    [OPTIONAL, default 1e-6]\n"\
              << "      : --min_bsr            <minBSR>       [OPTIONAL, default 0.4]\n"\
@@ -42,6 +43,12 @@ bool Options::SetOptions(int argc, char *argv[]) {
        }   
        else if( strncmp(argv[i], "-a", strlen("-a")) == 0 ) {   
           this->algorithm = argv[++i];
+       }
+       else if( strncmp(argv[i], "--algorithm", strlen("--algorithm")) == 0 ) {   
+          this->algorithm = argv[++i];
+       }
+       else if( strncmp(argv[i], "-s", strlen("-s")) == 0 ) {   
+          this->sample_name = argv[++i];
        }
        else if( strncmp(argv[i], "--min_score", strlen("--min_score")) == 0 ) {   
           this->min_score = atof(argv[++i]);

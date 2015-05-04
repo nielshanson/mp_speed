@@ -9,6 +9,7 @@
 #include <regex.h>
 #include "utilities.h"
 #include "types.h"
+#include "externalsort.h"
 
 
 using namespace std;

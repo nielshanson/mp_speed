@@ -21,11 +21,14 @@ OutputParser::OutputParser(const Options &options, const GLOBAL_PARAMS &params){
 
 
 
-
 void OutputParser::initialize() {
-    std::cout << "Reading the query names " << std::endl;
+    //string temp = options.input_blastout + ".tmp";
+   // sort_parsed_blastouput(string("/tmp/"), options.input_blastout, temp,  1000);
+
+
+//    std::cout << "Reading the query names " << std::endl;
     this->create_query_dictionary();
-    std::cout <<  "Collected " << query_dictionary.size() << " unique  queries" << std::endl;
+  //  std::cout <<  "Collected " << query_dictionary.size() << " unique  queries" << std::endl;
 }
 
 
@@ -46,7 +49,7 @@ void OutputParser::create_query_dictionary() {
       if( fields.size()!= 12) continue;
       query_dictionary[fields[1]] = true;
       if (count%PRINT_INTERVAL==0) 
-       std::cout << count << std::endl;
+        std::cout << count << std::endl;
       count++;
    }   
        

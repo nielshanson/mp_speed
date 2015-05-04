@@ -180,6 +180,7 @@ void process_blastoutput(const Options& options, const GLOBAL_PARAMS &params) {
 
     parser.initialize();
 
+
     THREAD_DATA *thread_data = new THREAD_DATA[options.num_threads];
 
     for(unsigned int i = 0; i < options.num_threads; i++) {
@@ -200,11 +201,14 @@ void process_blastoutput(const Options& options, const GLOBAL_PARAMS &params) {
 
     WRITER_DATA *writer_data = new WRITER_DATA;
 
-//    std::ofstream output(options.parsed_output.c_str(), std::ofstream::out);
+//  std::ofstream output(options.parsed_output.c_str(), std::ofstream::out);
 
     parser.initializeBatchReading();
 
-    writer_data->output.open(options.parsed_output.c_str(), std::ofstream::out);
+    string temp_parsed_output = options.parsed_output + ".tmp";
+    std::cout << temp_parsed_output << std::endl;
+    
+    writer_data->output.open(temp_parsed_output.c_str(), std::ofstream::out);
 
     writer_data->thread_data = thread_data;
     writer_data->num_threads = options.num_threads;
@@ -222,20 +226,25 @@ void process_blastoutput(const Options& options, const GLOBAL_PARAMS &params) {
     for(unsigned int i = 0; i < options.num_threads; i++) 
        thread_data[i].b = b;
     write_results(writer_data);
-
     writer_data->output.close();
+
+    // sort the output 
+    sort_parsed_blastouput(string("/tmp/"), temp_parsed_output, options.parsed_output, 1000000);
+
+    remove(temp_parsed_output.c_str());
     parser.closeBatchReading();
 
 }
 
 
-void *write_results(void *_writer_data ) {
+void *write_results(void *_writer_data) {
 
     std::cout << "Writing results \n";
     unsigned int b; 
     WRITER_DATA *writer_data = (WRITER_DATA *)_writer_data;
     unsigned int num_threads = writer_data->num_threads;
     THREAD_DATA *thread_data = writer_data->thread_data;
+    string sample_name =  (thread_data[0]).options.sample_name;
      
 
     vector< BLASTOUT_DATA >::iterator it;
@@ -246,7 +255,7 @@ void *write_results(void *_writer_data ) {
            writer_data->output << it->query << "\t" <<  it->target << "\t" << it->q_length\
                   <<"\t" <<it->bitscore << "\t" << it->bsr <<"\t" << it->expect\
                   << "\t" << it->aln_length << "\t" << it->identity\
-                  << "\t" << it->ec << "\t" << it->product <<  std::endl; 
+                  << "\t" << it->ec << "\t" << it->product << std::endl; 
 
        }
        thread_data[i].output[b].clear();

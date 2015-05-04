@@ -1,11 +1,11 @@
-CC = g++ -Wall # -g
+CC = g++ -Wall 
 #CC = g++ -pg
 #CC = g++ -Wall 
 CCFLAGS=  -m64
 
 
 PROG = parse
-SOURCES= utilities.c++ parse.c++  process_blastoutput.c++ outputparser.c++ options.c++
+SOURCES= linereader.c++ utilities.c++ parse.c++  process_blastoutput.c++ outputparser.c++ options.c++ externalsort.c++ heapsort.c++ 
 OBJECTS= $(SOURCES:.c++=.o)
 HEADERS= $(SOURCES:.c++=.h)
 
