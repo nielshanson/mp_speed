@@ -3,6 +3,7 @@
 //
 
 #include "MPAnnotate.h"
+#define CHUNK_SIZE 100000
 
 using namespace std;
 
@@ -49,13 +50,14 @@ int main( int argc, char** argv) {
         }
     }
 
-    unsigned int priority = 6000;
-
+    //unsigned int priority = 6000;
     // TODO: Sort the gff file by the orf ids
     string temp_gff = options.input_gff + ".tmp";
     disk_sort_file(string("/tmp/"), options.input_gff, temp_gff, 1000000, orf_extractor_from_gff);
     remove(options.input_gff.c_str());
     rename(temp_gff.c_str(), options.input_gff.c_str());
+
+    
 
 
 
@@ -67,68 +69,75 @@ int main( int argc, char** argv) {
 
     for(unsigned int i = 0; i < options.num_threads; i++) {
         thread_data[i].options = options;
+        thread_data[i].db_info = db_info;
     }   
 
 
     WRITER_DATA_ANNOT *writer_data = new WRITER_DATA_ANNOT;
-    writer_data->output.open(options.output_gff.c_str(), std::ofstream::out);
+
+    writer_data->output = new std::ofstream[db_info.db_names.size()];
+
+    for(unsigned int i =0; i < db_info.db_names.size(); i++ ) {
+        writer_data->output[i].open( db_info.TempFile1(options.output_gff,  db_info.db_names[i]).c_str(), std::ofstream::binary);
+    }
+
     writer_data->thread_data = thread_data;
     writer_data->num_threads = options.num_threads;
+    writer_data->db_info = db_info;
 
     unsigned int b = 0;
     std::cout << " begin processing  \n"; 
     parser.initializeBatchReading();
+
+   // writeAnnotatedPreamble(writer_data);
+
     while(parser.readABatch()) {  // main loop
-       std::cout << " just  read a batch \n"; 
-
-       parser.distributeInput(thread_data);
-
+      parser.distributeInput(thread_data);
+/*
        for(unsigned int i = 0; i < options.num_threads; i++) 
          thread_data[i].b = b;
-
+*/
         create_threads_annotate(options.num_threads, thread_data, writer_data);
-
-       b = (b+1)%2;
+        b = (b+1)%2;
     }   
     std::cout << " done processing batches \n"; 
-    writer_data->output.close();
 
-    
+
+    // sorting the file 
+    for(unsigned int i =0; i < db_info.db_names.size(); i++ ) {
+
+        std::cout << "sorting " << db_info.db_names[i] << std::endl;
+        disk_sort_file(string("/tmp"),  
+                              db_info.TempFile1(options.output_gff,  db_info.db_names[i]),
+                              db_info.TempFile2(options.output_gff,  db_info.db_names[i]),
+                              CHUNK_SIZE, 
+                              function_extractor_from_list
+                            ); 
+    }
+
+    // sorting the file 
+    for(unsigned int i =0; i < db_info.db_names.size(); i++ ) {
+        std::cout << "sorting " << db_info.db_names[i] << std::endl;
+        disk_sort_file(string("/tmp"),  
+                              db_info.TempFile1(options.output_gff,  db_info.db_names[i]),
+                              db_info.TempFile2(options.output_gff,  db_info.db_names[i]),
+                              CHUNK_SIZE, 
+                              function_extractor_from_list
+                            ); 
+
+        db_info.RemoveTempFile1(options.output_gff,  db_info.db_names[i]);
+
+        create_function_weights(  
+                                db_info.TempFile2(options.output_gff,  db_info.db_names[i]),
+                                db_info.FinalFile(options.output_gff,  db_info.db_names[i])
+                               ); 
+
+        db_info.RemoveTempFile2(options.output_gff,  db_info.db_names[i]);
+
+    }
+
 
     return 0;
-
-    // Process parsed blastout for each dbname, blastoutput, and weight
-    for (unsigned int i=0; i < db_info.input_blastouts.size(); i++ ) {
-        processParsedBlastout( db_info.db_names[i],
-                                           db_info.weight_dbs[i],
-                                           db_info.input_blastouts[i],
-                                           options,
-                                           results_dictionary[db_info.db_names[i]] );
-        priority++; // TODO: Ask Kishori what this priority variable is for
-    }
-
-    // Count unique ORFs that got annotation in any database
-    map<string, bool> count_annotations;
-    ANNOTATION_RESULTS::iterator outer_itr;
-    map<string, ANNOTATION>::iterator inner_itr;
-    for(outer_itr = results_dictionary.begin(); outer_itr != results_dictionary.end(); outer_itr++) {
-        map<string, ANNOTATION> seqname_map = outer_itr->second;
-        for (inner_itr = seqname_map.begin(); inner_itr != seqname_map.end(); inner_itr++ ) {
-            string seqname = inner_itr->first;
-            count_annotations[seqname] = true;
-        }
-    }
-
-    unsigned int count = count_annotations.size();
-
-    cout << priority << "\tTotal Protein Annotations\t" << count << endl;
-
-
-    // TODO: Create_annotations from the hits
-    createAnnotation(dbname_weight, results_dictionary, options, contig_lengths);
-
-
-
 
     if (options.debug) { cout << "End of MPAnnotate()" << endl;}
 

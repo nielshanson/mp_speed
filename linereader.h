@@ -132,6 +132,7 @@ Line& Line::operator=(const Line& rhs)
     return *this;
 }
 
+
 inline
 void Line::setOrfId(const std::string& value)
 {

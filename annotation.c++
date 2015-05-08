@@ -15,15 +15,12 @@ using namespace std;
 
 void readContigLengths(string file, map<string, unsigned int> &contig_lengths) {
 
-
     string filename = file;
     std::ifstream input;
     char buf[1000];
     vector <char *> fields;
     int count = 0;
 
-    cout << "Reading refscores " <<  endl;
-    cout << "Filename " << filename << "\n";
     input.open(filename.c_str(), std::ifstream::in);
     if(!input.good()){
         std::cerr << "Error opening '"<< filename <<"'. Bailing out." << std::endl;
@@ -45,8 +42,6 @@ void readContigLengths(string file, map<string, unsigned int> &contig_lengths) {
         contig_id = fields[0];
         contig_lengths[contig_id] = atoi(fields[2]);
 
-
-
         if (count%PRINT_INTERVAL==0)
             std::cout << "x " << count << std::endl;
         count++;
@@ -65,7 +60,7 @@ void readContigLengths(string file, map<string, unsigned int> &contig_lengths) {
  * Given a product string this function computes the products word information score. I.e., one point for every
  * non-trivial descripive word.
  */
-float wordInformation(string product) {
+float wordInformation(const string &product) {
 
     // Split product into individual words
     char buf[10000]; // TODO: Check to see if this buffer is needed.
@@ -78,13 +73,14 @@ float wordInformation(string product) {
     static const string arr[] = {"", "is", "have", "has", "will", "can", "should",  "in",
                                  "at", "upon", "the", "a", "an", "on", "for", "of", "by",
                                  "with" ,"and",  ">", "predicted", "protein", "conserved" };
+
     map <string, int> stop_words;
-    for (int i = 0; i < arr->size(); i++) {
+    for (unsigned int i = 0; i < arr->size(); i++) {
         stop_words[arr[i]] = 1;
     }
 
     // Check each word for membership in stop_words and presence of underscores '_'
-    for (int i = 0; i < words.size(); i++) {
+    for (unsigned int i = 0; i < words.size(); i++) {
         string my_word = words[i];
         if (stop_words.count(my_word) <= 0) {
             // not a stop word
@@ -103,17 +99,17 @@ float wordInformation(string product) {
  * Computes the annotation value of the given ANNOTATION object. Returns an annotation value based on the presence
  * of Enzyme Commission (EC) numbers (+10) and the number of non-trivial words in the ANNOTATION product field.
  */
-float computeAnnotationValue(ANNOTATION annotation) {
+float computeAnnotationValue(ANNOTATION *annotation) {
 
     float score = 0.0; // overall annotation score
 
-    if (annotation.ec != "") {
+    if (annotation->ec != "") {
         // annotation object has non-trivial EC number
         score += 10;
     }
 
-    if (annotation.product.find("hypothetical protein") != std::string::npos) {
-        score += wordInformation(annotation.product);
+    if (annotation->product.find("hypothetical protein") != std::string::npos) {
+        score += wordInformation(annotation->product);
     }
 
     return score;
@@ -122,105 +118,38 @@ float computeAnnotationValue(ANNOTATION annotation) {
 
 
 
+ANNOTATION * createAnnotation(const char * line, const string &dbname, bool taxonomy) {
+     vector<char *>fields;
+     char buf[10000];  
+     char tempbuf[1000];  
+     string db_name;
+     ANNOTATION *annotation = new ANNOTATION;
 
-int processParsedBlastout(THREAD_DATA_ANNOT *thread_data) {
+     split(line, fields, buf,'\t');
+     if( fields.size()!=10) {
+         return 0;
+     }
 
-    ANNOTATION annotation;
-    string line;
-    string query_id;
-    string bsr;
-    string ec;
-    string product;
-    string taxonomy = "";
-    float value;
+     try{
+        annotation->bsr = atof(fields[4]);
+        annotation->ec = string(fields[4]);
+        annotation->product = string(fields[9]);
 
-/*    // Parse each line and create ANNOTATION objects
-    while( std::getline(input, line ).good()) {
-        split(line, fields, buf,'\t');
-        if (count == 0) { count++; continue; };
+        db_name = to_upper(dbname);
 
-        if( fields.size()!=10) {
-            // Not a parsed blast file
-            cerr << "Parsed BLAST/LASTout file " <<  filename << " did not have the 10 columns." << endl;
-            query_id.clear();
-            input.close();
-            return 1;
-        }
-
-        query_id = fields[0];
-        bsr = fields[4];
-        ec = fields[8];
-        product = fields[9];
-
-        int i =0;
-        for(i =0; i < db_name.size(); i++ )
-            tempbuf[i] = std::toupper(db_name[i]);
-        tempbuf[i]='\0';
-        db_name = string(tempbuf);
-
-
-        // Construct annotation
-        ANNOTATION annotation;
-        annotation.bsr = atof(bsr.c_str());
-        annotation.ec = ec;
-        annotation.product = product;
-
-        // Extract RefSeq taxonomy from product field
-        if (options.taxonomy && (db_name.find("REFSEQ") != std::string::npos)) {
+        annotation->bsr = atof(fields[4]);
+        if (taxonomy && (db_name.find("REFSEQ") != std::string::npos)) {
             // TODO: Could be more reliable to get taxonomy from GI number.
-            taxonomy = getTaxonomyFromProduct(product.c_str());
-        }
-        annotation.taxonomy = taxonomy;
-
-
-        // Compute information score of current annotation.
-        annotation.value = computeAnnotationValue(annotation) * weight;
-
-        // Check to see if current query_id is already in this database's annotation_results
-        if (annotation_results.count(query_id) <= 0) {
-            annotation_results[query_id] = annotation;
-        }
-        else {
-            // Replace existing ANNOTATION with the current annotation if strong annotation score
-            if (annotation_results[query_id].value < annotation.value) {
-                annotation_results[query_id] = annotation;
-            }
+             annotation->taxonomy =  getTaxonomyFromProduct(annotation->product.c_str());
         }
 
-        if (options.debug) {
-            if (count%PRINT_INTERVAL==0)
-                std::cout << "x " << count << std::endl;
-        }
-
-        count++;
+      }
+    catch(...) {
+        return 0;
     }
-    input.close();
 
-    if (options.debug) {
-        std::cout << "Number of parsed BLAST/LAST results loaded " <<  count << std::endl;
-    }
-*/
-    int count =0;
-    return count;
+    return annotation;
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 int processParsedBlastout(string db_name, float weight, string blastoutput, MPAnnotateOptions options, map<string, ANNOTATION> &annotation_results) {
@@ -232,7 +161,9 @@ int processParsedBlastout(string db_name, float weight, string blastoutput, MPAn
     std::ifstream input; // Input filestream
     char buf[10000]; // Temp buffer TODO check to see if multiple buffers nessisary
     vector <char *> fields; // Vector for parsed fields
+
     int count = 0; // Line count
+
     char tempbuf[1000];
 
     if (options.debug) {
@@ -254,7 +185,6 @@ int processParsedBlastout(string db_name, float weight, string blastoutput, MPAn
     string ec;
     string product;
     string taxonomy = "";
-    float value;
 
     // Parse each line and create ANNOTATION objects
     while( std::getline(input, line ).good()) {
@@ -274,11 +204,7 @@ int processParsedBlastout(string db_name, float weight, string blastoutput, MPAn
         ec = fields[8];
         product = fields[9];
 
-        int i =0;
-        for(i =0; i < db_name.size(); i++ )
-            tempbuf[i] = std::toupper(db_name[i]);
-        tempbuf[i]='\0';
-        db_name = string(tempbuf);
+        db_name = to_upper(db_name);
 
 
         // Construct annotation
@@ -296,7 +222,7 @@ int processParsedBlastout(string db_name, float weight, string blastoutput, MPAn
 
 
         // Compute information score of current annotation.
-        annotation.value = computeAnnotationValue(annotation) * weight;
+        annotation.value = computeAnnotationValue(&annotation) * weight;
 
         // Check to see if current query_id is already in this database's annotation_results
         if (annotation_results.count(query_id) <= 0) {
@@ -338,12 +264,10 @@ int getBlastFileNames(string blastdir, string sample_name, MPAnnotateOptions opt
     char tempbuf[1000]; // Buffer.
 
     // Convert algorithm name to uppercase (i.e., BLAST, LAST)
+
     string algorithm = options.algorithm;
-    int i =0;
-    for(i =0; i < algorithm.size(); i++ )
-        tempbuf[i] = std::toupper(algorithm[i]);
-    tempbuf[i]='\0';
-    algorithm = string(tempbuf);
+
+    algorithm = to_upper(algorithm);
 
     // Create regular expression pattern for BLAST/LASTout.parsed.txt files
     string regexp_text = sample_name + "[.](.*)[.]" + algorithm + "out.parsed.txt$";
@@ -365,14 +289,44 @@ int getBlastFileNames(string blastdir, string sample_name, MPAnnotateOptions opt
     closedir(dp);
 
     // Check to see if files match parsed.txt pattern
-    string database;
+    string dbname, tempdbname;
+    string dbtag;
+    bool usedb ;
+    DBTYPE dbtype;
+    string (*idextractor)(const char*);
+
     for (unsigned int i = 0;i < files.size();i++) {
-        database = getpattern(&regex, files[i].c_str(), 1) ;
-        if( database.size() > 0)  {
+        dbname = getpattern(&regex, files[i].c_str(), 1) ;
+        tempdbname = to_upper(dbname);
+        usedb = false;
+        if( dbname.size() > 0)  {
+                 
             // Pattern found: add database name, filename, and weight to db_info
-            db_info.db_names.push_back(database);
-            db_info.input_blastouts.push_back(files[i]);
-            db_info.weight_dbs.push_back(1.0);
+            if(tempdbname.find("KEGG") != std::string::npos ) {
+               usedb = true;
+               dbtype = KEGG;
+               idextractor = getKEGGID;
+            }
+
+            if(tempdbname.find("COG") != std::string::npos ) {
+               usedb = true;
+               dbtype = COG;
+               idextractor = getCOGID;
+            }
+
+            if(tempdbname.find("SEED") != std::string::npos ) {
+               usedb = true;
+               dbtype = SEED;
+               idextractor = getSEEDID;
+            }
+
+            if(usedb) {
+               db_info.db_names.push_back(dbname);
+               db_info.input_blastouts.push_back(files[i]);
+               db_info.weight_dbs.push_back(1.0);
+               db_info.dbtypes.push_back(dbtype);
+               db_info.idextractors.push_back(idextractor);
+            }
         }
     }
 
@@ -402,10 +356,7 @@ void createAnnotation(map<string, float> dbname_weight, ANNOTATION_RESULTS resul
     string filename = options.blast_dir + "/" + input_gff; // BLAST/LASTout.parsed.txt
 
     std::ifstream input; // Input filestream
-    char buf[10000]; // Temp buffer TODO check to see if multiple buffers nessisary
     vector <char *> fields; // Vector for parsed fields
-    int count = 0; // Line count
-    char tempbuf[1000];
 
 
 
@@ -428,7 +379,7 @@ void createAnnotation(map<string, float> dbname_weight, ANNOTATION_RESULTS resul
 }
 
 
-string orf_extractor_from_gff(string line){
+string orf_extractor_from_gff(const string &line){
    char buf[1000];
    string orfid;
    try{
@@ -448,22 +399,12 @@ void create_threads_annotate(int num_threads, THREAD_DATA_ANNOT *thread_data, WR
     }   
     int rc; 
 
-    std::cout << "Number of threads created to process lines " << num_threads << std::endl;
-
     for(int i = 0; i < num_threads; i++) {
        if((rc = pthread_create(&threads[i], NULL, annotateOrfsForDBs, (void *)(thread_data+i)))) {
          cout << "Error:unable to create thread," << rc << endl;
          exit(-1);
        }   
     }   
-
-    pthread_t writer_thread; //(pthread_t *)malloc(sizeof(pthread_t)); 
-    //create writer thread
-    if((rc = pthread_create(&writer_thread, NULL, writeAnnotatedGFFs, (void *)(writer_data)))) {
-         cout << "Error:unable to create thread," << rc << endl;
-         exit(-1);
-    }   
-
 
     void *status;
     for(int i=0; i<num_threads; i++) {
@@ -472,105 +413,175 @@ void create_threads_annotate(int num_threads, THREAD_DATA_ANNOT *thread_data, WR
          printf("ERROR; return code from pthread_join() is %d\n", rc);
          exit(-1);
       }   
-     }   
+    }   
+
+    pthread_t writer_thread; //(pthread_t *)malloc(sizeof(pthread_t)); 
+    if((rc = pthread_create(&writer_thread, NULL, writeAnnotatedGFFs, (void *)(writer_data)))) {
+         cout << "Error:unable to create thread," << rc << endl;
+         exit(-1);
+    }   
+
 
     rc = pthread_join(writer_thread, &status);
-      if (rc) {
+    if (rc) {
          printf("ERROR; return code from pthread_join() is %d\n", rc);
          exit(-1);
     }   
 }
 
 
-
 void *annotateOrfsForDBs( void *_data) {
-    THREAD_DATA *data = static_cast<THREAD_DATA *>(_data);
-    std::cout << "Creating worker thread alone is enough \n";
+    THREAD_DATA_ANNOT *data = static_cast<THREAD_DATA_ANNOT *>(_data);
  
-    ANNOTATION annotation;
-    string line;
-    string query_id;
-    string bsr;
-    string ec;
-    string product;
-    string taxonomy = "";
-    float value;
+    ANNOTATION *annotation;
 
-    // Parse each line and create ANNOTATION objects
-/*
-    while( std::getline(input, line ).good()) {
-        split(line, fields, buf,'\t');
-        if (count == 0) { count++; continue; };
+    int count = 0;
+    vector<string>::iterator it;
+    unsigned int max_score=0, score;
+    short int  db_index;
+     
+    unsigned long long a = 10000000000;
 
-        if( fields.size()!=10) {
-            // Not a parsed blast file
-            cerr << "Parsed BLAST/LASTout file " <<  filename << " did not have the 10 columns." << endl;
-            query_id.clear();
-            input.close();
-            return 1;
-        }
-
-        query_id = fields[0];
-        bsr = fields[4];
-        ec = fields[8];
-        product = fields[9];
-
-        int i =0;
-        for(i =0; i < db_name.size(); i++ )
-            tempbuf[i] = std::toupper(db_name[i]);
-        tempbuf[i]='\0';
-        db_name = string(tempbuf);
-
-
-        // Construct annotation
-        ANNOTATION annotation;
-        annotation.bsr = atof(bsr.c_str());
-        annotation.ec = ec;
-        annotation.product = product;
-
-        // Extract RefSeq taxonomy from product field
-        if (options.taxonomy && (db_name.find("REFSEQ") != std::string::npos)) {
-            // TODO: Could be more reliable to get taxonomy from GI number.
-            taxonomy = getTaxonomyFromProduct(product.c_str());
-        }
-        annotation.taxonomy = taxonomy;
-
-
-        // Compute information score of current annotation.
-        annotation.value = computeAnnotationValue(annotation) * weight;
-
-        // Check to see if current query_id is already in this database's annotation_results
-        if (annotation_results.count(query_id) <= 0) {
-            annotation_results[query_id] = annotation;
-        }
-        else {
-            // Replace existing ANNOTATION with the current annotation if strong annotation score
-            if (annotation_results[query_id].value < annotation.value) {
-                annotation_results[query_id] = annotation;
-            }
-        }
-
-        if (options.debug) {
-            if (count%PRINT_INTERVAL==0)
-                std::cout << "x " << count << std::endl;
-        }
-
+    DB_HIT *db_hit;
+    string func_id;
+    string (*idextractor) (const char *);
+    for(it = data->orfids.begin();it != data->orfids.end(); it++)  {
         count++;
-    }
-    input.close();
+        max_score = 0;
+        db_index = -1;
+        DB_HIT *db_hit; 
+        db_hit = new DB_HIT;;
+        for(unsigned int j = 0; j < data->db_info.db_names.size(); j++ ) { 
+
+            idextractor = data->db_info.idextractors[j];
+            if(data->annot_objects[data->db_info.db_names[j]].find(*it)!=
+                data->annot_objects[data->db_info.db_names[j]].end()) {
+
+                annotation =  data->annot_objects[data->db_info.db_names[j]][*it];
+
+              //  std::cout << data->db_info.db_names[j] << "\t" << *it << "\t" << annotation->product << std::endl; 
+               // std::cout << idextractor(annotation->product.c_str()) << std::endl;
+                func_id = idextractor(annotation->product.c_str());
+                if(func_id.size()==0) func_id="E";
+
+                score = computeAnnotationValue(annotation)*data->db_info.weight_dbs[j];
+                db_hit->push_back(func_id);
+            }
+            else {
+          //      std::cout << data->db_info.db_names[j] << "\t" << *it <<  "no hit" << std::endl ;
+                db_hit->push_back(string("E"));
+            }
+              
+            //std::cout << std::endl; 
+/*
+               if(max_score < score) {
+                   max_score= score;
+                   annotation->value = score ;
+                   db_index = static_cast<short int>(j);
+               }
+            data->annot_from_db.push_back(db_index);
 */
+            data->annot_from_db.push_back(db_index);
+        }
+        data->db_hits.push_back(db_hit);
+//        data->annot_from_db.push_back(db_index);
+    }
 
-
+    std::cout << "counter " << count << std::endl;
     return (void *)NULL;
 
 }
 
+void *writeAnnotatedPreamble(void *_writer_data) {
+    
+    char buf[10000];
+    string str;
+    WRITER_DATA_ANNOT *writer_data = (WRITER_DATA_ANNOT *)_writer_data;
+    std::cout << "preamble \n";
+    for(unsigned int i = 0; i < writer_data->db_info.db_names.size(); i++) {
+       writer_data->output[i] <<  "#"<< writer_data->db_info.db_names[i] << std::endl;
+    }   
+}
 
-void *writeAnnotatedGFFs( void *_data) {
-    THREAD_DATA *data = static_cast<THREAD_DATA *>(_data);
-    std::cout << "Writing makes it complete\n";
+void *writeAnnotatedGFFs( void *_writer_data) {
 
+    unsigned int b;  
+    char buf[10000];
+    WRITER_DATA_ANNOT *writer_data = (WRITER_DATA_ANNOT *)_writer_data;
+    unsigned int num_threads = writer_data->num_threads;
+    THREAD_DATA_ANNOT *thread_data = writer_data->thread_data;
 
+    for(unsigned int i = 0; i < num_threads; i++) {
+    //   b =  (thread_data[i].b+1)%2;
+    //   std::cout << "Writing results from thread " << i << " buffer " << b << std::endl;
+
+      // std::cout << "writing \n";
+       for(unsigned int j =0; j < thread_data[i].orfids.size(); j++) {
+
+            unsigned int k = 0;
+            for(vector<string>::iterator it = thread_data[i].db_hits[j]->begin(); it != thread_data[i].db_hits[j]->end(); it++) {
+                 writer_data->output[k] << *it << std::endl;;
+                 k++;
+            }
+
+       }
+       thread_data[i].clear();
+/*
+       for(vector<string>::iterator it = thread_data[i].orfids.begin(); it != thread_data[i].orfids.end(); it++) {
+           writer_data->output << *it << std::endl; 
+       }   
+       thread_data[i].orfids.clear();
+*/
+    }   
+   //    std::cout << "done \n";
+       
     return (void *)NULL;
 
 }
+ 
+bool  create_function_weights(const string &inputfile, const string &outputfile) {
+
+    std::cout << "file to use " <<  inputfile << std::endl;
+    std::ifstream input;
+    char buf[1000];
+ 
+    input.open(inputfile.c_str(), std::ifstream::in);
+    if(!input.good()){
+       std::cerr << "Error opening '"<< inputfile <<"'. Bailing out." << std::endl;
+       return false;
+    }   
+      // int *counts  = (int *)calloc(options.num_threads, sizeof(int));
+    string function, line;
+    string prevfunc="";
+    bool isfirst = true;
+    unsigned int count = 1;
+
+
+    std::ofstream output;
+    output.open(outputfile.c_str(), std::ifstream::out);
+
+    while( std::getline(input, line ).good()) {
+        function = line;
+         
+        if( prevfunc == function)    
+             count++;
+        else
+           if(isfirst ) {
+              isfirst = false;
+           }
+           else {
+             output  << prevfunc << "\t" << count << std::endl;
+             count =1;
+           }
+        
+        prevfunc = function;
+     }   
+
+    input.close();
+    output.close();
+
+
+    return true;
+
+}
+

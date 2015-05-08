@@ -3,7 +3,7 @@
 
 using namespace std;
 #define PRINT_INTERVAL 5000000
-#define BATCH_SIZE_PER_CORE 1000000
+#define BATCH_SIZE_PER_CORE 5000
 
 
 MPAnnotateParser::MPAnnotateParser(const MPAnnotateOptions &options,const DB_INFO & db_info){
@@ -28,87 +28,90 @@ void  MPAnnotateParser::initializeBatchReading() {
           std::cerr << "Error opening '"<< filename <<"'. Bailing out." << std::endl;
          return ;
    }
-
    std::ifstream *parsedinput ;
- 
    for(unsigned int i = 0; i < db_info.db_names.size(); i++ ) {
-       std::ifstream *parsedinput  = new std::ifstream;;
+       parsedinput  = new std::ifstream;;
        parsedinput->open((options.blast_dir + string("/") + db_info.input_blastouts[i]).c_str(), std::ifstream::in);
        parsed_file_streams[db_info.db_names[i]]  = parsedinput;
        leftover_lines[db_info.db_names[i]] = "";
        dbwise_inputs[db_info.db_names[i]] = vector<string>();
    } 
-
-
 }
 
 void MPAnnotateParser::distributeInput(THREAD_DATA_ANNOT *thread_data) {
-    std::cout << "input size " << this->inputbuffer.size() << std::endl;
-    string orfid;
     vector<char *>fields;
     int bucketIndex;
 
-    for(unsigned int i=0; i< options.num_threads; i++) {
+    unsigned int i;
+    for(i=0; i< options.num_threads; i++) {
       thread_data[i].lines.clear();
     }
-    char tempbuf[1000];
 
+    ANNOTATION *annotation;
 
-    ANNOTATION annotation;
-/*
-    for(vector<string>::iterator it = this->inputbuffer.begin(); it != this->inputbuffer.end(); it++) {
-        orfid = orf_extractor_from_gff(*it);
-        bucketIndex = hashIntoBucket(orfid.c_str(), options.num_threads); 
-        split(*it, fields, buf,'\t');
-
-        if( fields.size()!=9) {
-            // Not a parsed blast file
-            cerr << "Parsed BLAST/LASTout file  did not have the 10 columns." << endl;
-            input.close();
-            return ;
-        }   
-
-        annotation.bsr = atof(fields[4]);
-        annotation.ec = fields[8]; 
-        annotation.product = fields[9];
-
-    }
-*/
-
-    std::cout << "input size " << this->inputbuffer.size() << std::endl;
     vector<string>::iterator it;
+    string orfid, prevorfid;
+    float evalue, prevevalue;
 
+    std::cout << "input size " << i  << "  "  << this->inputbuffer.size() << std::endl;
+#ifdef DEBUG_MODE
+    std::cout << "input size " << i  << "  "  << this->inputbuffer.size() << std::endl;
+#endif
+    prevorfid = "";
+    prevevalue = 100;
     for(unsigned int i = 0; i < db_info.db_names.size(); i++ ) {
-        std::cout << "input size " << i  << "  "  << this->inputbuffer.size() << std::endl;
+      //  std::cout << db_info.db_names[i] << std::endl;
+        int j = 0;
+        prevevalue = 100;
+        prevorfid = "";
         for(it =  dbwise_inputs[db_info.db_names[i]].begin(); it !=  dbwise_inputs[db_info.db_names[i]].end(); it++ ) {
-           bucketIndex = hashIntoBucket((*it).c_str(), options.num_threads); 
 
-           if( thread_data[bucketIndex].annot_objects.find(db_info.db_names[i])==thread_data[bucketIndex].annot_objects.end()) 
-                thread_data[bucketIndex].annot_objects[db_info.db_names[i]]= map<string, ANNOTATION>();
+           orfid = orf_extractor_from_blast((*it).c_str()); 
+           evalue = evalue_extractor_from_blast((*it).c_str()); 
+  
+          // std::cout << *it << std::endl;
 
-           thread_data[bucketIndex].annot_objects[db_info.db_names[i]][*it] = annotation;
+           bucketIndex = hashIntoBucket(orfid.c_str(), options.num_threads); 
+
+           if(thread_data[bucketIndex].annot_objects.find(db_info.db_names[i])==thread_data[bucketIndex].annot_objects.end()) 
+                thread_data[bucketIndex].annot_objects[db_info.db_names[i]]= map<string, ANNOTATION *>();
+
+        
+           if(prevorfid != orfid && j!=0 ) {
+              prevevalue  = 100;
+       //       std::cout << orfid << "\t" << annotation->product << std::endl;
+              thread_data[bucketIndex].annot_objects[db_info.db_names[i]][orfid] = annotation;
+              thread_data[bucketIndex].orfids.push_back(orfid);
+              annotation = createAnnotation((*it).c_str(), db_info.db_names[i]); 
+           }
+           else if(prevevalue > evalue ) {
+              annotation = createAnnotation((*it).c_str(), db_info.db_names[i]); 
+           }
+
+           prevevalue = evalue; prevorfid = orfid;
+           j++;
         }
-        std::cout << " data for thread " <<   thread_data[bucketIndex].annot_objects[db_info.db_names[i]].size() << std::endl;
     }
 
-
-     //   thread_data[bucketIndex].annot_objects.push_back(*it);
+#ifdef DEBUG_MODE
+//  thread_data[bucketIndex].annot_objects.push_back(*it);
     for(unsigned int i=0; i< options.num_threads; i++) {
-      std::cout << "Data size of thread " << i << "  " << thread_data[i].lines.size() << std::endl;
+       std::cout << "Thread data " << i <<  std::endl;
+       for(unsigned int j = 0; j < db_info.db_names.size(); j++ ) {
+         std::cout << "  " << db_info.db_names[j] << " : " <<\
+          thread_data[i].annot_objects[db_info.db_names[j]].size() << std::endl;
+       }
     }
+#endif
     
-
 }
 
 bool MPAnnotateParser::readABatch() {
-   std::cout << "Reading a new batch\n";
    int count = 0;
    string line;
-   char buf[10000];
    vector<char *> fields;
 
    this->inputbuffer.clear();
-
   
    map<string, bool>  gfforfs;
    gfforfs.clear();
@@ -116,7 +119,6 @@ bool MPAnnotateParser::readABatch() {
    for(unsigned int i = 0; i < db_info.db_names.size(); i++ ) {
        dbwise_inputs[db_info.db_names[i]].clear();               
    }
-
 
 
    string orfid ;
@@ -130,25 +132,20 @@ bool MPAnnotateParser::readABatch() {
           std::cout << count << std::endl;
    }
    
-   std::cout << "orfs extracted " << gfforfs.size() << std::endl; 
    map<string, std::ifstream *>::iterator it;
-
-
-   std::cout << "num databaessss  " << parsed_file_streams.size() << std::endl; 
-   std::cout << "num databaessss  " << db_info.db_names.size() << std::endl; 
 
    if( count ==0) return false;
 
 
    std::ifstream *parsedinput;
    for(unsigned int i = 0; i < db_info.db_names.size(); i++ ) {
-       
        if(leftover_lines[db_info.db_names[i]].size() > 0)
            dbwise_inputs[db_info.db_names[i]].push_back(leftover_lines[db_info.db_names[i]]);               
 
        parsedinput = parsed_file_streams[db_info.db_names[i]];
        while( std::getline(*parsedinput, line ).good()) {
            if( line.size() > 0 && line[0]=='#') continue;
+//           std::cout << line << std::endl;
            orfid = orf_extractor_from_blast(line); 
            if( gfforfs.find(orfid) == gfforfs.end()) {
               leftover_lines[db_info.db_names[i]] = line;               
@@ -158,17 +155,12 @@ bool MPAnnotateParser::readABatch() {
        }
    }
 
+#ifdef DEBUG_MODE
    std::cout << " ddatabaes one "<< db_info.db_names.size() << std::endl;;
    for(unsigned int i = 0; i < db_info.db_names.size(); i++ ) {
-     std::cout << " db hits ->" << db_info.db_names[i] << "<=  "<< dbwise_inputs[db_info.db_names[i]].size() << std::endl;              
+       std::cout << "db hits->" << db_info.db_names[i] << " "<< dbwise_inputs[db_info.db_names[i]].size() << std::endl; 
    }
-
-   return true;;
-   exit(0);
-
-   
-
-
+#endif
 
    if(count>0) return true; 
 

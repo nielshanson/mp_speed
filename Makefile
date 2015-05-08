@@ -14,19 +14,19 @@ MPANNO= mp_annotate
 MPANNO_SOURCES= MPAnnotate.c++ MPAnnotateOptions.c++  utilities.c++ outputparser.c++\
                  annotation.c++  options.c++  externalsort.c++ heapsort.c++\
                   linereader.c++ mpannotateparser.c++
+
 MPANNO_OBJECTS= $(MPANNO_SOURCES:.c++=.o)
 MPANNO_HEADERS= $(MPANNO_SOURCES:.c++=.h)
 
 
 
-%.o:%.c++ $(SOURCES)  $(MPANNO_SOURCES)  types.h
+%.o:%.c++ $(SOURCES)  $(MPANNO_SOURCES)  $(MPANNO_HEADERS)  $(HEADERS)  types.h
 	$(CC) $(CCFLAGS)  $< -c -o $@
 
 
 all: $(MPANNO)  $(PROG)
 clean:
-	rm -rf $(OBJECTS) $(PROG) $(MPANNO)
-
+	rm -rf $(OBJECTS) $(PROG) $(MPANNO) $(MPANNO_OBJECTS)
 $(PROG): $(OBJECTS) $(HEADERS) types.h
 	$(CC) $(CCFLAGS) $(OBJECTS) -o $(PROG)
 

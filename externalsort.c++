@@ -3,10 +3,11 @@
 #define STR_BUFFER_SIZE 10
 #define PRINT_INTERVAL 100000
 
+typedef Line * LINE;
 
-bool comp_lines(Line *lhs, Line *rhs ) {
-   //  std::cout << lhs->orfid << "  " <<   lhs->line << std::endl;
-     return lhs->orfid <= rhs->orfid;
+bool comp_lines(const LINE &lhs,const  LINE &rhs ) {
+  // std::cout << lhs->orfid << "  " <<   lhs->line << std::endl;
+   return lhs->orfid < rhs->orfid;
 }
 
 
@@ -14,12 +15,13 @@ void free_lines(vector<Line *> &v) {
      vector<Line *>::iterator it;
      for(it = v.begin(); it !=v.end(); it++)
         delete *it;
-
 }
+
+
+
 // Sort the input sequences and divide them into blocks; return the number of blocks created
 int disk_sort_file(string outputdir, string tobe_sorted_file_name, string sorted_file_name,\
-    int chunk_size, string(*key_extractor)(const string) ) {
-    char buf[10000];
+    int chunk_size, string(*key_extractor)(const string &) ) {
     std::cout << " going to sort \n";
     
     string sorted_fname = outputdir + "/sorted.fasta";
@@ -42,50 +44,87 @@ int disk_sort_file(string outputdir, string tobe_sorted_file_name, string sorted
 	pair<string, int> orfid_num;
     string line;	
     int count = 0;
-    Line *lineptr = new Line;
+    Line *lineptr;
 
     // Split input fasta into chunks to sort individually
     while( std::getline(inputfile, line ).good()) {
            
          string orfid = key_extractor(line);
+      //   std::cout << "ZZZZ\t" << orfid << "\t" << line <<  std::endl;
          //string orfid = key_extractor(line) fields, buf,'\t');
 
          lineptr = new Line;
-         lineptr->orfid = orfid;
-		 lineptr->line = line;
+
+    //     lineptr->orfid = orfid;
+	//	 lineptr->line = line;
+
+         lineptr->setOrfId(orfid);
+         lineptr->setLine(line);
 
          lines.push_back(lineptr);
-         if (curr_size >= chunk_size) {
+
+         if (curr_size > chunk_size) {
+            std::cout << "processing batch " << batch << std::endl;        
 
 			// Sort the vector of sequence ids/lengths            
+    //        std::cout << " done processing batch 0 " << batch << std::endl;        
+   //         std::cout << "going to  sorting now 1 " << lines.size() << "\t" << count << "\t" << curr_size << "\t" << chunk_size << " \n";
+
             sort(lines.begin(), lines.end(), comp_lines);
+        //    sort(lines.begin(), lines.end());
+
+  //          std::cout << " done processing batch A " << batch << std::endl;        
 			// Write the sequences to a file
             sprintf(buffer, "%d", batch);
             string fname = sorted_fname_tmp + string(buffer);
 			filenames.push_back(fname);
 			write_sorted_sequences(lines, fname);
+
+//            std::cout << " done processing batch a " << batch << std::endl;        
             free_lines(lines);
+            
 			batch++;
 			// Clear the variables
             curr_size = 0;
 			lines.clear();
 			seq_id = 0;	
+ //           std::cout << " done processing batch " << batch << std::endl;        
         }
         curr_size++;
         count++;
     }
 
-    inputfile.close();
     // Sort remaining sequences and write to last file
     if (lines.size() > 0) {
+
+/*
+        for(vector<Line *>::iterator it = lines.begin(); it!= lines.end(); it++) {
+              std::cout << (*it)->orfid << "\t" << (*it)->line << std::endl;
+
+        } 
+*/
+       
+        std::cout << "going to  sorting 1 " << lines.size() << "\t" << count << "\t" << curr_size << "\t" << chunk_size << " \n";
+
 		sort(lines.begin(), lines.end(), comp_lines);
+		//sort(lines.begin(), lines.end());
+
+        std::cout << "going to  sorting 1.1 " << lines.size() << "  \n";
+
+        std::cout << "done sorting 2 " << lines.size() << "  \n";
+
         sprintf(buffer, "%d", batch);
         string fname = sorted_fname_tmp + string(buffer);
 		filenames.push_back(fname);
+
 		write_sorted_sequences(lines, fname);
         free_lines(lines);
+        lines.clear();
+
     }
+    inputfile.close();
    
+    std::cout << "done sort again ing \n";
 
     // Merge the sorted files and write into blocks
     std::cout << " going to merge \n";
@@ -184,6 +223,13 @@ int merge_sorted_files_create_blocks(vector<string>& filenames, float block_mb, 
 	// Close last block file
 	outputfile.close();
 	f_its.clear();
+
+	for (i = 0; i<S; i++) {
+      remove(filenames[i].c_str());
+
+    }
+
+
 
 	return block_num + 1;	
 }

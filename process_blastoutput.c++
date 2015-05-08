@@ -1,5 +1,6 @@
 #include "process_blastoutput.h"
 
+#define CHUNK_SIZE 1000000
 
 
 void *write_results(void *writer_data) ;
@@ -227,7 +228,7 @@ void process_blastoutput(const Options& options, const GLOBAL_PARAMS &params) {
     writer_data->output.close();
 
     // sort the output 
-    disk_sort_file(string("/tmp/"), temp_parsed_output, options.parsed_output, 1000000, orf_extractor_from_blast);
+    disk_sort_file(string("/tmp/"), temp_parsed_output, options.parsed_output, CHUNK_SIZE, orf_extractor_from_blast);
 
     remove(temp_parsed_output.c_str());
     parser.closeBatchReading();

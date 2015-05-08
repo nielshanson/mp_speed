@@ -196,68 +196,7 @@ string getpattern(regex_t *r , const char *to_match, unsigned int no ) {
     return string(buf);
 }
 
-int hashIntoBucket(const char *str, unsigned int index) {
-    int hashValue = 0;
-    char buffer[1000];
 
-    char *first, *second;
-    first  = buffer;
-
-    char *x = buffer;
-    const char *p =str;
-
-    // Extract contig id and orf_id from string
-    while( *p != '\0') {
-        if( *p=='_' ) {
-            *x = '\0';
-            second = x +1;
-        }
-        else
-            *x = *p;
-
-        p++;
-        x++;
-    }
-    *x = '\0';
-
-    //std::cout << str <<  "  " << first << "  " << second << std::endl;
-
-    // Find the longer of the two ids
-    char *dest, *destfixed,  *src;
-    dest = first;
-    src = second;
-    int lenextra = strlen(second) - strlen(first);
-    if( lenextra > 0)  {
-        dest = second;
-        src = first;
-    }
-    else
-        lenextra = -lenextra;
-
-    destfixed = dest; // always remember the initial point of longer
-
-    dest = dest + lenextra; // move to aligned position
-
-    // XOR aligned bits of source and destination starting at aligned position
-    while(*src != '\0') {
-        *dest = (*dest ) ^ (*src);
-        dest++; src++;
-    }
-
-    // feed into uniform hasing algorithm
-    while( *destfixed != '\0') {
-        //hashValue = (hashValue << 4) + (unsigned int)(*destfixed);
-        hashValue = hashValue + (unsigned int)(*destfixed);
-/*
-       int hiBits = hashValue  & 0xF0000000;
-       if(hiBits!=0)
-          hashValue ^= hiBits>> 24;
-       hashValue &= ~hiBits;
-*/
-        destfixed++;
-    }
-    return hashValue%index;
-}
 
 /*
  * Process the product field of the BLAST/LASTout.parsed file to extract taxonomy
@@ -295,6 +234,110 @@ string getTaxonomyFromProduct(const char *str) {
     }
 
     return "no-taxonomy";
+}
+
+string getSEEDID(const char *str) {
+    char buf[100];
+    unsigned int S=0, i=0;
+    const char *c;
+
+    c = str;
+    while( *c!='\0') {
+        if(S==0)  
+           if(*c=='[') 
+              S++;
+           else { 
+             if( *c!=' ' || i==0 || buf[i-1]!=' ')  {
+                 buf[i] =*c;
+                 i++;
+              }
+             }
+        else {
+           if(*c=='[')  S++;
+           if(*c==']')  S--;
+        }
+        c++;
+    }
+
+    
+    if(i> 0 && buf[i-1]==' ') buf[i-1]='\0';
+     else buf[i]='\0';
+    return string(buf);
+}
+
+
+string getKEGGID(const char *str) {
+    char buf[100];
+    unsigned int S=0;
+    const char *c;
+
+    c = str;
+    while( *c!='\0') {
+        if(S==0)  
+           if(*c=='K') buf[S++]=*c;        else  S=0;
+        else if(1<=S && S<=5)  
+            if( isdigit(*c)) buf[S++]=*c;  else S=0;
+        else if( isspace(*c) or *c=='\n') { 
+           S=7; break;
+        }
+        else 
+            S=0;
+        c++;
+    }
+
+    if( S==7 ) {
+         buf[S] ='\0'; 
+        return string(buf);
+    }
+    else {
+       if(S==6 &&  *c=='\0') { 
+          buf[S] ='\0'; 
+          return string(buf);
+       }
+
+    }
+
+    buf[0]='\0';
+    return string(buf);
+}
+
+string getCOGID(const char *str) {
+    char buf[100];
+    unsigned int S=0;
+    const char *c;
+
+    c = str;
+    while( *c!='\0') {
+        if(S==0)  
+           if(*c=='C') buf[S++]=*c;        else  S=0;
+        else if(S==1)  
+           if(*c=='O') buf[S++]=*c;        else S= 0;
+        else if(S==2)  
+           if(*c=='G') buf[S++]=*c;        else S = 0;
+        else if(3<=S && S<=6)  
+            if( isdigit(*c)) buf[S++]=*c;  else S=0;
+        else if( isspace(*c) or *c=='\n') { 
+           S= 8; break;
+        }
+        else 
+            S=0;
+        c++;
+    }
+
+    if( S==8 ) {
+         buf[S] ='\0'; 
+        return string(buf);
+    }
+    else {
+       if(S==7 &&  *c=='\0') { 
+          buf[S] ='\0'; 
+          return string(buf);
+       }
+
+    }
+
+    buf[0]='\0';
+    return string(buf);
 }
 
 string getECNo(const char *str, unsigned int d) {
@@ -341,7 +384,6 @@ string getECNo(const char *str, unsigned int d) {
         c++;
     }
 
-
     if( found ) {
         unsigned int len = e - b;
         memcpy(buf,b, len);
@@ -353,11 +395,130 @@ string getECNo(const char *str, unsigned int d) {
     return string(buf);
 }
 
+string function_extractor_from_list(const string & line){
+    return line;
+}
 
-string orf_extractor_from_blast(string line){
+string orf_extractor_from_blast(const string & line){
     char buf[10000];
     string orfid  = split_n_pick(line, buf, '\t', 0); 
     return orfid;
+}
+
+float evalue_extractor_from_blast(const string &line){
+    char buf[10000];
+    string evaluestr  = split_n_pick(line, buf, '\t', 5); 
+    float evalue ;
+   
+    try{
+         evalue = atof(evaluestr.c_str());
+    }
+    catch(...) {
+       return 100;
+    }
+    return evalue;
+}
+
+
+unsigned int hashIntoBucket(const char *str, unsigned int index) {
+    int hashValue = 0;
+    char buffer[100000];
+
+    char *first, *second;
+    first  = buffer;
+
+    char *x = buffer;
+    const char *p =str;
+
+    // Extract contig id and orf_id from string
+    while( *p != '\0') {
+        if( *p=='_' ) {
+            *x = '\0';
+            second = x +1;
+        }
+        else
+            *x = *p;
+
+        p++;
+        x++;
+    }
+    *x = '\0';
+
+    //std::cout << str <<  "  " << first << "  " << second << std::endl;
+
+    // Find the longer of the two ids
+    char *dest, *destfixed,  *src;
+    dest = first;
+    src = second;
+    int lenextra = strlen(second) - strlen(first);
+    if( lenextra > 0)  {
+        dest = second;
+        src = first;
+    }
+    else
+        lenextra = -lenextra;
+
+    destfixed = dest; // always remember the initial point of longer
+
+    dest = dest + lenextra; // move to aligned position
+
+    // XOR aligned bits of source and destination starting at aligned position
+
+    while(*src != '\0') {
+        *dest = (*dest ) ^ (*src);
+        dest++; src++;
+    }
+
+    while( *destfixed != '\0') {
+        //hashValue = (hashValue << 4) + (unsigned int)(*destfixed);
+        hashValue = hashValue + (unsigned int)(*destfixed);
+/*
+       int hiBits = hashValue  & 0xF0000000;
+       if(hiBits!=0)
+          hashValue ^= hiBits>> 24;
+       hashValue &= ~hiBits;
+*/
+        destfixed++;
+    }
+    return hashValue%index;
+}
+
+
+unsigned long long hashStringIntoBucket(const char *str, unsigned long long index) {
+    int hashValue = 0;
+    
+    while( *str != '\0') {
+      //hashValue = (hashValue << 4) + (unsigned int)(*destfixed);
+      hashValue = hashValue + (unsigned int)(*str);
+      int hiBits = hashValue  & 0xF0000000;
+       if(hiBits!=0)
+          hashValue ^= hiBits>> 24;
+       hashValue &= ~hiBits;
+       str++;
+    }
+    return hashValue%index;
+}
+
+
+string to_upper(const string &str) {
+
+    char tempbuf[1000];
+    
+    char *buf = tempbuf;
+
+    if( str.size() > 1000) 
+       buf = new char[str.size() + 1];
+
+    unsigned int i;
+    for(i =0; i < str.size(); i++ )
+       buf[i] = std::toupper(str[i]);
+    buf[i]='\0';
+    
+    if( str.size() > 1000) 
+        delete [] buf;
+     
+
+    return string(buf);
 }
 
 
