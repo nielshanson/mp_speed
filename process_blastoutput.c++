@@ -5,7 +5,6 @@
 
 void *write_results(void *writer_data) ;
 
-
 void *compute_refscores( void *_data) {
     THREAD_DATA *data = static_cast<THREAD_DATA *>(_data);
     vector< std::pair<string, string> >::iterator it;
@@ -20,7 +19,6 @@ void *compute_refscores( void *_data) {
     return (void *)NULL;
 
 }
-
 
 bool isWithinCutoffs(const string &orfid, const vector<char *> &fields, BLASTOUT_DATA &data, THREAD_DATA *thread_data) {
   try{
@@ -60,7 +58,6 @@ bool isWithinCutoffs(const string &orfid, const vector<char *> &fields, BLASTOUT
    
    return true;
 }
-
 
 
 void *process_lines( void *_data) {
@@ -154,7 +151,6 @@ void create_threads_parse(int num_threads, THREAD_DATA *thread_data, WRITER_DATA
          exit(-1);
     }
 
-
     void *status;
     for(int i=0; i<num_threads; i++) {
       rc = pthread_join(threads[i], &status);
@@ -170,7 +166,6 @@ void create_threads_parse(int num_threads, THREAD_DATA *thread_data, WRITER_DATA
          exit(-1);
     }
 }
-
 
 void process_blastoutput(const Options& options, const GLOBAL_PARAMS &params) {
     unsigned int b =0;

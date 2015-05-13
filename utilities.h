@@ -57,5 +57,7 @@ string function_extractor_from_list(const string & line);
 
 string to_upper(const string &str);
 
+string to_lower(const string &str);
+
 #endif //_UTILITIES
 

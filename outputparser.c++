@@ -105,11 +105,8 @@ void OutputParser::create_annotation_dictionary( map<string, string> *annot_map 
    std::cout << "Number of annotation loaded " <<  annot_map->size() << std::endl;
 
    this->input.close();
-
-
-
-
 }
+
 void OutputParser::create_refBitScores(THREAD_DATA *thread_data) {
 
    string filename  = options.refscore_file;

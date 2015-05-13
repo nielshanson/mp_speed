@@ -48,13 +48,9 @@ void readContigLengths(string file, map<string, unsigned int> &contig_lengths) {
     }
     input.close();
 
-
-
     std::cout << "Number of contig lengths loaded " <<  count << std::endl;
 
-
 }
-
 
 /*
  * Given a product string this function computes the products word information score. I.e., one point for every
@@ -492,16 +488,16 @@ void *annotateOrfsForDBs( void *_data) {
 
 }
 
-void *writeAnnotatedPreamble(void *_writer_data) {
-    
-    char buf[10000];
-    string str;
-    WRITER_DATA_ANNOT *writer_data = (WRITER_DATA_ANNOT *)_writer_data;
-    std::cout << "preamble \n";
-    for(unsigned int i = 0; i < writer_data->db_info.db_names.size(); i++) {
-       writer_data->output[i] <<  "#"<< writer_data->db_info.db_names[i] << std::endl;
-    }   
-}
+//void *writeAnnotatedPreamble(void *_writer_data) {
+//
+//    char buf[10000];
+//    string str;
+//    WRITER_DATA_ANNOT *writer_data = (WRITER_DATA_ANNOT *)_writer_data;
+//    std::cout << "preamble \n";
+//    for(unsigned int i = 0; i < writer_data->db_info.db_names.size(); i++) {
+//       writer_data->output[i] <<  "#"<< writer_data->db_info.db_names[i] << std::endl;
+//    }
+//}
 
 void *writeAnnotatedGFFs( void *_writer_data) {
 

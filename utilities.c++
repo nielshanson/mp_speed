@@ -521,4 +521,25 @@ string to_upper(const string &str) {
     return string(buf);
 }
 
+string to_lower(const string &str) {
+
+    char tempbuf[10000];
+
+    char *buf = tempbuf;
+
+    if( str.size() > 1000)
+        buf = new char[str.size() + 1];
+
+    unsigned int i;
+    for(i =0; i < str.size(); i++ )
+        buf[i] = std::tolower(str[i]);
+    buf[i]='\0';
+
+    if( str.size() > 1000)
+        delete [] buf;
+
+
+    return string(buf);
+}
+
 

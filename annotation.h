@@ -28,9 +28,7 @@ int processParsedBlastout(string db_name, float weight, string blastoutput, MPAn
 
 void createAnnotation(map<string, float> dbname_weight, ANNOTATION_RESULTS results_dictionary, MPAnnotateOptions options, map<string, unsigned int> contig_lengths);
 
-
 string orf_extractor_from_gff(const string &line);
-
 
 void create_threads_annotate(int num_threads, THREAD_DATA_ANNOT *thread_data, WRITER_DATA_ANNOT *writer_data);
 
@@ -42,7 +40,7 @@ ANNOTATION * createAnnotation(const char * line, const string &dbname, bool taxo
 
 int process_all_parsed_blastout(THREAD_DATA_ANNOT *thread_data);
 
-void *writeAnnotatedPreamble(void *_writer_data);
+// void *writeAnnotatedPreamble(void *_writer_data);
 
 bool  create_function_weights(const string &intpufile, const string &outputfile);
 #endif //MP_SPEED_ANNOTATION_H
