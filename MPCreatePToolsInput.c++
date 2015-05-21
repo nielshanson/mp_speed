@@ -47,11 +47,9 @@ int main( int argc, char** argv) {
     // Test out linked list
     LIST *my_list = new LIST(root);
 
-    //
     // processAnnotationsForPTools(my_list, ptools_tree);
 
-
-
+    // insert into the list
     my_list->insert("One",1);
     my_list->insert("Two",1);
     my_list->insert("Three",1);
@@ -109,8 +107,6 @@ int main( int argc, char** argv) {
 //            cout << itr->first << endl;
 //        }
 //    }
-
-
 
 }
 
