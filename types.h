@@ -158,10 +158,7 @@ typedef struct _WRITER_DATA_ANNOT {
 // Annotation map
 typedef map<string, map<string, ANNOTATION *> > ANNOTATION_RESULTS;
 
-
-/*
- * MPCreatePToolsInput
- */
+// MPCreatePToolsInput functions
 
 /*
  * PTOOLS_NODE that makes up the pathway tools annotation tree
@@ -172,6 +169,7 @@ struct PTOOLS_NODE {
     string id2; // fullcase
     map<string, PTOOLS_NODE*> children;
     int count; // annotation count
+    bool complete; // Marks that this node ends a complete strand of annotations
 
     /*
      * Checks to see if this node has a child with a particular name w
@@ -182,7 +180,9 @@ struct PTOOLS_NODE {
         }
         return false;
     }
-
+    /*
+     * Inserts adds a child to the current node
+     */
     void insertChild(string w) {
         PTOOLS_NODE *child = new PTOOLS_NODE; // create child
         child->id2 = w;
@@ -195,10 +195,118 @@ struct PTOOLS_NODE {
  * LIST_NODE forms an linked list of pointers into nodes of the Pathway Tools annotation tree
  */
 struct LIST_NODE {
-    LIST_NODE* next; // pointer
-
+    LIST_NODE *next, *prev; // pointers to the next and previous nodes
     int index; // index
+    string my_data; // some data to hold
     PTOOLS_NODE * treeptr; // pointer into pathway_tools annotation tree
+
+    LIST_NODE(string word) {
+        my_data = word;
+    }
+};
+
+/*
+ * Linked list of LIST_NODEs that point to PTOOLS_NODES in the PTOOLS annotation tree.
+ */
+struct LIST {
+    LIST_NODE *curr, *head; // Current pointer, head pointer
+    PTOOLS_NODE *ptools_root; // root of the PTOOLS_TREE
+
+    // Constructor
+    LIST(PTOOLS_NODE *my_ptools_root){
+        ptools_root = my_ptools_root; // set reference to root of PTOOLS_TREE
+        curr = NULL;
+        head = NULL;
+    }
+
+    // Inserts a node at the head of the linked list
+    void insert(string word, int i) {
+        LIST_NODE *my_node = new LIST_NODE(word); // Create Node
+        if (head == NULL) {
+            head = my_node;
+            curr = my_node;
+        } else {
+            // insert node to head of list
+            head->prev = my_node;
+            my_node->next = head;
+            head = my_node;
+            curr = my_node;
+        }
+    };
+    // Deletes the node pointed to by the head pointer
+    void remove() {
+        if (head == NULL) {
+            // Nothing to remove
+            return;
+        }
+        LIST_NODE *del = head;
+        head = head->next;
+        delete del;
+    };
+    // Move the current pointer to the next node
+    void nextNode() {
+        if (curr == NULL) {
+            return;
+        }
+        else {
+            if (curr->next != NULL) {
+                curr = curr->next;
+            }
+        }
+    };
+    // Move the current pointer to the previous node
+    void prevNode() {
+        if (curr == NULL) {
+            return;
+        }
+        else {
+            if (curr->prev != NULL) {
+                curr = curr->prev;
+            }
+        }
+    };
+    // Delete the node at the current pointer
+    void deleteCurr(){
+        if (curr == NULL) {
+            // Nothing to remove
+            return;
+        }
+        LIST_NODE *del = curr; // node to delete
+        if (curr->next == NULL &&  curr->prev != NULL) {
+            // Current pointer at end
+            curr->prev->next = NULL;
+            delete del;
+        }
+        if (curr->prev == NULL && curr->next != NULL) {
+            // Current pointer at beginning
+            curr->next->prev = curr->prev; // i.e., NULL
+            head = curr->next; // make sure to update head
+            curr = curr->next;
+            delete del;
+        }
+        if (curr->next != NULL && curr->prev != NULL) {
+            // Current pointer in middle
+            curr->prev->next = curr->next;
+            curr->next->prev = curr->prev;
+            curr = curr->prev;
+            delete del;
+        }
+    }
+    // Inserts a node at the current pointer
+    void insertAtCurr(string word, int i) {
+        LIST_NODE *my_node = new LIST_NODE(word); // Create Node
+        if (curr == NULL) {
+            head = my_node;
+            curr = my_node;
+        } else {
+            // insert node after node currently being pointed to by current pointer
+            my_node->prev = curr;
+            my_node->next = curr->next;
+            curr->next = my_node;
+            // move current pointer to my_node just inserted
+            curr = my_node;
+        }
+    }
 };
 
 

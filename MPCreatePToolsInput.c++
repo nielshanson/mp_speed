@@ -21,17 +21,17 @@ int main( int argc, char** argv) {
 
     processPToolsRxnsFile(options.ptools_rxn_file, ptools_list);
 
-    PTOOLS_NODE root;
-    PTOOLS_NODE *head, *start;
-    head = &root;
+    PTOOLS_NODE *root = new PTOOLS_NODE();
+    PTOOLS_NODE *start;
 
     // Iterate through the ptools list of annotations
     char buf[10000]; // Temp buffer
     std::vector<char *> words; // Vector for parsed fields
 
+    // Parse each line of ptools annotations
     for (std::vector<string>::iterator itr = ptools_list.begin() ; itr != ptools_list.end(); ++itr) {
         split(*itr, words, buf,' ');
-        start = head;
+        start = root;
         for( unsigned int i=0; i < words.size(); i++) {
             if(! start->hasChild(words[i])) {
                 // create child node
@@ -40,41 +40,75 @@ int main( int argc, char** argv) {
             start = start->children[words[i]];
         }
     }
+    cout << "Loaded tree" << endl;
 
-    start = head;
-    print_dfs(start, "");
+    string test_anno = "The cat in the hat";
+
+    // Test out linked list
+    LIST *my_list = new LIST(root);
+
+    //
+    // processAnnotationsForPTools(my_list, ptools_tree);
+
+
+
+    my_list->insert("One",1);
+    my_list->insert("Two",1);
+    my_list->insert("Three",1);
+
+    // Move current to next node
+    my_list->nextNode();
+    // Test delete
+    my_list->deleteCurr();
+    // Test insert
+    my_list->insertAtCurr("Four",1);
+
+    // Print out list
+    LIST_NODE *list_itr = my_list->head;
+    while(list_itr != NULL) {
+        cout << list_itr->my_data << endl;
+        list_itr = list_itr->next;
+    }
+
+
+    // print out ptools tree
+    // start = head;
+    // print_dfs(start, "");
+
+    // Create listnode linked list
+
 
     exit(1);
 
     // print out words in ptools tree
-    start = head;
-    stack<PTOOLS_NODE *> node_stack;
-    stack<string> pstack;
-
-    node_stack.push(start);
-    pstack.push("");
-    string line = "";
-    while(!node_stack.empty()) {
-        pstack.pop();
-        PTOOLS_NODE* top = node_stack.top();
-        node_stack.pop();
-        if (top->children.size() == 0) {
-            line = "";
-            while(!pstack.empty()) {
-                line = line + " " + pstack.top();
-                pstack.pop();
-            }
-            cout << line << endl;
-            line = "";
-        }
-        map<string, PTOOLS_NODE*> children = top->children;
-        cout << "Children: " << children.size() << endl;
-        for (std::map<string, PTOOLS_NODE*>::iterator itr=children.begin(); itr != children.end(); ++itr) {
-            pstack.push(itr->first);
-            node_stack.push(itr->second);
-            cout << itr->first << endl;
-        }
-    }
+//    start = head;
+//    stack<PTOOLS_NODE *> node_stack;
+//    stack<string> pstack;
+//
+//    node_stack.push(start);
+//    pstack.push("");
+//    string line = "";
+//    while(!node_stack.empty()) {
+//        pstack.pop();
+//        PTOOLS_NODE* top = node_stack.top();
+//        node_stack.pop();
+//        if (top->children.size() == 0) {
+//            line = "";
+//            while(!pstack.empty()) {
+//                line = line + " " + pstack.top();
+//                pstack.pop();
+//            }
+//            cout << line << endl;
+//            line = "";
+//        }
+//        map<string, PTOOLS_NODE*> children = top->children;
+//        cout << "Children: " << children.size() << endl;
+//        for (std::map<string, PTOOLS_NODE*>::iterator itr=children.begin(); itr != children.end(); ++itr) {
+//            pstack.push(itr->first);
+//            node_stack.push(itr->second);
+//            cout << itr->first << endl;
+//        }
+//    }
 
 
 
@@ -84,7 +118,6 @@ void print_dfs(PTOOLS_NODE *node, string line) {
     if (node->children.size() == 0) {
         // at leaf
         cout << line << endl;
-
     } else {
         for (std::map<string, PTOOLS_NODE*>::iterator itr=node->children.begin(); itr != node->children.end(); ++itr) {
             print_dfs(itr->second, line + " " + itr->first);
@@ -93,7 +126,7 @@ void print_dfs(PTOOLS_NODE *node, string line) {
 }
 
 
-void processPToolsRxnsFile( string ptools_rxn_file, vector<string> &ptools_list){
+void processPToolsRxnsFile( string ptools_rxn_file, vector<string> &ptools_list ){
     string filename  = ptools_rxn_file;
     std::cout << "Reading ptools_rxn_file " << filename <<  std::endl;
     input.open(filename.c_str(), std::ifstream::in);
@@ -110,7 +143,6 @@ void processPToolsRxnsFile( string ptools_rxn_file, vector<string> &ptools_list)
 
     // Get header
     while( std::getline(input, line ).good()) {
-
         // skip header
         if (count == 0) {
             count++;
