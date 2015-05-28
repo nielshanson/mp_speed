@@ -49,34 +49,27 @@ int main( int argc, char** argv) {
     // print out words in ptools tree
     start = root;
     vector<PTOOLS_NODE *> node_stack;
-    vector<string> pstack;
     vector<string> path;
 
     node_stack.push_back(start);
     string headpath = "";
-    string path_line = "";
     path.push_back(headpath);
     while(!node_stack.empty()) {
         PTOOLS_NODE* top = node_stack.back();
         node_stack.pop_back();
         headpath = path.back(); // keep track of current path
         path.pop_back();
-        if (top->children.size() == 0) {
-            // print the stack
-            // cout << "headpath: " << headpath << endl;
-            // cout << "pstack: " << pstack.back() << endl;
-            path_line = headpath;
-            cout << path_line << endl;
-
+        if (top->complete==true) {
+            // complete MetaCyc annotation
+            cout << headpath << endl;
         }
         map<string, PTOOLS_NODE*> children = top->children;
         for (std::map<string, PTOOLS_NODE*>::iterator itr=children.begin(); itr != children.end(); ++itr) {
             node_stack.push_back(itr->second);
-            path.push_back(headpath + "->"+ itr->first);
+            path.push_back(headpath + itr->first + " "); // keep track of path in path stack
         }
 
     }
-    exit(1);
 
     string test_anno = "The cat in the hat";
 
