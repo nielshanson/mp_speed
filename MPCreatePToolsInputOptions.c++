@@ -12,6 +12,9 @@ bool MPCreatePToolsInputOptions::SetOptions(int argc, char *argv[]) {
         if (strncmp(argv[i], "--ptools_rxns", strlen("--ptools_rxns")) == 0) {
             this->ptools_rxn_file = argv[++i];
         }
+        else if (strncmp(argv[i], "--anno_table", strlen("--anno_table")) == 0) {
+            this->annotation_table = argv[++i];
+        }
         else {
             cout << "ERROR: Cannot recognize argument " << argv[i] << std::endl;;
             return false;

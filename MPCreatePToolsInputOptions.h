@@ -21,9 +21,12 @@ struct MPCreatePToolsInputOptions {
 
     // Processing options
     string ptools_rxn_file;
+    string annotation_table;
+
     // Constructor with default settings
     MPCreatePToolsInputOptions() {
         ptools_rxn_file = "";
+        annotation_table = "";
     }
 
     bool SetOptions(int argc, char *argv[]);
