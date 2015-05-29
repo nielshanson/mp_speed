@@ -198,10 +198,10 @@ struct LIST_NODE {
     LIST_NODE *next, *prev; // pointers to the next and previous nodes
     int index; // index
     string my_data; // some data to hold
-    PTOOLS_NODE * treeptr; // pointer into pathway_tools annotation tree
+    string annotation; // pointer into pathway_tools annotation tree
 
-    LIST_NODE(PTOOLS_NODE * treeptr) {
-        this->treeptr = treeptr;
+    LIST_NODE(string annotation) {
+        this->annotation = annotation;
     }
 };
 
@@ -220,8 +220,8 @@ struct LIST {
     }
 
     // Inserts a node at the head of the linked list
-    void insert(PTOOLS_NODE * treeptr) {
-        LIST_NODE *my_node = new LIST_NODE(treeptr); // Create Node
+    void insert(string annotation) {
+        LIST_NODE *my_node = new LIST_NODE(annotation); // Create Node
         if (head == NULL) {
             head = my_node;
             curr = my_node;
@@ -293,8 +293,8 @@ struct LIST {
         }
     }
     // Inserts a node at the current pointer
-    void insertAtCurr(PTOOLS_NODE * treeptr, int i) {
-        LIST_NODE *my_node = new LIST_NODE(treeptr); // Create Node
+    void insertAtCurr(string annotation) {
+        LIST_NODE *my_node = new LIST_NODE(annotation); // Create Node
         if (curr == NULL) {
             head = my_node;
             curr = my_node;

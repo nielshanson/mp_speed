@@ -20,9 +20,11 @@
 
 
 std::ifstream input;
+std::ofstream output;
 void processPToolsRxnsFile( string ptools_rxn_file, vector<string> &ptools_list);
-void processAnnotationsForPTools(LIST *my_list, PTOOLS_NODE *root, string annotation_file);
-void processAnnotationForPtools(vector <char *> annotation_words, PTOOLS_NODE *root, LIST *my_list);
+void processAnnotationsForPTools(LIST *my_list, PTOOLS_NODE *root, string annotation_file, string ptools_dir);
+string processAnnotationForPtools(vector <char *> annotation_words, PTOOLS_NODE *root);
+void writePfEntry(string orf_id, string annotation_product, string ec_number, int &start_base, int length, std::ofstream &output);
 bool pushWordForward(char *word, PTOOLS_NODE &ptools_ptr);
 void print_dfs(PTOOLS_NODE *node, string);
 

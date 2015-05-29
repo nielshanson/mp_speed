@@ -15,11 +15,13 @@ bool MPCreatePToolsInputOptions::SetOptions(int argc, char *argv[]) {
         else if (strncmp(argv[i], "--anno_table", strlen("--anno_table")) == 0) {
             this->annotation_table = argv[++i];
         }
+        else if (strncmp(argv[i], "--ptools_dir", strlen("--ptools_dir")) == 0) {
+            this->ptools_dir = argv[++i];
+        }
         else {
             cout << "ERROR: Cannot recognize argument " << argv[i] << std::endl;;
             return false;
         }
     } //for loop for arguments processing
-
     return true;
 };
