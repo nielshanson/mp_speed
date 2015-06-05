@@ -30,52 +30,28 @@ int main( int argc, char** argv) {
         split(*itr, words, buf,' ');
         start = root;
         for( unsigned int i=0; i < words.size(); i++) {
-            if(! start->hasChild(words[i])) {
-                // create child node
-                start->insertChild(words[i]);
+            string word = string(words[i]);
+            // cout << word << endl;
+            if(!start->hasChild(word)) {
+                // Create child node
+                start->insertChild(word);
                 if (i == (words.size()-1)) {
-                    // flag node as finished
-                    start->children[words[i]]->complete = true;
+                    // Flag node as finished
+                    start->flagChildFinished(word);
                 }
             }
-            start = start->children[words[i]];
+            start = start->getChildNode(word);
         }
     }
     cout << "Loaded tree" << endl;
-
-    // Print out MetaCyc word tree
-    vector<PTOOLS_NODE *> node_stack; // Stack of nodes
-    vector<string> path; // Stack for path tracing
-    string headpath = ""; // Path string
-
-    // Push first nodes
-    node_stack.push_back(root);
-    path.push_back(headpath);
-
-    while(!node_stack.empty()) {
-        // Pop stacks
-        PTOOLS_NODE* top = node_stack.back();
-        node_stack.pop_back();
-        headpath = path.back(); // Get current path
-        path.pop_back();
-
-        if (top->complete==true) {
-            // Complete MetaCyc annotation
-            cout << headpath << endl;
-        }
-        // Push children to stacks
-        map<string, PTOOLS_NODE*> children = top->children;
-        for (std::map<string, PTOOLS_NODE*>::iterator itr=children.begin(); itr != children.end(); ++itr) {
-            node_stack.push_back(itr->second);
-            path.push_back(headpath + itr->first + " "); // Keep track of path
-        }
-    }
+    //printMetaCycTree(root);
 
     LIST *my_list = new LIST(root); // Linked list to store MetaCyc tree pointers
     processAnnotationsForPTools(my_list, root, options.annotation_table, options.ptools_dir);
 
     exit(1);
-    // insert into the list
+
+//    insert into list
 //    my_list->insert("One",1);
 //    my_list->insert("Two",1);
 //    my_list->insert("Three",1);
@@ -104,6 +80,41 @@ int main( int argc, char** argv) {
 
 }
 
+/*
+ * Print out MetaCyc word trie using a stack-based recursive post-order traversal
+ */
+void printMetaCycTree(PTOOLS_NODE *root) {
+    vector<PTOOLS_NODE *> node_stack; // Stack of nodes
+    vector<string> path; // Stack for path tracing
+    string headpath = ""; // Path string
+
+    // Push first nodes
+    node_stack.push_back(root);
+    path.push_back(headpath);
+
+    while(!node_stack.empty()) {
+        // Pop stacks
+        PTOOLS_NODE* top = node_stack.back();
+        node_stack.pop_back();
+        headpath = path.back(); // Get current path
+        path.pop_back();
+
+        if (top->complete==true) {
+            // Complete MetaCyc annotation
+            cout << headpath << endl;
+        }
+        // Push children to stacks
+        map<string, PTOOLS_NODE*> children = top->children;
+        for (std::map<string, PTOOLS_NODE*>::iterator itr=children.begin(); itr != children.end(); ++itr) {
+            node_stack.push_back(itr->second);
+            path.push_back(headpath + itr->first + " "); // Keep track of path
+        }
+    }
+}
+
+/*
+ * Prints out trie in using depth-first-search post order traversal.
+ */
 void print_dfs(PTOOLS_NODE *node, string line) {
     if (node->children.size() == 0) {
         // at leaf
@@ -187,6 +198,13 @@ void processAnnotationsForPTools(LIST *my_list, PTOOLS_NODE *root, string annota
     // string metacyc_rxn_id; // MetaCyc reaction frame ID
     vector<string> annotations;
 
+    // annotation variables
+    PTOOLS_NODE *ptools_ptr = root;
+    bool complete = false;
+    vector <string> word_list;
+    vector <string> max_word_list;
+    string annotation = "";
+
     // For each annotation in annotation_file
     while( std::getline( input, line ).good() ) {
         if (count == 0) {
@@ -210,22 +228,33 @@ void processAnnotationsForPTools(LIST *my_list, PTOOLS_NODE *root, string annota
         ec_number = fields[7];
         length = atoi(fields[1]);
 
-        // check to see if find match in MetaCyc trie
+        // Split annotation into separate words
         split(fields[9], annotation_words, buf, ' ');
 
+        // Prepare annotation constants
+        ptools_ptr = root;
+        complete = false;
+        word_list.clear();
+        max_word_list.clear();
+        annotation.clear();
+
         // Process annotation through MetaCyc trie
-        annotation_product = processAnnotationForPtools(annotation_words, root);
+        // annotation_product = processAnnotationForPtools(annotation_words, root);
+        annotation_product = processAnnotationForPtools(annotation_words, root, ptools_ptr, complete, word_list, max_word_list, annotation);
 
         // If valid annotation product or EC number
         if (annotation_product != "") {
             writePfEntry(orf_id, annotation_product, ec_number, start_base, length, output);
         } else if (ec_number != "") {
-            // if ec_number valid put in original annotation
+            // If ec_number valid use original annotation
             annotation_product = fields[9];
             writePfEntry(orf_id, annotation_product, ec_number, start_base, length, output);
         }
 
         count++;
+        if (count % 100 == 0) {
+            cout << count << endl;
+        }
     }
 
 //    vector <string>::iterator itr;
@@ -284,23 +313,23 @@ void writePfEntry(string orf_id, string annotation_product, string ec_number, in
  * Checks an individual annotation (list of words) and its substrings for 'complete' status in in the MetaCyc trie. If
  * complete pointer to position in MetaCyc tree.
  */
-string processAnnotationForPtools(vector <char *> annotation_words, PTOOLS_NODE *root) {
+string processAnnotationForPtools(vector <char *> annotation_words, PTOOLS_NODE *root, PTOOLS_NODE *ptools_ptr,
+                                  bool complete, vector <string> word_list, vector <string> max_word_list, string annotation) {
 
-    PTOOLS_NODE ptools_ptr = *root;
-    bool complete = false;
-    vector <char *> word_list;
-    vector <char *> max_word_list;
-    string annotation;
+    // cout << "In processAnnotationForPtools()" << endl;
 
     // Try to push current word
     for (int i = 0; i < annotation_words.size(); i++) {
         word_list.clear();
+        ptools_ptr = root; // reset root
         for (int j = i; j < annotation_words.size(); j++) {
-            if (pushWordForward(annotation_words[j], ptools_ptr)) {
+            string word = string(annotation_words[j]);
+            if (pushWordForward(word, ptools_ptr)) {
                 // Check to see if pointer now at word that completes an annotation
                 // cout << "Found " << annotation_words[j] << endl;
-                word_list.push_back(annotation_words[j]);
-                if(ptools_ptr.complete) {
+                // ptools_ptr.getChildNode(word)->id2;
+                word_list.push_back(ptools_ptr->id2);
+                if(ptools_ptr->complete) {
                     complete = true;
                     if (word_list.size() > max_word_list.size()) {
                         max_word_list = word_list;
@@ -314,9 +343,9 @@ string processAnnotationForPtools(vector <char *> annotation_words, PTOOLS_NODE 
     }
     if (complete) {
         // Found complete ptools annotation in annotation_words
-        vector <char *>::iterator itr;
+        vector <string>::iterator itr;
         for(itr = max_word_list.begin(); itr != max_word_list.end(); itr++) {
-            annotation = annotation + " " + *itr;
+            annotation = annotation + *itr + " ";
         }
         return annotation;
         // cout << "Found complete" << endl;
@@ -330,10 +359,10 @@ string processAnnotationForPtools(vector <char *> annotation_words, PTOOLS_NODE 
  * Checks to see if current word is a child of the current node pointed at by ptools_ptr. Moves pointer to child and
  * returns true if so, and returns false otherwise.
  */
-bool pushWordForward(char *word, PTOOLS_NODE &ptools_ptr) {
-    if( ptools_ptr.children.find(word) != ptools_ptr.children.end()) {
+bool pushWordForward(string word, PTOOLS_NODE *ptools_ptr) {
+    if( ptools_ptr->hasChild(word)) {
         // Word is a child
-        ptools_ptr = *ptools_ptr.children[word];
+        ptools_ptr = ptools_ptr->getChildNode(word);
         return true;
     } else {
         return false;

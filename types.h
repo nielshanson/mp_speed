@@ -15,7 +15,6 @@ typedef struct _GLOBAL_PARAMS {
     float k;
 } GLOBAL_PARAMS;
 
-
 typedef struct _BLASTOUT_DATA BLASTOUT_DATA;
 
 typedef struct _THREAD_DATA {
@@ -164,7 +163,7 @@ typedef map<string, map<string, ANNOTATION *> > ANNOTATION_RESULTS;
  * PTOOLS_NODE that makes up the pathway tools annotation tree
  */
 struct PTOOLS_NODE {
-    // TODO: Ask Kishori about the the _reference
+
     string id1; // lowercase
     string id2; // fullcase
     map<string, PTOOLS_NODE*> children;
@@ -175,19 +174,35 @@ struct PTOOLS_NODE {
      * Checks to see if this node has a child with a particular name w
      */
     bool hasChild(string w) {
-        if (children.find( w ) != children.end()) {
+        string lower =  to_lower(w);
+        if (children.find( lower ) != children.end()) {
             return true;
         }
         return false;
     }
+//
+//    bool hasChild(char *w) {
+//        string lower =  to_lower(string(w));
+//        if (children.find( lower ) != children.end()) {
+//            return true;
+//        }
+//        return false;
+//    }
     /*
      * Inserts adds a child to the current node
      */
     void insertChild(string w) {
         PTOOLS_NODE *child = new PTOOLS_NODE; // create child
+        string lower = to_lower(w);
+        child->id1 = lower;
         child->id2 = w;
-        child->id1 = to_lower(w);
-        children[w] = child;
+        children[lower] = child;
+    }
+    void flagChildFinished(string w) {
+        children[to_lower(w)]->complete = true;
+    }
+    PTOOLS_NODE* getChildNode(string w) {
+        return children[to_lower(w)];
     }
 };
 
