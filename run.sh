@@ -29,7 +29,11 @@
 # --debug \
 # --num_threads 1
 
-./mp_create_ptools_input --ptools_rxns /Users/nielshanson/Dropbox/projects/mp_speed/data/metacyc_enzymes_rxns_ecs.txt.small
+
+# Test for create_ptools_input
+./mp_create_ptools_input --ptools_rxns /Users/nielshanson/Dropbox/projects/mp_speed/data/metacyc_enzymes_rxns_ecs.txt \
+                         --anno_table /Users/nielshanson/Dropbox/projects/mp_speed/data/hmp_airways_SRS014682.functional_and_taxonomic_table.txt \
+                         --ptools_dir /Users/nielshanson/Dropbox/projects/mp_speed/data
 
 
 #for f in  ALCAME_VIR_PRO  CARD_ABR CARD_Anti_Biotic_Resis CAZY_2014_09_04 COG_2013-12-27  kegg-pep-2011-06-18  refseq-nr-2014-01-18  seed-2014-01-30; 
