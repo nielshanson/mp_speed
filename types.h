@@ -167,7 +167,7 @@ struct PTOOLS_NODE {
     string id1; // lowercase
     string id2; // fullcase
     map<string, PTOOLS_NODE*> children;
-    int count; // annotation count
+    // int count; // annotation count
     bool complete; // Marks that this node ends a complete strand of annotations
 
     /*
@@ -198,11 +198,23 @@ struct PTOOLS_NODE {
         child->id2 = w;
         children[lower] = child;
     }
+    /*
+     * Sets current node to finished.
+     */
     void flagChildFinished(string w) {
         children[to_lower(w)]->complete = true;
     }
+    /*
+     * Gets the child node of a particular annotation string.
+     */
     PTOOLS_NODE* getChildNode(string w) {
-        return children[to_lower(w)];
+        string lower = to_lower(w);
+        if (this->hasChild(lower)) {
+            return children[lower];
+        } else {
+            return this;
+        }
+
     }
 };
 

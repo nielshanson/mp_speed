@@ -28,7 +28,7 @@ void processAnnotationsForPTools(LIST *my_list, PTOOLS_NODE *root, string annota
 string processAnnotationForPtools(vector <char *> annotation_words, PTOOLS_NODE *root, PTOOLS_NODE *ptools_ptr,
                                   bool complete, vector <string> word_list, vector <string> max_word_list, string annotation);
 void writePfEntry(string orf_id, string annotation_product, string ec_number, int &start_base, int length, std::ofstream &output);
-bool pushWordForward(string word, PTOOLS_NODE *ptools_ptr);
+bool pushWordForward(string word, PTOOLS_NODE *& ptools_ptr);
 void print_dfs(PTOOLS_NODE *node, string);
 void printMetaCycTree(PTOOLS_NODE *root);
 
