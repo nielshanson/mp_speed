@@ -59,7 +59,6 @@ void MPCreatePToolsInputOptions::printOptions() {
          << "---------------\n\n";
 }
 
-
 /*
  * Checks options while reconfiguring if nessisary
  */
