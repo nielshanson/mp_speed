@@ -23,7 +23,7 @@ std::ifstream input;
 std::ofstream output;
 
 void processPToolsRxnsFile( string ptools_rxn_file, vector<string> &ptools_list);
-void processAnnotationsForPTools(LIST *my_list, PTOOLS_NODE *root, string annotation_file, string ptools_dir);
+void processAnnotationsForPTools(PTOOLS_NODE *root, string annotation_file, string ptools_dir);
 //string processAnnotationForPtools(vector <char *> annotation_words, PTOOLS_NODE *root);
 string processAnnotationForPtools(vector <char *> annotation_words, PTOOLS_NODE *root, PTOOLS_NODE *ptools_ptr,
                                   bool complete, vector <string> word_list, vector <string> max_word_list, string annotation);
