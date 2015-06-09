@@ -14,6 +14,8 @@
 #include <stdlib.h>
 #include <regex.h>
 
+#include "utilities.h"
+
 using namespace std;
 
 // Structure for RPKM input options
@@ -23,15 +25,23 @@ struct MPCreatePToolsInputOptions {
     string ptools_rxn_file;
     string annotation_table;
     string ptools_dir;
+    string sample_name;
+    bool debug;
 
     // Constructor with default settings
     MPCreatePToolsInputOptions() {
         ptools_rxn_file = "";
         annotation_table = "";
         ptools_dir = "";
+        sample_name = "";
+        debug = false;
     }
 
     bool SetOptions(int argc, char *argv[]);
+    void printUsage(char *arg);
+    void printOptions();
+    bool checkOptions();
+    bool set_sample_name_from_annotation_table();
 };
 
 #endif //MP_SPEED_MPCREATEPTOOLSINPUTOPTIONS_H

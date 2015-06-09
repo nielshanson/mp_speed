@@ -8,11 +8,18 @@ using namespace std;
 
 int main( int argc, char** argv) {
 
-    // Parse options
+    // Parse and check options
     MPCreatePToolsInputOptions options;
     if ( ! options.SetOptions(argc, argv) ) {
-        // options.printUsage(argv[0]);
+        options.printUsage(argv[0]);
         exit(1);
+    }
+    if ( ! options.checkOptions() ) {
+        cout  << "ERROR: Some options were set incorrectly. Please check output and try again.";
+    }
+
+    if (options.debug) {
+        options.printOptions();
     }
 
     vector<string> ptools_list;
@@ -43,11 +50,17 @@ int main( int argc, char** argv) {
             start = start->getChildNode(word);
         }
     }
-    cout << "Loaded tree" << endl;
-    // printMetaCycTree(root);
 
-    LIST *my_list = new LIST(root); // Linked list to store MetaCyc tree pointers
-    processAnnotationsForPTools(my_list, root, options.annotation_table, options.ptools_dir);
+    if (options.debug) {
+        cout << "DEBUG: Loaded tree" << endl;
+        printMetaCycTree(root);
+    }
+
+    // Process annotations from annotation_table
+    processAnnotationsForPTools(root, options.annotation_table, options.ptools_dir);
+
+    // Write out last two Pathway Tools input files (genetic-elements.dat, organism-params.dat)
+    writePToolsAdminFiles(options.ptools_dir, "");
 
     exit(1);
 
@@ -78,6 +91,66 @@ int main( int argc, char** argv) {
     // Create listnode linked list
 
 
+}
+
+
+/*
+ * Writes out Pathway Tools input files (genetic-elements.dat, organism-params.dat) to the given directory. Extracts
+ * sample name from other files if not specified
+ */
+void writePToolsAdminFiles(string ptools_dir, string sample_name) {
+
+    // Create genetic-elements.dat
+    // ID      0
+    // NAME    0
+    // TYPE    :READ/CONTIG
+    // ANNOT-FILE      0.pf
+
+    string genetic_elements_file = ptools_dir + "/" + "genetic-elements.dat";
+    output.open(genetic_elements_file.c_str(), std::ofstream::out);
+    if(!output.good()){
+        cerr << "Error opening '" << genetic_elements_file << "'. " << endl;
+        return ;
+    }
+
+    string genetic_elements_text = "";
+    genetic_elements_text = genetic_elements_text + "ID      0" + "\n";
+    genetic_elements_text = genetic_elements_text + "NAME    0" + "\n";
+    genetic_elements_text = genetic_elements_text + "TYPE    :READ/CONTIG" + "\n";
+    genetic_elements_text = genetic_elements_text + "ANNOT-FILE      0.pf" + "\n";
+
+    output << genetic_elements_text;
+
+    output.close();
+
+    // Create organism-params.dat
+    // ID      hmp_airways_SRS014682
+    // STORAGE FILE
+    // NAME    hmp_airways_SRS014682
+    // ABBREV-NAME     hmp_airways_SRS014682
+    // STRAIN  1
+    // RANK    |species|
+    // NCBI-TAXON-ID   12908
+
+    string orgamism_params_file = ptools_dir + "/" + "organism-params.dat";
+    output.open(orgamism_params_file.c_str(), std::ofstream::out);
+    if(!output.good()){
+        cerr << "Error opening '" << orgamism_params_file << "'. " << endl;
+        return ;
+    }
+
+    string organism_params_text = "";
+    organism_params_text = organism_params_text + "ID      " + sample_name + "\n";
+    organism_params_text = organism_params_text + "STORAGE FILE" + "\n";
+    organism_params_text = organism_params_text + "NAME    " + sample_name + "\n";
+    organism_params_text = organism_params_text + "ABBREV-NAME     " + sample_name + "\n";
+    organism_params_text = organism_params_text + "STRAIN  1" + "\n";
+    organism_params_text = organism_params_text + "RANK    |species|" + "\n";
+    organism_params_text = organism_params_text + "NCBI-TAXON-ID   12908" + "\n";
+
+    output << organism_params_text;
+
+    output.close();
 }
 
 /*
@@ -163,21 +236,21 @@ void processPToolsRxnsFile( string ptools_rxn_file, vector<string> &ptools_list 
  * Scans annotations and checks to see if annotations (or their sub-strings) are complete annotations
  * in the MetaCyc trie.
  */
-void processAnnotationsForPTools(LIST *my_list, PTOOLS_NODE *root, string annotation_file, string ptools_dir) {
+void processAnnotationsForPTools(PTOOLS_NODE *root, string annotation_file, string ptools_dir) {
 
     // Opening annotation and output file
-    std::cout << "Reading annotation_file " << annotation_file <<  std::endl;
+    cout << "Reading annotation_file " << annotation_file << endl;
     input.open(annotation_file.c_str(), std::ifstream::in);
     if(!input.good()){
-        std::cerr << "Error opening '"<< annotation_file <<"'. " << std::endl;
+        cerr << "Error opening '"<< annotation_file <<"'. " << endl;
         return ;
     }
     string pf_file = ptools_dir + "/" + "0.pf";
-    std::cout << "Opening handle to .pf file " << pf_file <<  std::endl;
+    cout << "Opening handle to .pf file " << pf_file <<  endl;
 
     output.open(pf_file.c_str(), std::ofstream::out);
     if(!output.good()){
-        std::cerr << "Error opening '"<< pf_file <<"'. " << std::endl;
+        cerr << "Error opening '" << pf_file << "'. " << endl;
         return ;
     }
 
@@ -197,7 +270,8 @@ void processAnnotationsForPTools(LIST *my_list, PTOOLS_NODE *root, string annota
     int length = 0; // Basenumber
 
     // Annotation preparation variables
-    PTOOLS_NODE *ptools_ptr = root;
+    PTOOLS_NODE *ptools_ptr;
+    PTOOLS_NODE *my_root;
     bool complete = false;
     vector <string> word_list;
     vector <string> max_word_list;
@@ -231,24 +305,16 @@ void processAnnotationsForPTools(LIST *my_list, PTOOLS_NODE *root, string annota
         // Split annotation into separate words
         split(annotation_product, annotation_words, buf, ' ');
 
-        // Prepare annotation constants
-        ptools_ptr = root;
-        complete = false;
-        word_list.clear();
-        max_word_list.clear();
-        annotation.clear();
-
         // Process annotation through MetaCyc trie
         // annotation_product = processAnnotationForPtools(annotation_words, root);
         metacyc_annotation_product = processAnnotationForPtools(annotation_words, root, ptools_ptr, complete, word_list, max_word_list, annotation);
 
         // If valid annotation product or EC number
-        if (metacyc_annotation_product != "") {
-            writePfEntry(orf_id, metacyc_annotation_product, ec_number, start_base, length, output);
-        }
-        else if (ec_number != "") {
+        if (ec_number != "") {
             // If ec_number valid use original annotation
             writePfEntry(orf_id, annotation_product, ec_number, start_base, length, output);
+        } else if (metacyc_annotation_product != "") {
+            writePfEntry(orf_id, metacyc_annotation_product, ec_number, start_base, length, output);
         }
 
         count++;
@@ -256,19 +322,6 @@ void processAnnotationsForPTools(LIST *my_list, PTOOLS_NODE *root, string annota
             cout << count << endl;
         }
     }
-
-//    vector <string>::iterator itr;
-//    cout << annotations.size() << endl;
-//    for(itr = annotations.begin(); itr != annotations.end(); itr++) {
-//        cout << *itr << endl;
-//    }
-
-    // Print out annotations
-//    LIST_NODE *list_itr = my_list->head;
-//    while(list_itr != NULL) {
-//        cout << list_itr->annotation << endl;
-//        list_itr = list_itr->next;
-//    }
 
     input.close();
     output.close();
@@ -292,13 +345,15 @@ void writePfEntry(string orf_id, string annotation_product, string ec_number, in
     // PRODUCT-ID <product_id> (optional)
     // //
 
+    // remove last string
+
     string pf_entry = "";
     pf_entry = pf_entry + "ID " + orf_id + "\n";
     pf_entry = pf_entry + "NAME " + orf_id + "\n";
     pf_entry = pf_entry + "STARTBASE " + to_string(start_base) + "\n";
     pf_entry = pf_entry + "ENDBASE " + to_string(start_base + length) + "\n";
     pf_entry = pf_entry + "PRODUCT-TYPE P" + "\n";
-    pf_entry = pf_entry + "FUNCTION " + annotation_product.substr(0, annotation_product.size()-1) + "\n"; // remove extract character
+    pf_entry = pf_entry + "FUNCTION " + annotation_product + "\n"; // remove extract character
     if (ec_number != "")
         pf_entry = pf_entry + "EC " + ec_number + "\n";
     pf_entry = pf_entry + "//" + "\n";
@@ -314,22 +369,22 @@ void writePfEntry(string orf_id, string annotation_product, string ec_number, in
  * 'complete' annotation node reached.
  */
 string processAnnotationForPtools(vector <char *> annotation_words, PTOOLS_NODE *root, PTOOLS_NODE *ptools_ptr,
-                                  bool complete, vector <string> word_list, vector <string> max_word_list, string annotation) {
-
-    // cout << "In processAnnotationForPtools()" << endl;
+                                  bool complete, vector <string> word_list, vector <string> max_word_list,
+                                  string annotation) {
+    complete = false;
+    word_list.clear();
+    max_word_list.clear();
+    annotation.clear();
 
     // Try to push current word
     for (int i = 0; i < annotation_words.size(); i++) {
         word_list.clear();
-        ptools_ptr = root; // reset root
+        ptools_ptr = root; // reset to root
         for (int j = i; j < annotation_words.size(); j++) {
             string word = string(annotation_words[j]);
-            // cout << word << endl;
             if (pushWordForward(word, ptools_ptr)) {
                 // Check to see if pointer now at word that completes an annotation
-                // cout << "Found " << annotation_words[j] << endl;
                 word_list.push_back(ptools_ptr->id2);
-                //cout << ptools_ptr->id2 << endl;
                 if(ptools_ptr->complete) {
                     complete = true;
                     if (word_list.size() > max_word_list.size()) {
@@ -348,7 +403,8 @@ string processAnnotationForPtools(vector <char *> annotation_words, PTOOLS_NODE 
         for(itr = max_word_list.begin(); itr != max_word_list.end(); itr++) {
             annotation = annotation + *itr + " ";
         }
-        return annotation;
+
+        return annotation.substr(0, annotation.size()-1);
         // cout << "Found complete" << endl;
         // cout << "Annotation: " << annotation << endl;
     }
@@ -361,7 +417,7 @@ string processAnnotationForPtools(vector <char *> annotation_words, PTOOLS_NODE 
  * returns true if so, and returns false otherwise.
  */
 bool pushWordForward(string word, PTOOLS_NODE *& ptools_ptr) {
-    if( ptools_ptr->hasChild(word)) {
+    if( ptools_ptr->hasChild(word) ) {
         // Word is a child
         ptools_ptr = ptools_ptr->getChildNode(word);
         return true;

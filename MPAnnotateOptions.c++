@@ -69,7 +69,6 @@ bool MPAnnotateOptions::SetOptions(int argc, char *argv[]) {
 /*
  * Print current options
  */
-
 void MPAnnotateOptions::printOptions() {
     cout << "CURRENT OPTIONS:\n"\
          << "---------------\n"
