@@ -21,7 +21,7 @@ typedef struct _THREAD_DATA {
     vector<string>  lines;
     vector<BLASTOUT_DATA>  output[2];
     vector< std::pair<std::string, std::string> > refscorePairs;
-    map<std::string, unsigned int> refscores;
+    map<std::string, float> refscores;
     float ln2, lnk, lambda;
     Options options;
     map<std::string, std::string> *annot_map;
@@ -87,12 +87,12 @@ typedef struct _BLASTOUT_DATA {
         product = "";
         ec="";
 
-        q_length =0;
-        aln_length=0;
-        bitscore=0;
-        bsr=0;
-        expect=100;
-        identity =0;
+        q_length = 0;
+        aln_length = 0;
+        bitscore = 0.0;
+        bsr = 0.0;
+        expect = 100.0;
+        identity = 0.0;
     }
 } BLASTOUT_DATA;
 

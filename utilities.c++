@@ -22,6 +22,9 @@ char *split_n_pick(const string  &strn,  char *buf, char d, unsigned int n) {
   return v;
 }
 
+/*
+ * Splits a given string into a vector <char *> where given a character array buffer and the splitting character d
+ */
 void split(const string  &strn, std::vector<char *> &v, char *buf, char d) {
     strcpy(buf, strn.c_str());
     char *s1 = buf;
@@ -74,6 +77,88 @@ bool matchString(const string &str, const string & stringtomatch, bool fromstart
     if( !fromstart && pos > 0) return true;
     return false;
 
+}
+
+/*
+ * Given the header string and the file to add to efficiently adds a header to the file.
+ */
+bool addHeader(string header_line, string filename) {
+
+    // Create filestreams
+    ifstream utilities_input;
+    ofstream utilities_output;
+
+    // Open input file
+    utilities_input.open(filename.c_str(), std::ifstream::in);
+    if(!utilities_input.good()){
+        cerr << "Error opening '"<< filename << "'. " << endl;
+        return false;
+    }
+
+    // Create temporary file
+    string temp_filename = filename + ".tmp";
+    utilities_output.open(temp_filename.c_str(), std::ofstream::out);
+    if(!utilities_output.good()){
+        cerr << "Error opening '" << temp_filename << "'. " << endl;
+        return false;
+    }
+
+    // Write header to temp file
+    utilities_output << header_line;
+
+    // Write lines of filename to temp file in batches
+    string line;
+    vector<string> lines;
+    int block_size = 5000000;
+    int count = 0;
+    vector <string>::iterator itr;
+    while( std::getline( utilities_input, line ).good() ) {
+        lines.push_back(line);
+        if (count % block_size == 0) {
+            // write out batch
+            for(itr = lines.begin(); itr != lines.end(); itr++) {
+                utilities_output << *itr << endl;
+            }
+            lines.clear();
+        }
+        count += 1;
+    }
+    // Done reading input
+    utilities_input.close();
+
+    // Write final block
+    if (lines.size() > 0) {
+        for(itr = lines.begin(); itr != lines.end(); itr++) {
+            utilities_output << *itr << endl;
+        }
+        lines.clear();
+    }
+
+    // Remove original file
+    remove_file(filename.c_str());
+
+    // Rename temp file to file
+    rename_file(temp_filename.c_str(), filename.c_str());
+
+    return true;
+}
+
+/*
+ * Remove the given file
+ */
+void remove_file(string filename_to_remove) {
+    if( remove(filename_to_remove.c_str()) != 0 ) {
+        cout << "Error deleting file " << filename_to_remove << "\n";
+    }
+}
+
+/*
+ * Rename a given file (from) to a new name (to)
+ */
+void rename_file(string from_file, string to_file) {
+    if( rename(from_file.c_str(), to_file.c_str()) != 0 ) {
+        cout << "Error renaming file " << from_file << "\n";
+    }
 }
 
 string to_string(unsigned long i) {

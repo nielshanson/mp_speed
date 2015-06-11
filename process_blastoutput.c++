@@ -9,10 +9,10 @@ void *compute_refscores( void *_data) {
     THREAD_DATA *data = static_cast<THREAD_DATA *>(_data);
     vector< std::pair<string, string> >::iterator it;
     string orfid;
-    vector<char *> fields; 
+    vector<char *> fields;
 
     for(it = data->refscorePairs.begin(); it != data->refscorePairs.end(); it++) {
-       data->refscores[it->first] =(data->lambda*atof(it->second.c_str())-data->lnk)/data->ln2;
+       data->refscores[it->first] = (data->lambda*atof(it->second.c_str())-data->lnk)/data->ln2;
     }
 
     data->refscorePairs.clear();
@@ -21,42 +21,43 @@ void *compute_refscores( void *_data) {
 }
 
 bool isWithinCutoffs(const string &orfid, const vector<char *> &fields, BLASTOUT_DATA &data, THREAD_DATA *thread_data) {
-  try{
-     data.query = orfid; 
-     data.target = fields[1];
-     data.q_length = atoi(fields[7]) - atoi(fields[6]) + 1;
-     data.bitscore = atof(fields[11]);
-     data.bsr = atof(fields[11])/thread_data->refscores[orfid];
-     data.expect = atof(fields[10]);
-     data.aln_length = atof(fields[3]);
-     data.identity = atof(fields[2]);
-     if( thread_data->annot_map->find(fields[1])!=thread_data->annot_map->end())
-        data.product=thread_data->annot_map->find(fields[1])->second;
-     else
-        data.product= "hypothetical protein";
+    try{
+        data.query = orfid;
+        data.target = fields[1];
+        data.q_length = atoi(fields[7]) - atoi(fields[6]) + 1;
+        data.bitscore = atof(fields[11]);
+        data.bsr = atof(fields[11]) / thread_data->refscores[orfid];
+        data.expect = atof(fields[10]);
+        data.aln_length = atof(fields[3]);
+        data.identity = atof(fields[2]);
 
-     data.ec = getECNo(data.product.c_str(), 3);
-     //std::cout << data.product << std::endl;
-    // std::cout << "<<" << data.ec  << ">>"  << std::endl;
+        if( thread_data->annot_map->find(fields[1])!=thread_data->annot_map->end())
+            data.product=thread_data->annot_map->find(fields[1])->second;
+        else
+            data.product= "hypothetical protein";
 
+        data.ec = getECNo(data.product.c_str(), 3);
+        //std::cout << data.product << std::endl;
+        // std::cout << "<<" << data.ec  << ">>"  << std::endl;
+//        if (thread_data->refscores.find(orfid) != thread_data->refscores.end()) {
+//            std::cout << thread_data->refscores[orfid] << std::endl;
+//        }
+        if(data.q_length < thread_data->options.min_length) return false;
+        if(data.bitscore < thread_data->options.min_score) return false;
+        //   std::cout << "passed 1" << std::endl;
+        //  std::cout <<  data.expect << "   " <<  thread_data->options.max_evalue << std::endl;
+        if(data.expect > thread_data->options.max_evalue) return false;
+        // std::cout << "passed 2" << std::endl;
+        if(data.identity < thread_data->options.min_identity) return false;
+        if(data.bsr < thread_data->options.min_bsr) return false;
 
-//    std::cout << "passed 0" << std::endl;  
-    if(data.q_length < thread_data->options.min_length) return false;
-    if(data.bitscore < thread_data->options.min_score) return false;
- //   std::cout << "passed 1" << std::endl;  
-  //  std::cout <<  data.expect << "   " <<  thread_data->options.max_evalue << std::endl;
-    if(data.expect > thread_data->options.max_evalue) return false;
-   // std::cout << "passed 2" << std::endl;  
-    if(data.identity < thread_data->options.min_identity) return false;
-    if(data.bsr < thread_data->options.min_bsr) return false;
+    }
 
-   }
+    catch(...) {
+        return false;
+    }
 
-   catch(...) {
-      return false;
-   }
-   
-   return true;
+    return true;
 }
 
 
@@ -83,7 +84,7 @@ void *process_lines( void *_data) {
 
        blastout_data.setDefault();
 
-       if( !isWithinCutoffs(orfid,  fields, blastout_data, data ))
+       if( !isWithinCutoffs(orfid, fields, blastout_data, data ))
          continue;
 
        data->output[data->b].push_back(blastout_data);
@@ -111,7 +112,7 @@ void create_threads_refscores(int num_threads, THREAD_DATA *thread_data ) {
 
     for(int i = 0; i < num_threads; i++) {
        if((rc = pthread_create(&threads[i], NULL, compute_refscores, (void *)(thread_data+i)))) {
-         cout << "Error:unable to create thread," << rc << endl;
+         cout << "Error: unable to create thread," << rc << endl;
          exit(-1);
        }
     }
@@ -167,13 +168,30 @@ void create_threads_parse(int num_threads, THREAD_DATA *thread_data, WRITER_DATA
     }
 }
 
+/*
+ * Create parsed B/LASTout header
+ */
+string createParsedBlastoutHeader() {
+    string header_line = "";
+    header_line = header_line + "#query" + "\t";
+    header_line = header_line + "target" + "\t";
+    header_line = header_line + "q_length" + "\t";
+    header_line = header_line + "bitscore" + "\t";
+    header_line = header_line + "bsr" + "\t";
+    header_line = header_line + "expect" + "\t";
+    header_line = header_line + "aln_length" + "\t";
+    header_line = header_line + "identity" + "\t";
+    header_line = header_line + "ec" + "\t";
+    header_line = header_line + "product" + "\n";
+    return header_line;
+}
+
 void process_blastoutput(const Options& options, const GLOBAL_PARAMS &params) {
     unsigned int b =0;
     OutputParser parser(options, params);
     map<std::string, std::string> *annot_map = new map<std::string, std::string>;
 
     parser.initialize();
-
 
     THREAD_DATA *thread_data = new THREAD_DATA[options.num_threads];
 
@@ -182,16 +200,14 @@ void process_blastoutput(const Options& options, const GLOBAL_PARAMS &params) {
         thread_data[i].options = options;
     }
 
-    std::cout << "Read  annotation map \n";
+    std::cout << "Read annotation map \n";
     parser.create_annotation_dictionary(annot_map);
     
-    std::cout << "Reading  refscores \n";
+    std::cout << "Reading refscores \n";
     parser.create_refBitScores(thread_data);
 
-    
     std::cout << "Computing refscores \n";
     create_threads_refscores(options.num_threads, thread_data);
-
 
     WRITER_DATA *writer_data = new WRITER_DATA;
 
@@ -222,14 +238,16 @@ void process_blastoutput(const Options& options, const GLOBAL_PARAMS &params) {
     write_results(writer_data);
     writer_data->output.close();
 
-    // sort the output 
+    // Sort the output
     disk_sort_file(string("/tmp/"), temp_parsed_output, options.parsed_output, CHUNK_SIZE, orf_extractor_from_blast);
 
     remove(temp_parsed_output.c_str());
     parser.closeBatchReading();
 
-}
+    // Add B/LAST header
+    addHeader(createParsedBlastoutHeader(), options.parsed_output);
 
+}
 
 void *write_results(void *_writer_data) {
 

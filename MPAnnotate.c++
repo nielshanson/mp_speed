@@ -57,8 +57,10 @@ int main( int argc, char** argv) {
     }
     string temp_gff = options.input_gff + ".tmp";
     disk_sort_file(string("/tmp/"), options.input_gff, temp_gff, 1000000, orf_extractor_from_gff);
+    exit(3);
     remove(options.input_gff.c_str());
     rename(temp_gff.c_str(), options.input_gff.c_str());
+
 
     // Initialize MPAnnotateParser
     MPAnnotateParser parser(options, db_info);

@@ -18,7 +18,6 @@ int main( int argc, char **argv ){
     }
     if( !options.check_arguments() ) return 0;
 
-
     params.lambda = options.lambda; 
     params.k = options.k; 
 

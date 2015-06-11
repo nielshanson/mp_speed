@@ -147,7 +147,6 @@ ANNOTATION * createAnnotation(const char * line, const string &dbname, bool taxo
     return annotation;
 }
 
-
 int processParsedBlastout(string db_name, float weight, string blastoutput, MPAnnotateOptions options, map<string, ANNOTATION> &annotation_results) {
 
     if (options.debug) cout << "In processParsedBlastout()" << endl;
@@ -245,10 +244,6 @@ int processParsedBlastout(string db_name, float weight, string blastoutput, MPAn
     }
     return count;
 }
-
-
-
-
 
 /*
  * Given a string with the location of the blast_results directory, getBLASTFileNames returns
@@ -390,14 +385,14 @@ string orf_extractor_from_gff(const string &line){
 
 void create_threads_annotate(int num_threads, THREAD_DATA_ANNOT *thread_data, WRITER_DATA_ANNOT *writer_data) {
     pthread_t *threads;
-    if((threads = (pthread_t *)malloc(sizeof(pthread_t)*num_threads))==0) {
+    if( (threads = (pthread_t *) malloc( sizeof(pthread_t) *num_threads) ) == 0 ) {
       std::cout << "Error in allocating threads" << std::endl;
     }   
     int rc; 
 
     for(int i = 0; i < num_threads; i++) {
-       if((rc = pthread_create(&threads[i], NULL, annotateOrfsForDBs, (void *)(thread_data+i)))) {
-         cout << "Error:unable to create thread," << rc << endl;
+       if( ( rc = pthread_create(&threads[i], NULL, annotateOrfsForDBs, (void *) (thread_data+i)) ) ) {
+         cout << "Error:unable to create thread, " << rc << endl;
          exit(-1);
        }   
     }   
@@ -412,11 +407,10 @@ void create_threads_annotate(int num_threads, THREAD_DATA_ANNOT *thread_data, WR
     }   
 
     pthread_t writer_thread; //(pthread_t *)malloc(sizeof(pthread_t)); 
-    if((rc = pthread_create(&writer_thread, NULL, writeAnnotatedGFFs, (void *)(writer_data)))) {
+    if( ( rc = pthread_create(&writer_thread, NULL, writeAnnotatedGFFs, (void *) (writer_data)) ) ) {
          cout << "Error:unable to create thread," << rc << endl;
          exit(-1);
     }   
-
 
     rc = pthread_join(writer_thread, &status);
     if (rc) {
@@ -427,7 +421,7 @@ void create_threads_annotate(int num_threads, THREAD_DATA_ANNOT *thread_data, WR
 
 
 void *annotateOrfsForDBs( void *_data) {
-    THREAD_DATA_ANNOT *data = static_cast<THREAD_DATA_ANNOT *>(_data);
+    THREAD_DATA_ANNOT *data = static_cast<THREAD_DATA_ANNOT *> (_data);
  
     ANNOTATION *annotation;
 
@@ -575,7 +569,6 @@ bool  create_function_weights(const string &inputfile, const string &outputfile)
 
     input.close();
     output.close();
-
 
     return true;
 

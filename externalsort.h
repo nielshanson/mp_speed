@@ -32,7 +32,7 @@ struct sort_pred {
 
 int disk_sort_file(string outputdir, string tobe_sorted_file_name, string sorted_file_name,\
      int chunk_size, string(*key_extractor)(const string &) ) ;
-
+void insertParsedBlastoutHeader(ofstream &output_file);
 int sort_and_create_blocks(string outputdir, string faa_file, float block_mb, map<int, int> &block_active_seqs, map<string, int> &seq_lengths); 
 
 int merge_sorted_files_create_blocks(vector<string>& filenames, float block_mb, string outputdir, string sorted_filename); 

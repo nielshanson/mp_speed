@@ -60,7 +60,7 @@ void MPCreatePToolsInputOptions::printOptions() {
 }
 
 /*
- * Checks options while reconfiguring if nessisary
+ * Checks options while reconfiguring if necessary
  */
 
 bool MPCreatePToolsInputOptions::checkOptions() {

@@ -161,6 +161,7 @@ int merge_sorted_files_create_blocks(vector<string>& filenames, float block_mb, 
 
 	// Open the output file
 	ofstream outputfile;
+
 	// std::cout << sorted_file_name << std::endl;
 
 	outputfile.open((sorted_file_name).c_str());
@@ -230,8 +231,8 @@ void write_sorted_sequences(vector< Line *>& lines, string filename) {
 /*
  * Remove the given file
  */
-void remove_file(string filename) {
-	if( remove(filename.c_str()) != 0 ) {
-		cout << "Error deleting file " << filename << "\n";
-	}
-}
+//void remove_file(string filename) {
+//	if( remove(filename.c_str()) != 0 ) {
+//		cout << "Error deleting file " << filename << "\n";
+//	}
+//}

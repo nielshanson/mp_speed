@@ -11,7 +11,6 @@
 
 using namespace std;
 
-
 void split(const std::string  &strn, std::vector<char *> &v, char *buf, char d='\t');
 
 char * split_n_pick(const string  &strn,  char *buf, char d, unsigned int n);
@@ -58,6 +57,10 @@ string function_extractor_from_list(const string & line);
 string to_upper(const string &str);
 
 string to_lower(const string &str);
+
+bool addHeader(string header_line, string filename);
+void remove_file(string filename_to_remove);
+void rename_file(string from_file, string to_file);
 
 #endif //_UTILITIES
 
