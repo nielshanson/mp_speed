@@ -17,7 +17,7 @@
 #include "process_blastoutput.h"
 #include "MPAnnotateOptions.h"
 #include "annotation.h"
-#include "mpannotateparser.h"
+#include "MPAnnotateParser.h"
 #include "externalsort.h"
 
 #endif //MP_SPEED_MP_ANNOTATE_H

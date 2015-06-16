@@ -3,7 +3,7 @@
 # integration_run.sh
 # Script to test all C++ code in MetaPathways v3.0
 
-data_folder=/Users/nielshanson/Dropbox/projects/mp_speed/data
+data_folder=/home/ubuntu/workspace/data
 mp_output=${data_folder}/mp_output
 mp_databases=${data_folder}/mp_databases/MetaPathways_DBs
 mp_source=${data_folder}/metapathways2
@@ -15,21 +15,29 @@ num_threads=4
 
 # LAST
 
-# Parse B/LAST output
-my_cmd="./parse -d metacyc-v4-2011-07-03 \
-      -b ${mp_output}/${sample_name}/blast_results/${sample_name}.metacyc-v4-2011-07-03.LASTout \
-      -m ${mp_databases}/functional/formatted/metacyc-v4-2011-07-03-names.txt \
-      -r ${mp_output}/${sample_name}/blast_results/${sample_name}.refscores.LAST \
-      --min_bsr 0.4 \
-      --min_score 20 \
-      --min_length 30 \
-      --max_evalue 0.000001 \
-      -a LAST \
-      --num_threads ${num_threads} \
-      -o ${mp_output}/${sample_name}/blast_results/${sample_name}.metacyc-v4-2011-07-03.LASTout.parsed.txt"
+for file in ${mp_output}/${sample_name}/blast_results/*LASTout
+do
+    # extract database names from LASTout file
+    db="$(echo ${file} | sed -e 's/\(.*\)\.LASTout$/\1/g' | sed -e 's/.*\.//g')"
+    
+    # Parse B/LAST output
+    my_cmd="./parse -d ${db} \
+          -b ${mp_output}/${sample_name}/blast_results/${sample_name}.${db}.LASTout \
+          -m ${mp_databases}/functional/formatted/${db}-names.txt \
+          -r ${mp_output}/${sample_name}/blast_results/${sample_name}.refscores.LAST \
+          --min_bsr 0.4 \
+          --min_score 20 \
+          --min_length 30 \
+          --max_evalue 0.000001 \
+          -a LAST \
+          --num_threads ${num_threads} \
+          -o ${mp_output}/${sample_name}/blast_results/${sample_name}.${db}.LASTout.parsed.txt"
+    #echo $my_cmd
+    #eval $my_cmd
+done
 
 echo $my_cmd
-# eval $my_cmd
+eval $my_cmd
 
 # Annotate
 my_cmd="./mp_annotate --input_gff ${mp_output}/${sample_name}/orf_prediction/${sample_name}.unannot.gff \
@@ -43,8 +51,8 @@ my_cmd="./mp_annotate --input_gff ${mp_output}/${sample_name}/orf_prediction/${s
                     --debug \
                     --num_threads ${num_threads}"
 
-#echo $my_cmd
-#eval $my_cmd
+# echo $my_cmd
+# eval $my_cmd
 
 # Prepare Ptools Input
 #./mp_create_ptools_input --ptools_rxns /Users/nielshanson/Dropbox/projects/mp_speed/data/metacyc_enzymes_rxns_ecs.txt \

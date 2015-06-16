@@ -1,31 +1,31 @@
 CC = g++ -Wall 
 #CC = g++ -pg
 #CC = g++ -Wall 
-CCFLAGS=  -m64
+CCFLAGS=  -m64 -pthread
 
 
 PROG = parse
-SOURCES= linereader.c++ utilities.c++ parse.c++  process_blastoutput.c++\
-           outputparser.c++ options.c++ externalsort.c++ heapsort.c++ 
-OBJECTS= $(SOURCES:.c++=.o)
-HEADERS= $(SOURCES:.c++=.h)
+SOURCES= linereader.cpp utilities.cpp parse.cpp  process_blastoutput.cpp\
+           outputparser.cpp options.cpp externalsort.cpp heapsort.cpp 
+OBJECTS= $(SOURCES:.cpp=.o)
+HEADERS= $(SOURCES:.cpp=.h)
 
 MPANNO= mp_annotate
-MPANNO_SOURCES= MPAnnotate.c++ MPAnnotateOptions.c++  utilities.c++ outputparser.c++\
-                 annotation.c++  options.c++  externalsort.c++ heapsort.c++\
-                  linereader.c++ mpannotateparser.c++
+MPANNO_SOURCES= MPAnnotate.cpp MPAnnotateOptions.cpp utilities.cpp outputparser.cpp\
+                 annotation.cpp options.cpp externalsort.cpp heapsort.cpp\
+                 linereader.cpp MPAnnotateParser.cpp
 
-MPANNO_OBJECTS= $(MPANNO_SOURCES:.c++=.o)
-MPANNO_HEADERS= $(MPANNO_SOURCES:.c++=.h)
+MPANNO_OBJECTS= $(MPANNO_SOURCES:.cpp=.o)
+MPANNO_HEADERS= $(MPANNO_SOURCES:.cpp=.h)
 
 MPPTOOLS= mp_create_ptools_input
-MPPTOOLS_SOURCES= MPCreatePToolsInput.c++ MPCreatePToolsInputOptions.c++ utilities.c++
+MPPTOOLS_SOURCES= MPCreatePToolsInput.cpp MPCreatePToolsInputOptions.cpp utilities.cpp
 
-MPPTOOLS_OBJECTS= $(MPPTOOLS_SOURCES:.c++=.o)
-MPPTOOLS_HEADERS= $(MPPTOOLS_SOURCES:.c++=.h)
+MPPTOOLS_OBJECTS= $(MPPTOOLS_SOURCES:.cpp=.o)
+MPPTOOLS_HEADERS= $(MPPTOOLS_SOURCES:.cpp=.h)
 
-%.o:%.c++ $(SOURCES)  $(MPPTOOLS_SOURCES)  $(MPPTOOLS_HEADERS)  $(HEADERS)  types.h
-	$(CC) $(CCFLAGS)  $< -c -o $@
+%.o:%.cpp $(SOURCES) $(MPPTOOLS_SOURCES) $(MPPTOOLS_HEADERS) $(HEADERS)  types.h
+	$(CC) $(CCFLAGS) $< -c -o $@
 
 
 all: $(MPPTOOLS) $(MPANNO)  $(PROG)

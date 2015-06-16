@@ -33,7 +33,8 @@ typedef enum {KEGG, COG, SEED } DBTYPE;
 
 /*
  * Structure to keep track of databases, file names, database weights, database types ( KEGG, COG, SEED, etc.)
- * and create temporary files for writing out the DB_annot
+ * and create temporary files for writing out the functional_and_taxonomic_table.txt contining the annotations
+ * for each ORF
  */
 typedef struct _DB_INFO {
     vector<string> db_names;
@@ -43,40 +44,41 @@ typedef struct _DB_INFO {
     vector<DBTYPE> dbtypes;
     vector<string (*)(const char *)> idextractors;
 
-    string TempFile1(const string &str, const string &db)  {
-        string name;
-        name = str + string(".") + db+ string(".")+ string("DB_annotation_table.txt.tmp1");
-        return name;
+    string TempFile1(const string &sample, const string &db)  {
+        string file_name;
+        file_name = sample + string(".") + db + string(".") + string("DB_annotation_table.txt.tmp1");
+        return file_name;
     }
 
-    string TempFile2(const string &str, const string &db)  {
-        string name;
-        name = str + string(".") + db+ string(".")+ string("DB_annotation_table.txt.tmp2");
-        return name;
+    string TempFile2(const string &sample, const string &db)  {
+        string file_name;
+        file_name = sample + string(".") + db + string(".") + string("DB_annotation_table.txt.tmp2");
+        return file_name;
     }
 
-    string FinalFile(const string &str, const string &db)  {
-        string name;
-        name = str + string(".") + db+ string(".")+ string("DB_annotation_table.txt");
-        return name;
+    string FinalFile(const string &sample, const string &db)  {
+        string file_name;
+        file_name = sample + string(".") + db + string(".") + string("DB_annotation_table.txt");
+        return file_name;
     }
 
-    void RemoveTempFile1(const string &str, const string &db)  {
-        string name;
-        name = str + string(".") + db+ string(".")+ string("DB_annotation_table.txt.tmp1");
-        remove(name.c_str());
+    void RemoveTempFile1(const string &sample, const string &db)  {
+        string file_name;
+        file_name = sample + string(".") + db + string(".") + string("DB_annotation_table.txt.tmp1");
+        remove(file_name.c_str());
     }
 
-    void  RemoveTempFile2(const string &str, const string &db)  {
-        string name;
-        name = str + string(".") + db+ string(".")+ string("DB_annotation_table.txt.tmp2");
-        remove(name.c_str());
+    void  RemoveTempFile2(const string &sample, const string &db)  {
+        string file_name;
+        file_name = sample + string(".") + db + string(".") + string("DB_annotation_table.txt.tmp2");
+        remove(file_name.c_str());
     }
-
 
 } DB_INFO;
 
-
+/*
+ * 
+ */
 typedef struct _BLASTOUT_DATA {
     string query, target, product, ec, taxonomy;
     unsigned int q_length, aln_length ;
@@ -103,24 +105,30 @@ typedef struct _WRITER_DATA {
 } WRITER_DATA;
 
 
-// Annotation data structure
+/* Annotation data structure containing all the data from a parsed B/LASTout 
+ * annotation line.
+ */
 typedef struct _ANNOTATION {
     float bsr, value;
     string ec, product, taxonomy;
 } ANNOTATION;
+
 
 typedef map<string, map<string, ANNOTATION *> > ANNOTATION_RESULTS;
 
 typedef vector<string> DB_HIT;
 
 // Data structure for MPAnnotateThreads
+/*
+ * 
+ */
 typedef struct _THREAD_DATA_ANNOT {
-    vector<ANNOTATION>  lines;
-    ANNOTATION_RESULTS annot_objects;
-    vector<ANNOTATION>  output[2];
-    vector<string> orfids;
-    vector<short int> annot_from_db;
-    vector<DB_HIT *> db_hits;
+    vector<ANNOTATION>  lines; // annotation lines
+    ANNOTATION_RESULTS annot_objects; //database-><database, annotation>
+    vector<ANNOTATION>  output[2]; 
+    vector<string> orfids; // orf_ids this particular thread deals with
+    vector<short int> annot_from_db; 
+    vector<DB_HIT *> db_hits; // DB -> vector<string> for DB hits
 
     MPAnnotateOptions options;
     unsigned int b;
@@ -150,7 +158,7 @@ typedef struct _THREAD_DATA_ANNOT {
 typedef struct _WRITER_DATA_ANNOT {
     THREAD_DATA_ANNOT  *thread_data;
     unsigned int num_threads;
-    std::ofstream *output;
+    std::ofstream *output; 
     DB_INFO db_info;
 } WRITER_DATA_ANNOT;
 
