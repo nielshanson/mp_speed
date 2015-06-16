@@ -147,9 +147,9 @@ void OutputParser::create_refBitScores(THREAD_DATA *thread_data) {
     this->input.close();
 
     for(unsigned int i =0; i < options.num_threads; i++)  {
-        thread_data[i]->ln2 = this->ln2;
-        thread_data[i]->lnk = this->lnk;
-        thread_data[i]->lambda = params.lambda;
+        thread_data[i].ln2 = this->ln2;
+        thread_data[i].lnk = this->lnk;
+        thread_data[i].lambda = params.lambda;
     }
 
     std::cout << "Number of refscores loaded " <<  count << std::endl;

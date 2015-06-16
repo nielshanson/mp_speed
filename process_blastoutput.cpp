@@ -16,7 +16,7 @@ void *compute_refscores( void *_data) {
     }
 
     data->refscorePairs.clear();
-    return (void *)NULL;
+    return (void *) NULL;
 
 }
 
@@ -99,7 +99,7 @@ void *process_lines( void *_data) {
 
     //std::cout << "worked on " << work << std::endl;
 
-    return (void *)NULL;
+    return (void *) NULL;
 
 }
 

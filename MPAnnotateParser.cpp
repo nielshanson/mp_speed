@@ -67,7 +67,7 @@ void MPAnnotateParser::distributeInput(THREAD_DATA_ANNOT *thread_data) {
     string orfid, prevorfid;
     float evalue, prevevalue;
     
-    if (thread_data[i].options.debug) {
+    if (this->options.debug) {
         std::cout << "input size " << i << "  " << this->inputbuffer.size() << std::endl;
     }
     
@@ -76,12 +76,12 @@ void MPAnnotateParser::distributeInput(THREAD_DATA_ANNOT *thread_data) {
     for(unsigned int i = 0; i < db_info.db_names.size(); i++ ) {
         //  std::cout << db_info.db_names[i] << std::endl;
         int j = 0;
-        // interate through each database of results and select the annotation with the
+        // interate through the results from a given database and select the annotation with the
         // smallest evalue for each ORF
         prevevalue = 100;
         prevorfid = "";
         for(it =  dbwise_inputs[db_info.db_names[i]].begin(); it !=  dbwise_inputs[db_info.db_names[i]].end(); it++ ) {
-            // for each input line in database
+            // for each annotation
             
             // extract ORF and evalue
             orfid = orf_extractor_from_blast((*it).c_str());
@@ -113,18 +113,21 @@ void MPAnnotateParser::distributeInput(THREAD_DATA_ANNOT *thread_data) {
     }
 
 //  thread_data[bucketIndex].annot_objects.push_back(*it);
-    for(unsigned int i=0; i< options.num_threads; i++) {
-       std::cout << "Thread data " << i <<  std::endl;
-       for(unsigned int j = 0; j < db_info.db_names.size(); j++ ) {
-         std::cout << "  " << db_info.db_names[j] << " : " <<\
-          thread_data[i].annot_objects[db_info.db_names[j]].size() << std::endl;
-       }
+    if (this->options.debug) {
+        for(unsigned int i=0; i< options.num_threads; i++) {
+            std::cout << "Thread data " << i <<  std::endl;
+            for(unsigned int j = 0; j < db_info.db_names.size(); j++ ) {
+                std::cout << "  " << db_info.db_names[j] << " : " <<\
+                thread_data[i].annot_objects[db_info.db_names[j]].size() << std::endl;
+            }    
+        }
     }
-
+    if (this-options.debug)
+        cout << "End of distributeInput()" << endl;
 }
 
 /*
- * Reads a bac
+ * Reads a batch
  */
 bool MPAnnotateParser::readBatch() {
     int count = 0;

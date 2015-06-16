@@ -15,6 +15,8 @@ num_threads=4
 
 # LAST
 
+
+# parseB/LAST
 for file in ${mp_output}/${sample_name}/blast_results/*LASTout
 do
     # extract database names from LASTout file
@@ -32,12 +34,9 @@ do
           -a LAST \
           --num_threads ${num_threads} \
           -o ${mp_output}/${sample_name}/blast_results/${sample_name}.${db}.LASTout.parsed.txt"
-    #echo $my_cmd
-    #eval $my_cmd
+    echo $my_cmd
+    eval $my_cmd
 done
-
-echo $my_cmd
-eval $my_cmd
 
 # Annotate
 my_cmd="./mp_annotate --input_gff ${mp_output}/${sample_name}/orf_prediction/${sample_name}.unannot.gff \
@@ -50,9 +49,8 @@ my_cmd="./mp_annotate --input_gff ${mp_output}/${sample_name}/orf_prediction/${s
                     --tax \
                     --debug \
                     --num_threads ${num_threads}"
-
-# echo $my_cmd
-# eval $my_cmd
+echo $my_cmd
+eval $my_cmd
 
 # Prepare Ptools Input
 #./mp_create_ptools_input --ptools_rxns /Users/nielshanson/Dropbox/projects/mp_speed/data/metacyc_enzymes_rxns_ecs.txt \

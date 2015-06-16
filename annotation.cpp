@@ -388,7 +388,6 @@ string orf_extractor_from_gff(const string &line){
  * Create threads and run annotateOrfsForDBs and writeAnnotatedGFFs 
  */
 void createThreadsAnnotate(int num_threads, THREAD_DATA_ANNOT *thread_data, WRITER_DATA_ANNOT *writer_data) {
-    
     // Create threads
     pthread_t *threads;
     if( (threads = (pthread_t *) malloc( sizeof(pthread_t) *num_threads) ) == 0 ) {
@@ -402,7 +401,9 @@ void createThreadsAnnotate(int num_threads, THREAD_DATA_ANNOT *thread_data, WRIT
          cout << "Error: unable to create thread, " << rc << endl;
          exit(-1);
        }   
-    }   
+    }
+    
+    cout << "Ran annotateOrfsForDBs() " << endl;
     
     // Join threads
     void *status;
@@ -412,7 +413,9 @@ void createThreadsAnnotate(int num_threads, THREAD_DATA_ANNOT *thread_data, WRIT
          printf("ERROR: return code from pthread_join() is %d\n", rc);
          exit(-1);
       }   
-    }   
+    }
+    
+    cout << "Joined threads..." << endl;
     
     // Create new writer_tread for writeannotate GFFs
     pthread_t writer_thread; //(pthread_t *)malloc(sizeof(pthread_t)); 
@@ -425,7 +428,9 @@ void createThreadsAnnotate(int num_threads, THREAD_DATA_ANNOT *thread_data, WRIT
     if (rc) {
          printf("ERROR: return code from pthread_join() is %d\n", rc);
          exit(-1);
-    }   
+    }
+    
+    
 }
 
 /*
@@ -461,7 +466,7 @@ void *annotateOrfsForDBs( void *_data) {
         
         for( unsigned int j = 0; j < data->db_info.db_names.size(); j++ ) { 
             // for each database j
-            idextractor = data->db_info.idextractors[j]; // annotation extractor for database j
+            //idextractor = data->db_info.idextractors[j]; // annotation extractor for database j
             
             if( data->annot_objects[data->db_info.db_names[j]].find(*it) !=
                 data->annot_objects[data->db_info.db_names[j]].end()) {
@@ -471,11 +476,12 @@ void *annotateOrfsForDBs( void *_data) {
                 annotation = data->annot_objects[data->db_info.db_names[j]][*it];
 
               //  std::cout << data->db_info.db_names[j] << "\t" << *it << "\t" << annotation->product << std::endl; 
-               // std::cout << idextractor(annotation->product.c_str()) << std::endl;
-                func_id = idextractor(annotation->product.c_str()); // extract function id from annotation if needed
-                if(func_id.size()==0) func_id="E"; // no function ID
+              // std::cout << idextractor(annotation->product.c_str()) << std::endl;
+                //func_id = idextractor(annotation->product.c_str()); // extract function id from annotation if needed
+                // if(func_id.size()==0) func_id="E"; // no function ID
                 score = computeAnnotationValue(annotation) * data->db_info.weight_dbs[j]; // calculate information annotation score
-                db_hit->push_back(func_id);
+                // db_hit->push_back(func_id);
+                db_hit->push_back(string("E"));
             }
             else {
           //      std::cout << data->db_info.db_names[j] << "\t" << *it <<  "no hit" << std::endl ;
@@ -484,17 +490,17 @@ void *annotateOrfsForDBs( void *_data) {
               
             //std::cout << std::endl; 
 /*
-               if(max_score < score) {
-                   max_score= score;
-                   annotation->value = score ;
-                   db_index = static_cast<short int>(j);
-               }
+              if(max_score < score) {
+                  max_score= score;
+                  annotation->value = score ;
+                  db_index = static_cast<short int>(j);
+              }
             data->annot_from_db.push_back(db_index);
 */
             data->annot_from_db.push_back(db_index);
         }
         data->db_hits.push_back(db_hit);
-//        data->annot_from_db.push_back(db_index);
+        data->annot_from_db.push_back(db_index);
     }
 
     std::cout << "counter " << count << std::endl;
