@@ -57,7 +57,7 @@ void readContigLengths(string file, map<string, unsigned int> &contig_lengths) {
  * aliases (if present).
  */
 map<string, string> makeHierarchyIdentifierMap(string hierarchy_filename) {
-    cout << "In makeHierarchyIdentifierMap()" << endl;
+    // cout << "In makeHierarchyIdentifierMap()" << endl;
     
     map<string, string> h_map;  // Hierarchy map
     HNODE *pnode = new HNODE;

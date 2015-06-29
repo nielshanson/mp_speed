@@ -21,28 +21,8 @@ int main( int argc, char** argv) {
     if (options.debug) {
         options.printOptions();
     }
-    
-    // Extract and create functional and taxonomic hierachy maps from from available databases
-    vector<string> functional_hierarchy_files = getFunctionalHierarchyFiles(options.functional_categories, options);
-    map<string, map<string, string> > dbNamesToHierarchyIdentifierMaps;
-    string full_path = "";
-    string db_name = "";
-    for (int i = 0; i < functional_hierarchy_files.size(); i++ ) {
-        full_path = options.functional_categories + "/" + functional_hierarchy_files[i];
-        db_name = removeEnding(functional_hierarchy_files[i], ".tree.txt");
-        dbNamesToHierarchyIdentifierMaps[db_name] = makeHierarchyIdentifierMap(full_path);
-    }
-    
-    for(map<string, map<string, string> >::iterator itr = dbNamesToHierarchyIdentifierMaps.begin(); 
-        itr != dbNamesToHierarchyIdentifierMaps.end(); 
-        itr++) {
-        cout << itr->first << endl;
-    }
-    
-    exit(-1);
-    
 
-    // Data structures
+    // Determine database and load matching functional hierarchy information if present
     map<string, float> dbname_weight; // map to store db_weight TODO: not clear if absolutely needed
     // map<string, unsigned int> contig_lengths; Doesn't seem to be used anymore
 
@@ -64,6 +44,40 @@ int main( int argc, char** argv) {
             }
         }
     }
+    
+    // Extract and create functional and taxonomic hierachy maps from from available databases
+    vector<string> functional_hierarchy_files = getFunctionalHierarchyFiles(options.functional_categories, options);
+    
+    // Match with .B/LASTout.parsed files found above
+    
+    
+    
+    map<string, map<string, string> > dbNamesToHierarchyIdentifierMaps;
+    string full_path = "";
+    string db_name = "";
+    
+    
+    for (int i = 0; i < functional_hierarchy_files.size(); i++ ) {
+        full_path = options.functional_categories + "/" + functional_hierarchy_files[i];
+        db_name = removeEnding(functional_hierarchy_files[i], ".tree.txt");
+        for (int i = 0; i < db_info.db_names.size(); i++) {
+            if ( db_info.db_names[i] == db_name ) {
+                dbNamesToHierarchyIdentifierMaps[db_name] = makeHierarchyIdentifierMap(full_path);
+            }
+        }
+    }
+    
+    if (options.debug) {
+        cout << "Functional hierarchies matched to BLASTout.parsed.txt files:" << endl;
+        for(map<string, map<string, string> >::iterator itr = dbNamesToHierarchyIdentifierMaps.begin(); 
+            itr != dbNamesToHierarchyIdentifierMaps.end(); 
+            itr++) {
+            cout << itr->first << endl;
+        }
+    }
+    
+    exit(-1);
+    
 
     // Sort the gff file by the orf ids
     if (options.debug) {
