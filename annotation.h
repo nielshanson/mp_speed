@@ -20,6 +20,12 @@
 
 using namespace std;
 
+map<string, string> makeHierarchyIdentifierMap(string hierarchy_filename);
+
+vector<string> getFunctionalHierarchyFiles(string hierarhcy_dir, MPAnnotateOptions options);
+
+HNODE* createHNODE(string line);
+
 void readContigLengths(string contig_map_file, map<string, unsigned int> &contig_lengths);
 
 int getBlastFileNames(string blastdir, string sample_name, MPAnnotateOptions options, DB_INFO &db_info);
@@ -40,6 +46,7 @@ ANNOTATION * createAnnotation(const char * line, const string &dbname, bool taxo
 
 int process_all_parsed_blastout(THREAD_DATA_ANNOT *thread_data);
 
+string createFunctionalAndTaxonomicTableLine(ANNOTATION annotation);
 // void *writeAnnotatedPreamble(void *_writer_data);
 
 bool  createFunctionWeights(const string &intpufile, const string &outputfile);

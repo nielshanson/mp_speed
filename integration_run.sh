@@ -14,7 +14,7 @@ sample_name=hmp_airways_SRS014682
 num_threads=4
 
 # LAST
-
+ 
 
 # parseB/LAST
 for file in ${mp_output}/${sample_name}/blast_results/*LASTout
@@ -43,6 +43,7 @@ my_cmd="./mp_annotate --input_gff ${mp_output}/${sample_name}/orf_prediction/${s
                     --output_gff ${mp_output}/${sample_name}/orf_prediction/${sample_name}.gff \
                     --output_comparative_annotation ${mp_output}/${sample_name}/results/annotation_table/${sample_name}.functional_and_taxonomic_table.txt \
                     -D ${mp_output}/${sample_name}/blast_results/ \
+                    --functional_categories ${mp_databases}/functional_categories \
                     -s ${sample_name} \
                     -m ${mp_output}/${sample_name}/preprocessed/${sample_name}.mapping.txt \
                     -a LAST \

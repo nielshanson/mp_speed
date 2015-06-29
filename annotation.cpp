@@ -53,6 +53,96 @@ void readContigLengths(string file, map<string, unsigned int> &contig_lengths) {
 }
 
 /*
+ * Takes a functional hierarchy file and returns a map<string, string> of hierarchy identifiers to 
+ * aliases (if present).
+ */
+map<string, string> makeHierarchyIdentifierMap(string hierarchy_filename) {
+    cout << "In makeHierarchyIdentifierMap()" << endl;
+    
+    map<string, string> h_map;  // Hierarchy map
+    HNODE *pnode = new HNODE;
+    HNODE *cnode = new HNODE;
+    // vector<HNODE *> node_stack;
+    
+    pnode->depth = -1;
+    pnode->name = 'root';
+    pnode->alias = 'root';
+    
+    string line;
+    std::ifstream input;
+    input.open(hierarchy_filename.c_str(), std::ifstream::in);
+    if(!input.good()){
+        std::cout << "Error opening '"<< hierarchy_filename <<"'" << std::endl;
+        exit(-1);
+    }
+    
+    while( std::getline(input, line ).good()) {
+        cnode = createHNODE(line); // get current node
+        if (cnode->depth <= pnode->depth) {
+            // current node on same level or higher
+            h_map[pnode->name] = pnode->alias;
+        }
+        pnode = cnode;
+    }
+    
+    // add final line
+    h_map[pnode->name] = pnode->alias;
+    
+    input.close();
+    
+    // // Print out map values
+    // for(map<string, string>::iterator itr = h_map.begin(); itr != h_map.end(); ++itr) {
+    //     cout << itr->first << "\t" << itr->second << endl;
+    // }
+    
+    return h_map;
+}
+
+/* 
+ * Given a line from a functional_category *tree.txt file, this function calculates the node's
+ * depth in the tree and parses the database id and alias. Returns a pointer to the created HNODE.
+ */ 
+HNODE* createHNODE(string line) {
+    
+    HNODE *new_node = new HNODE;
+    
+    // Count depth
+    int depth = 0;
+    string name = "";
+    string alias = "";
+    for (int i =0; i < line.size(); i++) {
+        if (line[i] == '\t') {
+            depth++;
+        }
+    }
+    
+    // Split line by tabs
+    char buf[10000]; // TODO: Check to see if this buffer is needed.
+    vector <char *> words;
+    split(line, words, buf,'\t');
+    
+    // parse out name and alias fields
+    bool first = true;
+    for (int i=0; i < words.size(); i++) {
+        if (hasCharacter(words[i])) {
+            if (first) {
+                name = words[i];
+                first = false;
+            } else {
+                alias = words[i];
+            }
+        }
+    }
+    
+    // Fill in new node
+    new_node->name = name;
+    new_node->alias = alias;
+    new_node->depth = depth;
+    
+    return(new_node);
+}
+
+/*
  * Given a product string this function computes the products word information score. I.e., one point for every
  * non-trivial descripive word.
  */
@@ -128,11 +218,11 @@ ANNOTATION* createAnnotation(const char * line, const string &dbname, bool taxon
          return 0;
      }
 
-     try{
+     try {
         annotation->bsr = atof(fields[4]);
         annotation->ec = string(fields[4]);
         annotation->product = string(fields[9]);
-
+        
         db_name = to_upper(dbname);
 
         annotation->bsr = atof(fields[4]);
@@ -141,7 +231,7 @@ ANNOTATION* createAnnotation(const char * line, const string &dbname, bool taxon
              annotation->taxonomy = getTaxonomyFromProduct(annotation->product.c_str());
         }
 
-      }
+    }
     catch(...) {
         return 0;
     }
@@ -161,7 +251,7 @@ int processParsedBlastout(string db_name, float weight, string blastoutput, MPAn
 
     int count = 0; // Line count
 
-    char tempbuf[1000];
+    // char tempbuf[1000];
 
     if (options.debug) {
         cout << "Reading ParsedBlastout: " << filename << "\n";
@@ -245,6 +335,42 @@ int processParsedBlastout(string db_name, float weight, string blastoutput, MPAn
     return count;
 }
 
+
+/*
+ * Given a string with the location of functional_categories directory, getFunctionalHierarchyFiles returns
+ * a list of the <database_name>.tree.txt files in the  MetaPathwaysDBs/functional_categories/
+ */ 
+vector<string> getFunctionalHierarchyFiles(string hierarhcy_dir, MPAnnotateOptions options) {
+    
+    string hier_ending = ".tree.txt";
+    
+    // Open directory
+    vector<string> files; // list of files in directory
+    DIR *dp; // directory pointer
+    struct dirent *dirp;
+    if((dp  = opendir(hierarhcy_dir.c_str())) == NULL) {
+        cout << "Error: opening directory " << hierarhcy_dir << endl;
+    }
+    
+    // Add files in directory to files vector
+    while ((dirp = readdir(dp)) != NULL) {
+        files.push_back(string(dirp->d_name));
+    }
+    closedir(dp);
+    
+    vector<string> hier_files;
+    
+    // Check to see if files have .tree.txt ending
+    for (unsigned int i = 0; i < files.size(); i++) {
+        if (hasEnding(files[i], hier_ending)) {
+            hier_files.push_back(files[i]);
+        }
+    }
+    
+    return(hier_files);
+    
+}
+
 /*
  * Given a string with the location of the blast_results directory, getBLASTFileNames returns
  * a list of the <DB>.B/LASTout.parsed.txt files.
@@ -252,7 +378,7 @@ int processParsedBlastout(string db_name, float weight, string blastoutput, MPAn
 int getBlastFileNames(string blastdir, string sample_name, MPAnnotateOptions options, DB_INFO &db_info) {
 
     regex_t regex; // Regular expression.
-    char tempbuf[1000]; // Buffer.
+    // char tempbuf[1000]; // Buffer.
 
     // Convert algorithm name to uppercase (i.e., BLAST, LAST)
 
@@ -292,7 +418,6 @@ int getBlastFileNames(string blastdir, string sample_name, MPAnnotateOptions opt
         usedb = false;
         if( dbname.size() > 0)  {
             // Pattern found: add database name, filename, and weight to db_info
-            
             // Check for particular databases to add relevant idextractors
             if(tempdbname.find("KEGG") != std::string::npos ) {
                usedb = true;
@@ -311,13 +436,19 @@ int getBlastFileNames(string blastdir, string sample_name, MPAnnotateOptions opt
                dbtype = SEED;
                idextractor = getSEEDID;
             }
+            
+            if(tempdbname.find("CAZY") != std::string::npos ) {
+               usedb = true;
+               dbtype = CAZY;
+               idextractor = getCAZYID;
+            }
 
             if(usedb) {
                 db_info.db_names.push_back(dbname);
                 db_info.input_blastouts.push_back(files[i]);
                 db_info.weight_dbs.push_back(1.0);
-                db_info.dbtypes.push_back(dbtype);
-                db_info.idextractors.push_back(idextractor);
+                db_info.dbtypes.push_back(dbtype); // TODO: May not be nessisary
+                db_info.idextractors[dbname] = idextractor;
             } else {
                 db_info.db_names.push_back(dbname);
                 db_info.input_blastouts.push_back(files[i]);
@@ -440,67 +571,59 @@ void createThreadsAnnotate(int num_threads, THREAD_DATA_ANNOT *thread_data, WRIT
 void *annotateOrfsForDBs( void *_data) {
     // cast _data to THREAD_DATA_ANNOT
     THREAD_DATA_ANNOT *data = static_cast<THREAD_DATA_ANNOT *> (_data);
-
-    ANNOTATION *annotation;
-
-    int count = 0;
-    vector<string>::iterator it;
-    unsigned int max_score=0, score;
-    short int  db_index;
-     
-    unsigned long long a = 10000000000;
-
-    DB_HIT *db_hit;
-    string func_id;
+    
+    // annotation fields
+    unsigned int max_score = 0, score;
+    string db_id = "";
+    
+    // process fields
+    bool success = false;
+    ANNOTATION *annotation = new ANNOTATION();
+    ANNOTATION *final_annotation = new ANNOTATION();
     string (*idextractor) (const char *);
+    vector<string>::iterator it;
+    unsigned int count = 0;
     
     for( it = data->orfids.begin(); it != data->orfids.end(); it++ )  {
-        // for each ORF determine the annotation from the available database results
-        // with the best score
+        // for each ORF 
         count++;
-        
-        max_score = 0; // keeps track of best annotation score so-far
-        db_index = -1;
-        DB_HIT *db_hit; // database hit object 
-        db_hit = new DB_HIT;
+        max_score = 0; // reset score
+        success = false;
+        *annotation = ANNOTATION(); // clear
+        *final_annotation = ANNOTATION();
         
         for( unsigned int j = 0; j < data->db_info.db_names.size(); j++ ) { 
-            // for each database j
-            //idextractor = data->db_info.idextractors[j]; // annotation extractor for database j
-            
+            // For each database j
             if( data->annot_objects[data->db_info.db_names[j]].find(*it) !=
                 data->annot_objects[data->db_info.db_names[j]].end()) {
-                // If there is a hit in this database for this ORF
+                // Annotation orf_id found in database j
                 
                 // Get the annotation
                 annotation = data->annot_objects[data->db_info.db_names[j]][*it];
-
-              //  std::cout << data->db_info.db_names[j] << "\t" << *it << "\t" << annotation->product << std::endl; 
-              // std::cout << idextractor(annotation->product.c_str()) << std::endl;
-                //func_id = idextractor(annotation->product.c_str()); // extract function id from annotation if needed
-                // if(func_id.size()==0) func_id="E"; // no function ID
                 score = computeAnnotationValue(annotation) * data->db_info.weight_dbs[j]; // calculate information annotation score
-                // db_hit->push_back(func_id);
-                db_hit->push_back(string("E"));
+                
+                // Set annotation to best hit
+                if (score > max_score) {
+                    // set final annotation to main fields
+                    final_annotation->product = annotation->product;
+                    final_annotation->bsr = annotation->bsr;
+                    final_annotation->value = annotation->value;
+                    final_annotation->ec = annotation->ec;
+                    final_annotation->taxonomy = annotation->taxonomy;
+                    
+                    max_score = score; // update score
+                }
+                
+                // Get db_id from annotation if needed
+                if (data->db_info.idextractors.find(data->db_info.db_names[j]) !=
+                    data->db_info.idextractors.end()) {
+                    idextractor = data->db_info.idextractors[data->db_info.db_names[j]];
+                    db_id = idextractor(annotation->product.c_str());
+                    final_annotation->db_ids[data->db_info.db_names[j]] = db_id;
+                }
             }
-            else {
-          //      std::cout << data->db_info.db_names[j] << "\t" << *it <<  "no hit" << std::endl ;
-                db_hit->push_back(string("E"));
-            }
-              
-            //std::cout << std::endl; 
-/*
-              if(max_score < score) {
-                  max_score= score;
-                  annotation->value = score ;
-                  db_index = static_cast<short int>(j);
-              }
-            data->annot_from_db.push_back(db_index);
-*/
-            data->annot_from_db.push_back(db_index);
         }
-        data->db_hits.push_back(db_hit);
-        data->annot_from_db.push_back(db_index);
+        data->db_hits[*it] = *final_annotation;
     }
 
     std::cout << "counter " << count << std::endl;
@@ -522,25 +645,50 @@ void *annotateOrfsForDBs( void *_data) {
 void *writeAnnotatedGFFs( void *_writer_data) {
 
     unsigned int b;  
-    char buf[10000];
+    // char buf[10000];
     WRITER_DATA_ANNOT *writer_data = (WRITER_DATA_ANNOT *)_writer_data;
     unsigned int num_threads = writer_data->num_threads;
     THREAD_DATA_ANNOT *thread_data = writer_data->thread_data;
+    ANNOTATION result_annotation;
+    string print_line; // line to print
 
     for(unsigned int i = 0; i < num_threads; i++) {
-    //   b =  (thread_data[i].b+1)%2;
-    //   std::cout << "Writing results from thread " << i << " buffer " << b << std::endl;
-
-      // std::cout << "writing \n";
-       for(unsigned int j =0; j < thread_data[i].orfids.size(); j++) {
-
+        // for each thread
+        
+        b =  (thread_data[i].b+1)%2;
+        std::cout << "Writing results from thread " << i << " buffer " << b << std::endl;
+        for( vector<string>::iterator orf_itr = thread_data[i].orfids.begin(); orf_itr != thread_data[i].orfids.end(); orf_itr++ ) {
+            // for each ORF
             unsigned int k = 0;
-            for(vector<string>::iterator it = thread_data[i].db_hits[j]->begin(); it != thread_data[i].db_hits[j]->end(); it++) {
-                 writer_data->output[k] << *it << std::endl;;
-                 k++;
+            if (thread_data[i].db_hits.find(*orf_itr) != thread_data[i].db_hits.end()) {
+                // for each valid hit
+                result_annotation = thread_data[i].db_hits[*orf_itr];
+                print_line = createFunctionalAndTaxonomicTableLine(result_annotation);
+                // annotatedGFF
+                // functional_and_taxonomic_table
+                // <sample>.1.txt
+                // <sample>.2.txt
+                // <sample>.metacyc.orf.annots.txt
+                
+                
+                k++;
+            } else {
+                // write out hypothetical annotation
+                
             }
-       }
-       thread_data[i].clear();
+            
+        }
+        // for(unsigned int j =0; j < thread_data[i].orfids.size(); j++) {
+        //     unsigned int k = 0;
+        //     thread_data[i].orfids[j]
+        //     for(vector<ANNOTATION>::iterator itr = thread_data[i].db_hits[j].begin(); itr != thread_data[i].db_hits[j].end(); itr++) {
+        //          result_annotation = *itr;
+        //          // writer_data->output[b] << result_annotation.product << std::endl;
+        //          cout << result_annotation.product << endl;
+        //          k++;
+        //     }
+        // }
+        thread_data[i].clear();
 /*
        for(vector<string>::iterator it = thread_data[i].orfids.begin(); it != thread_data[i].orfids.end(); it++) {
            writer_data->output << *it << std::endl; 
@@ -553,12 +701,21 @@ void *writeAnnotatedGFFs( void *_writer_data) {
     return (void *)NULL;
 
 }
+
+string createFunctionalAndTaxonomicTableLine(ANNOTATION annotation) {
+    //ORF_ID	ORF_length	start	end	Contig_Name	Contig_length	strand	ec	taxonomy	product
+    // contig_num + "_" +
+    // hierarchy[db_name][id] = count
+
+    
+    return string("");
+}
  
 bool createFunctionWeights(const string &inputfile, const string &outputfile) {
 
     std::cout << "file to use " <<  inputfile << std::endl;
     std::ifstream input;
-    char buf[1000];
+    // char buf[1000];
  
     input.open(inputfile.c_str(), std::ifstream::in);
     if(!input.good()){

@@ -55,6 +55,9 @@ bool MPAnnotateOptions::SetOptions(int argc, char *argv[]) {
         else if( strncmp(argv[i], "--debug", strlen("--debug")) == 0 ) {
             this->debug = true;
         }
+        else if( strncmp(argv[i], "--functional_categories", strlen("--functional_categories")) == 0 ) {
+            this->functional_categories = argv[++i];
+        }
         else {
             cout << "ERROR: Cannot recognize argument " << argv[i] << std::endl;;
             return false;
@@ -77,6 +80,7 @@ void MPAnnotateOptions::printOptions() {
          << "contig_map_file:   " <<  contig_map_file << "\n"\
          << "database_name:     " <<  database_name << "\n"\
          << "blast_dir:         " <<  blast_dir << "\n"\
+         << "functional_categories: " <<  functional_categories << "\n"\
          << "rRNA_16S:          " <<  rRNA_16S  << "\n"\
          << "tRNA:              " <<  tRNA << "\n"\
          << "sample_name:       " <<  sample_name << "\n"\

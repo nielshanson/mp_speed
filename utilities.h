@@ -19,6 +19,9 @@ void split_seq_name(const std::string  &strn, std::vector<char *> &v, char *buf)
 
 std::string get_orf_name(std::string & strn, std::vector<char *> &v, char *buf);
 
+bool hasCharacter(char *word);
+std::string removeEnding(std::string const &fullString, std::string const &ending);
+
 bool matchString(const string &str, const string & stringtomatch, bool fromstart=false);
 
 void get_fasta_sequence_info(const std::string &fasta_file_name);
@@ -36,11 +39,14 @@ int compile_regex(regex_t * r, const char * regex_text);
 
 string getpattern(regex_t *r , const char *to_match, unsigned int no );
 
+bool hasEnding(std::string const &fullString, std::string const &ending);
+
 string getECNo(const char *str, unsigned int d);
 
 string getCOGID(const char *str);
 string getKEGGID(const char *str);
 string getSEEDID(const char *str);
+string getCAZYID(const char *str);
 
 string getTaxonomyFromProduct(const char *str);
 

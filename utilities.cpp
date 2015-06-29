@@ -23,6 +23,42 @@ char *split_n_pick(const string  &strn,  char *buf, char d, unsigned int n) {
 }
 
 /*
+ * Removes given ending from a string, returning the original string of match not exact
+ */ 
+std::string removeEnding(std::string const &fullString, std::string const &ending) {
+    if (fullString.compare (fullString.length() - ending.length(), ending.length(), ending) == 0) {
+        return fullString.substr(0, fullString.length() - ending.length());
+    }
+    return fullString;
+}
+
+/*
+ * Checks to see if string parsed something substantial.
+ */ 
+bool hasCharacter(char *word) {
+     char *s1 = word;
+     bool flag = false;
+     while(*s1 != '\0') {
+         if (! isspace(*s1)) {
+             flag = true;
+         }
+         s1++;
+     }
+     return(flag);
+ }
+
+/*
+ * Checks to see if one string is at the end of the other
+ */ 
+bool hasEnding(std::string const &fullString, std::string const &ending) {
+    if (fullString.length() >= ending.length()) {
+        return (0 == fullString.compare (fullString.length() - ending.length(), ending.length(), ending));
+    } else {
+        return false;
+    }
+}
+
+/*
  * Splits a given string into a vector <char *> where given a character array buffer and the splitting character d
  */
 void split(const string  &strn, std::vector<char *> &v, char *buf, char d) {
@@ -319,6 +355,58 @@ string getTaxonomyFromProduct(const char *str) {
     }
 
     return "no-taxonomy";
+}
+
+/*
+ * Given a pointer to an annotation string, attempts to extract a CAZy id 
+ * "[[<cazyid]]" and return as a string
+ */
+string getCAZYID(const char *str) {
+    char buf[100];
+    unsigned int S=0, i=0;
+    const char *c;
+
+    c = str;
+    while( *c!='\0') {
+        if(S==0) {  
+            if(*c=='[') {
+                S++;
+            } 
+            else { 
+                if( *c!=' ' || i==0 || buf[i-1] != ' ')  {
+                    buf[i] =*c;
+                    i++;
+                }
+            }
+        }
+        else if (S==1) {
+            if(*c=='[') {
+                S++;
+            }
+        } else if (S==2) {
+            if(*c == ']' && i > 0) {
+                S++;
+            } else if(*c != '[') {
+                buf[i] =*c;
+                i++;
+            }
+            
+        } else if (S==3) {
+            if(*c == ']' && i > 0) {
+                S++;
+            } else {
+                S = 0;
+            }
+        }
+        c++;
+    }
+
+    if(i > 0 && buf[i-1] == ' ') {
+        buf[i-1] = '\0';
+    } else {
+        buf[i]='\0';
+    }
+    return string(buf);
 }
 
 string getSEEDID(const char *str) {

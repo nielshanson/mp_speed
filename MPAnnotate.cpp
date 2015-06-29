@@ -21,14 +21,30 @@ int main( int argc, char** argv) {
     if (options.debug) {
         options.printOptions();
     }
+    
+    // Extract and create functional and taxonomic hierachy maps from from available databases
+    vector<string> functional_hierarchy_files = getFunctionalHierarchyFiles(options.functional_categories, options);
+    map<string, map<string, string> > dbNamesToHierarchyIdentifierMaps;
+    string full_path = "";
+    string db_name = "";
+    for (int i = 0; i < functional_hierarchy_files.size(); i++ ) {
+        full_path = options.functional_categories + "/" + functional_hierarchy_files[i];
+        db_name = removeEnding(functional_hierarchy_files[i], ".tree.txt");
+        dbNamesToHierarchyIdentifierMaps[db_name] = makeHierarchyIdentifierMap(full_path);
+    }
+    
+    for(map<string, map<string, string> >::iterator itr = dbNamesToHierarchyIdentifierMaps.begin(); 
+        itr != dbNamesToHierarchyIdentifierMaps.end(); 
+        itr++) {
+        cout << itr->first << endl;
+    }
+    
+    exit(-1);
+    
 
     // Data structures
-    ANNOTATION_RESULTS results_dictionary; // stores results
     map<string, float> dbname_weight; // map to store db_weight TODO: not clear if absolutely needed
     // map<string, unsigned int> contig_lengths; Doesn't seem to be used anymore
-
-    // TODO: contig_lengths does not seem to be used anymore.
-    // readContigLengths(options.contig_map_file, contig_lengths);
 
     DB_INFO db_info;
 
@@ -72,20 +88,27 @@ int main( int argc, char** argv) {
     // Create the writer's data object
     WRITER_DATA_ANNOT *writer_data = new WRITER_DATA_ANNOT;
 
-    // Set writer output to array of output streams for each database
-    writer_data->output = new std::ofstream[db_info.db_names.size()];
+    // Set writer output
+    writer_data->gff_output;
+    writer_data->functional_and_taxonomic_output;
+    // writer_data->hierarchy_output;
+    // writer_data->sample_1_output;
+    // writer_data->sample_2_output;
+    
+    // writer_data->gff_output.open(options.output_gff + ".tmp", std::ofstream::binary);
+    // writer_data->functional_and_taxonomic_output.open(options.output_comp_annot + ".tmp", std::ofstream::binary);
 
     // Open file streams to temporary annotation_table files
-    for(unsigned int i=0; i < db_info.db_names.size(); i++ ) {
-        writer_data->output[i].open( db_info.TempFile1(options.output_comp_annot,  db_info.db_names[i]).c_str(), std::ofstream::binary);
-    }
+    // for(unsigned int i=0; i < db_info.db_names.size(); i++ ) {
+    //     writer_data->output[i].open( db_info.TempFile1(options.output_comp_annot,  db_info.db_names[i]).c_str(), std::ofstream::binary);
+    // }
 
     // Update writer data structure with parameters and options
     writer_data->thread_data = thread_data;
     writer_data->num_threads = options.num_threads;
     writer_data->db_info = db_info;
 
-    unsigned int b = 0;
+    unsigned int b = 0; 
     std::cout << "Begin processing:  \n";
     parser.initializeBatchReading();
 

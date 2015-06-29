@@ -28,8 +28,17 @@ typedef struct _THREAD_DATA {
     unsigned int b;
 } THREAD_DATA;
 
+/*
+ * Structure to assist in the parsing of *.tree.txt files
+ */ 
+struct HNODE {
+    string name;
+    string alias;
+    int depth;
+    vector<HNODE*> children;
+};
 
-typedef enum {KEGG, COG, SEED } DBTYPE;
+typedef enum {KEGG, COG, SEED, CAZY} DBTYPE;
 
 /*
  * Structure to keep track of databases, file names, database weights, database types ( KEGG, COG, SEED, etc.)
@@ -42,7 +51,7 @@ typedef struct _DB_INFO {
     vector<string> input_blastouts;
     vector<float> weight_dbs;
     vector<DBTYPE> dbtypes;
-    vector<string (*)(const char *)> idextractors;
+    map<string, string (*)(const char *) > idextractors;
 
     string TempFile1(const string &sample, const string &db)  {
         string file_name;
@@ -76,9 +85,6 @@ typedef struct _DB_INFO {
 
 } DB_INFO;
 
-/*
- * 
- */
 typedef struct _BLASTOUT_DATA {
     string query, target, product, ec, taxonomy;
     unsigned int q_length, aln_length ;
@@ -109,8 +115,13 @@ typedef struct _WRITER_DATA {
  * annotation line.
  */
 typedef struct _ANNOTATION {
+    // functional_and_taxonomic fields: ORF_ID	ORF_length	start	end	Contig_Name	Contig_length	strand	ec	taxonomy	product
     float bsr, value;
     string ec, product, taxonomy;
+    
+    string orf_id, contig_name, strand;
+    unsigned int start, end, contig_length;
+    map<string, string> db_ids;
 } ANNOTATION;
 
 
@@ -124,11 +135,11 @@ typedef vector<string> DB_HIT;
  */
 typedef struct _THREAD_DATA_ANNOT {
     vector<ANNOTATION>  lines; // annotation lines
-    ANNOTATION_RESULTS annot_objects; //database-><database, annotation>
+    ANNOTATION_RESULTS annot_objects;
     vector<ANNOTATION>  output[2]; 
     vector<string> orfids; // orf_ids this particular thread deals with
     vector<short int> annot_from_db; 
-    vector<DB_HIT *> db_hits; // DB -> vector<string> for DB hits
+    map<string, ANNOTATION> db_hits;
 
     MPAnnotateOptions options;
     unsigned int b;
@@ -158,8 +169,13 @@ typedef struct _THREAD_DATA_ANNOT {
 typedef struct _WRITER_DATA_ANNOT {
     THREAD_DATA_ANNOT  *thread_data;
     unsigned int num_threads;
-    std::ofstream *output; 
     DB_INFO db_info;
+    
+    std::ofstream *gff_output;
+    std::ofstream *functional_and_taxonomic_output;
+    std::ofstream sample_1_output;
+    std::ofstream sample_2_output;
+    
 } WRITER_DATA_ANNOT;
 
 // Annotation map

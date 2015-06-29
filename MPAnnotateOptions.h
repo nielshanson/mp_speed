@@ -24,7 +24,7 @@ struct MPAnnotateOptions {
     string algorithm;
     string contig_map_file;
     string database_name;
-    string blast_dir;
+    
     string rRNA_16S;
     string tRNA;
     bool taxonomy;
@@ -33,6 +33,10 @@ struct MPAnnotateOptions {
     string input_gff;
     string sample_name;
     float weight_db;
+    
+    // Input directories
+    string blast_dir; // blast_results folder
+    string functional_categories; // location of functional hierarchy .tree.txt files
 
     // Threading options
     unsigned int num_threads;
@@ -47,6 +51,7 @@ struct MPAnnotateOptions {
         contig_map_file = "";
         database_name = "";
         blast_dir = "";
+        functional_categories = "";
         rRNA_16S = "";
         tRNA = "";
         sample_name = "";
