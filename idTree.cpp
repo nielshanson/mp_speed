@@ -50,7 +50,7 @@ string IDTREE::find(string annot) {
               node=node->children[c];
               b++;
               if( node->end && ( b==annot.length() || !std::isalnum(annot[b]) ) ) {
-                 return annot.substr(a, b-a+1);
+                 return annot.substr(a, b-a);
               }
            }
            else

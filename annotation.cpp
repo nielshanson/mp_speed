@@ -466,20 +466,20 @@ void createAnnotation(map<string, float> dbname_weight, ANNOTATION_RESULTS resul
     if (options.debug) {
         cout << "In createAnnotation()" << endl;
     }
-    string input_gff = options.input_gff;
-    string rRNA_16S = options.rRNA_16S;
-    string tRNA = options.tRNA;
-    string output_gff = options.output_gff;
-    string output_comp_annot = options.output_comp_annot;
+    // string input_gff = options.input_gff;
+    // string rRNA_16S = options.rRNA_16S;
+    // string tRNA = options.tRNA;
+    // string output_gff = options.output_gff;
+    // string output_comp_annot = options.output_comp_annot;
 
-    // read input ORFs the input GFF file
-    cout << options.input_gff << endl;
+    // // read input ORFs the input GFF file
+    // cout << options.input_gff << endl;
 
-    // Prepare inputs and buffers
-    string filename = options.blast_dir + "/" + input_gff; // BLAST/LASTout.parsed.txt
+    // // Prepare inputs and buffers
+    // string filename = options.blast_dir + "/" + input_gff; // BLAST/LASTout.parsed.txt
 
-    std::ifstream input; // Input filestream
-    vector <char *> fields; // Vector for parsed fields
+    // std::ifstream input; // Input filestream
+    // vector <char *> fields; // Vector for parsed fields
 
 
 
@@ -503,7 +503,7 @@ void createAnnotation(map<string, float> dbname_weight, ANNOTATION_RESULTS resul
 
 
 string orf_extractor_from_gff(const string &line){
-   char buf[1000];
+   char buf[10000];
    string orfid;
    try{
       orfid  = ShortenORFId(split_n_pick(split_n_pick(split_n_pick(line, buf, '\t', 8), buf, ';',0), buf,'=',1));
@@ -522,7 +522,7 @@ void createThreadsAnnotate(int num_threads, THREAD_DATA_ANNOT *thread_data, WRIT
     pthread_t *threads;
     if( (threads = (pthread_t *) malloc( sizeof(pthread_t) *num_threads) ) == 0 ) {
       std::cout << "Error in allocating threads" << std::endl;
-    }   
+    }
     int rc;
     
     // Lanuch annotateOrfsForDBs
@@ -596,12 +596,11 @@ void *annotateOrfsForDBs( void *_data) {
         *annotation = ANNOTATION(); // clear
         *final_annotation = ANNOTATION();
         
-        string db_name = ""; // helper
+        string db_name = ""; // helper string
         
         for( unsigned int j = 0; j < data->db_info.db_names.size(); j++ ) { 
             // For each database j
             db_name = data->db_info.db_names[j];
-            // increment thread's dbHierachy Counter counter
             if (data->dbNamesToHierachyIdentifierCounts.find(db_name) == data->dbNamesToHierachyIdentifierCounts.end()) {
                 // add database to map
                 map<string, int> newHierarchyMap;
@@ -656,12 +655,13 @@ void *annotateOrfsForDBs( void *_data) {
         }
         // TODO: place to check for pathway tools annotation
         if (success) {
-            data->db_hits[*it] = *final_annotation;
+            // data->db_hits[*it] = *final_annotation;
+            
             annotated_count++;
         }
     }
 
-    std::cout << "annotateOrfsForDBs(): " << annotated_count << " of " << total_count  << " ORFs annotated" << std::endl;
+    // cout << "annotateOrfsForDBs(): " << annotated_count << " of " << total_count  << " ORFs annotated" << endl;
     return (void *) NULL;
 
 }

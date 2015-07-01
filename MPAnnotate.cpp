@@ -22,7 +22,6 @@ int main( int argc, char** argv) {
         options.printOptions();
     }
 
-    
     // Determine database and load matching functional hierarchy information if present
     DB_INFO db_info;
     
@@ -123,6 +122,7 @@ int main( int argc, char** argv) {
         parser.distributeInput(thread_data);
         createThreadsAnnotate(options.num_threads, thread_data, writer_data);
     }
+    
     if (options.debug) cout << "Done processing batches" << endl;
     
     // Write out hierarchies

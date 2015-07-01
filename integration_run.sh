@@ -40,13 +40,11 @@ done
 
 # Annotate
 my_cmd="./mp_annotate --input_gff ${mp_output}/${sample_name}/orf_prediction/${sample_name}.unannot.gff \
-                    --output_gff ${mp_output}/${sample_name}/orf_prediction/${sample_name}.gff \
-                    --output_comparative_annotation ${mp_output}/${sample_name}/results/annotation_table/ \
-                    -D ${mp_output}/${sample_name}/blast_results/ \
+                    --results_dir ${mp_output}/${sample_name}/results/annotation_table/ \
+                    --blast_dir ${mp_output}/${sample_name}/blast_results/ \
                     --functional_categories ${mp_databases}/functional_categories \
-                    -s ${sample_name} \
-                    -m ${mp_output}/${sample_name}/preprocessed/${sample_name}.mapping.txt \
-                    -a LAST \
+                    --sample_name ${sample_name} \
+                    --algorithm LAST \
                     --tax \
                     --debug \
                     --num_threads ${num_threads}"

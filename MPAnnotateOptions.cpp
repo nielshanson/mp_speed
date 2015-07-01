@@ -11,42 +11,48 @@
 bool MPAnnotateOptions::SetOptions(int argc, char *argv[]) {
     for(int i = 1; i < argc ; i++) {
         if( strncmp(argv[i], "-b", strlen("-b")) == 0 ) {
-            this->input_blastout = argv[++i];
+            this->blast_dir =argv[++i];
+        }
+        else if ( strncmp(argv[i], "--blast_dir", strlen("--blast_dir")) == 0 ) {
+            this->blast_dir =argv[++i];
         }
         else if( strncmp(argv[i], "-a", strlen("-a")) == 0 ) {
             this->algorithm = argv[++i];
         }
-        else if( strncmp(argv[i], "-m", strlen("-m")) == 0 ) {
-            this->contig_map_file = argv[++i];
+        else if( strncmp(argv[i], "--algorithm", strlen("--algorithm")) == 0 ) {
+            this->algorithm = argv[++i];
         }
-        else if(strncmp(argv[i], "-r", strlen("-r")) == 0 ) {
-            this->database_name =argv[++i];
+        else if( strncmp(argv[i], "-f", strlen("-f")) == 0 ) {
+            this->functional_categories = argv[++i];
         }
-        else if(strncmp(argv[i], "-D", strlen("-D")) == 0 ) {
-            this->blast_dir =argv[++i];
+        else if( strncmp(argv[i], "--functional_categories", strlen("--functional_categories")) == 0 ) {
+            this->functional_categories = argv[++i];
+        }
+        else if( strncmp(argv[i], "-g", strlen("-g")) == 0 ) {
+            this->results_dir = argv[++i];
         }
         else if( strncmp(argv[i], "--input_gff", strlen("--input_gff")) == 0 ) {
             this->input_gff = argv[++i];
         }
-        else if( strncmp(argv[i], "--rRNA_16S", strlen("--rRNA_16S")) == 0 ) {
-            this->rRNA_16S = argv[++i];
+        else if( strncmp(argv[i], "-s", strlen("-s")) == 0 ) {
+            this->sample_name = argv[++i];
         }
-        else if( strncmp(argv[i], "--tRNA", strlen("--tRNA")) == 0 ) {
-            this->tRNA = argv[++i];
+        else if( strncmp(argv[i], "--sample_name", strlen("--sample_name")) == 0 ) {
+            this->sample_name = argv[++i];
+        }
+        else if( strncmp(argv[i], "-r", strlen("-r")) == 0 ) {
+            this->results_dir = argv[++i];
+        }
+        else if( strncmp(argv[i], "--results_dir", strlen("--results_dir")) == 0 ) {
+            this->results_dir = argv[++i];
         }
         else if( strncmp(argv[i], "--tax", strlen("--tax")) == 0 ) {
             this->taxonomy = true;
         }
-        else if( strncmp(argv[i], "--output_gff", strlen("--output_gff")) == 0 ) {
-            this->output_gff = argv[++i];
+        else if( strncmp(argv[i], "-w", strlen("-w")) == 0 ) {
+            this->weight_db = atof(argv[++i]);
         }
-        else if( strncmp(argv[i], "--output_comparative_annotation", strlen("--output_comparative_annotation")) == 0 ) {
-            this->output_comp_annot = argv[++i];
-        }
-        else if( strncmp(argv[i], "-s", strlen("-s")) == 0 ) {
-            this->sample_name = argv[++i];
-        }
-        else if( strncmp(argv[i], "-s", strlen("-s")) == 0 ) {
+        else if( strncmp(argv[i], "--weight_db", strlen("--weight_db")) == 0 ) {
             this->weight_db = atof(argv[++i]);
         }
         else if( strncmp(argv[i], "--num_threads", strlen("--num_threads")) == 0 ) {
@@ -55,11 +61,8 @@ bool MPAnnotateOptions::SetOptions(int argc, char *argv[]) {
         else if( strncmp(argv[i], "--debug", strlen("--debug")) == 0 ) {
             this->debug = true;
         }
-        else if( strncmp(argv[i], "--functional_categories", strlen("--functional_categories")) == 0 ) {
-            this->functional_categories = argv[++i];
-        }
         else {
-            cout << "ERROR: Cannot recognize argument " << argv[i] << std::endl;;
+            cout << "ERROR: Cannot recognize argument " << argv[i] << endl;
             return false;
         }
     } //for loop for arguments processing
@@ -75,19 +78,13 @@ bool MPAnnotateOptions::SetOptions(int argc, char *argv[]) {
 void MPAnnotateOptions::printOptions() {
     cout << "CURRENT OPTIONS:\n"\
          << "---------------\n"
-         << "input_blastout:    " <<  input_blastout << "\n"\
-         << "algorithm:         " <<  algorithm << "\n"\
-         << "contig_map_file:   " <<  contig_map_file << "\n"\
-         << "database_name:     " <<  database_name << "\n"\
          << "blast_dir:         " <<  blast_dir << "\n"\
+         << "algorithm:         " <<  algorithm << "\n"\
          << "functional_categories: " <<  functional_categories << "\n"\
-         << "rRNA_16S:          " <<  rRNA_16S  << "\n"\
-         << "tRNA:              " <<  tRNA << "\n"\
+         << "input_gff:         " << input_gff << "\n"\
          << "sample_name:       " <<  sample_name << "\n"\
          << "taxonomy:          " <<  taxonomy << "\n"\
-         << "output_gff:        " <<  output_gff << "\n"\
-         << "output_comp_annot: " <<  output_comp_annot << "\n"\
-         << "input_gff:         " <<  input_gff << "\n"\
+         << "results_dir:       " <<  results_dir << "\n"\
          << "num_threads:       " <<  num_threads << "\n"\
          << "weight_db:         " <<  weight_db << "\n"\
          << "debug:             " <<  debug << "\n"

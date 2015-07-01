@@ -74,7 +74,6 @@ int disk_sort_file(string outputdir, string tobe_sorted_file_name, string sorted
 			filenames.push_back(fname);
 			write_sorted_sequences(lines, fname);
 
-
 			free_lines(lines);
 
 			batch++;

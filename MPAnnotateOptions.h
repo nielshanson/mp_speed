@@ -20,45 +20,30 @@ using namespace std;
 struct MPAnnotateOptions {
 
     // Processing options
-    string input_blastout;
     string algorithm;
-    string contig_map_file;
-    string database_name;
-    
-    string rRNA_16S;
-    string tRNA;
-    bool taxonomy;
-    string output_gff;
-    string output_comp_annot;
-    string input_gff;
-    string sample_name;
-    float weight_db;
-    
-    // Input directories
     string blast_dir; // blast_results folder
     string functional_categories; // location of functional hierarchy .tree.txt files
+    string sample_name;
+    string input_gff;
+    bool taxonomy;
+    string results_dir;
+    float weight_db;
 
     // Threading options
     unsigned int num_threads;
 
     // DEBUG options
     bool debug;
-
+    
     // Constructor with default settings
     MPAnnotateOptions() {
-        input_blastout = "";
         algorithm = "BLAST";
-        contig_map_file = "";
-        database_name = "";
         blast_dir = "";
         functional_categories = "";
-        rRNA_16S = "";
-        tRNA = "";
         sample_name = "";
-        taxonomy = true;
-        output_gff = "";
-        output_comp_annot = "";
         input_gff = "";
+        taxonomy = true;
+        results_dir = "";
         num_threads = 1;
         weight_db = 1.0;
         debug = false;

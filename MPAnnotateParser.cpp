@@ -95,14 +95,14 @@ void MPAnnotateParser::distributeInput(THREAD_DATA_ANNOT *thread_data) {
                 thread_data[bucketIndex].annot_objects[db_info.db_names[i]]= map<string, ANNOTATION *>();
             
             // if this is new orfid and not first entry (header)
-            if(prevorfid != orfid && j != 0 ) {
+            if(prevorfid != orfid) {
                 prevevalue  = 100; // reset evalue
                 // std::cout << orfid << "\t" << annotation->product << std::endl;
                 thread_data[bucketIndex].orfids.push_back(orfid);
                 annotation = createAnnotation((*it).c_str(), db_info.db_names[i]);
                 thread_data[bucketIndex].annot_objects[db_info.db_names[i]][orfid] = annotation;
             }
-            else if(prevevalue > evalue ) {
+            else if(prevevalue > evalue) {
                 annotation = createAnnotation((*it).c_str(), db_info.db_names[i]);
                 thread_data[bucketIndex].annot_objects[db_info.db_names[i]][orfid] = annotation;
             }
@@ -195,7 +195,7 @@ bool MPAnnotateParser::readBatch() {
  * Writes functional annotation hits to results folder as .tree.count.txt files
  */
 void MPAnnotateParser::writeFunctionalHierarchyFiles(WRITER_DATA_ANNOT *writer_data, MPAnnotateOptions options) {
-    string output_dir = options.output_comp_annot;
+    string output_dir = options.results_dir;
     string db_name = "";
     string ending = ".tree.count.txt";
     string filename = "";
@@ -232,8 +232,8 @@ void MPAnnotateParser::writeFunctionalHierarchyFiles(WRITER_DATA_ANNOT *writer_d
                       id_itr != writer_data->globalDbNamesToHierachyIdentifierCounts[db_itr->first].end();
                       id_itr++) {
                 total += id_itr->second;
-                
                 output << id_itr->first << "\t" << id_itr->second << endl;
+                
             }
             output.close();
             
