@@ -9,6 +9,7 @@
 #include "options.h"
 #include "MPAnnotateOptions.h"
 #include "utilities.h"
+#include "idTree.h"
 
 typedef struct _GLOBAL_PARAMS {
     float lambda;
@@ -140,7 +141,8 @@ typedef struct _THREAD_DATA_ANNOT {
     vector<string> orfids; // orf_ids this particular thread deals with
     vector<short int> annot_from_db;
     map<string, ANNOTATION> db_hits;
-    map<string, map<string, string> > dbNamesToHierarchyIdentifierMaps;
+    map<string, IDTREE*> dbNamesToHierarchyIdTree;
+    // map<string, map<string, string> > dbNamesToHierarchyIdentifierMaps;
     map<string, map<string, int> > dbNamesToHierachyIdentifierCounts;
 
     MPAnnotateOptions options;
@@ -171,11 +173,6 @@ typedef struct _WRITER_DATA_ANNOT {
     unsigned int num_threads;
     DB_INFO db_info;
     map<string, map<string, int> > globalDbNamesToHierachyIdentifierCounts;
-    
-    std::ofstream *gff_output;
-    std::ofstream *functional_and_taxonomic_output;
-    std::ofstream sample_1_output;
-    std::ofstream sample_2_output;
     
 } WRITER_DATA_ANNOT;
 

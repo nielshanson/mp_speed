@@ -22,14 +22,13 @@ int main( int argc, char** argv) {
         options.printOptions();
     }
 
+    
     // Determine database and load matching functional hierarchy information if present
-    map<string, float> dbname_weight; // map to store db_weight TODO: not clear if absolutely needed
-    // map<string, unsigned int> contig_lengths; Doesn't seem to be used anymore
-
     DB_INFO db_info;
-
+    
+    // Detect BLAST.parsed.txt files and information 
     if (options.blast_dir.size() > 0 && options.sample_name.size() > 0) {
-        if (options.debug) cout << "\t* Options blast_dir and sample_size options found" << endl;
+        if (options.debug) cout << "\t* Options blast_dir and sample_name options found" << endl;
 
         getBlastFileNames(options.blast_dir, options.sample_name, options, db_info);
 
@@ -40,23 +39,42 @@ int main( int argc, char** argv) {
                 cout << "\t\t* db_info: " << db_info.db_names[i] << endl;
                 cout << "\t\t* input_blastouts: " << db_info.input_blastouts[i] << endl;
                 cout << "\t\t* weight_dbs: " << db_info.weight_dbs[i] << endl;
-                dbname_weight[db_info.db_names[i]] = db_info.weight_dbs[i];
             }
         }
     }
     
-    // Extract and create functional and taxonomic hierachy maps from from available .B/LASTout.parsed files
+    // Extract and create functional and taxonomic hierachy maps
     vector<string> functional_hierarchy_files = getFunctionalHierarchyFiles(options.functional_categories, options);
     
+    // Datastructure to pass database functional hierarchy information to threads
     map<string, map<string, string> > dbNamesToHierarchyIdentifierMaps;
+    map<string, IDTREE*> dbNamesToHierarchyIdTree;
+    vector<string> db_id_list; // idlist for custom parser for idtree
+
     string full_path = "";
     string db_name = "";
+        
     for (int i = 0; i < functional_hierarchy_files.size(); i++ ) {
         full_path = options.functional_categories + "/" + functional_hierarchy_files[i];
         db_name = removeEnding(functional_hierarchy_files[i], ".tree.txt");
         for (int i = 0; i < db_info.db_names.size(); i++) {
             if ( db_info.db_names[i] == db_name ) {
                 dbNamesToHierarchyIdentifierMaps[db_name] = makeHierarchyIdentifierMap(full_path);
+                if (db_info.idextractors.find(db_name) == db_info.idextractors.end()) {
+                    // Specific parser not found, use genertic idtree parser
+                    db_id_list.clear();
+                    // Get identifers from database
+                    for(map<string, string>::iterator itr = dbNamesToHierarchyIdentifierMaps[db_name].begin();
+                        itr != dbNamesToHierarchyIdentifierMaps[db_name].end();
+                        itr++) {
+                        db_id_list.push_back(itr->first);
+                    }
+                    // Create idTree
+                    IDTREE *idtree = new IDTREE;
+                    idtree->createTrie(db_id_list);
+                    
+                    dbNamesToHierarchyIdTree[db_name] = idtree;
+                }
             }
         }
     }
@@ -70,10 +88,10 @@ int main( int argc, char** argv) {
         }
     }
 
+    
     // Sort the gff file by the orf ids
-    if (options.debug) {
-        cout << "Sort GFF file" << endl;
-    }
+    if (options.debug) cout << "Sort GFF file by ORF order" << endl;
+ 
     string temp_gff = options.input_gff + ".tmp";
     disk_sort_file(string("/tmp/"), options.input_gff, temp_gff, 1000000, orf_extractor_from_gff);
     remove(options.input_gff.c_str());
@@ -89,97 +107,26 @@ int main( int argc, char** argv) {
     for(unsigned int i = 0; i < options.num_threads; i++) {
         thread_data[i].options = options;
         thread_data[i].db_info = db_info;
-        thread_data[i].dbNamesToHierarchyIdentifierMaps = dbNamesToHierarchyIdentifierMaps;
+        thread_data[i].dbNamesToHierarchyIdTree = dbNamesToHierarchyIdTree;
     }
 
     // Create the writer's data object
     WRITER_DATA_ANNOT *writer_data = new WRITER_DATA_ANNOT;
-
-    // Set writer output
-    writer_data->gff_output;
-    writer_data->functional_and_taxonomic_output;
-    // writer_data->hierarchy_output;
-    // writer_data->sample_1_output;
-    // writer_data->sample_2_output;
-    
-    // writer_data->gff_output.open(options.output_gff + ".tmp", std::ofstream::binary);
-    // writer_data->functional_and_taxonomic_output.open(options.output_comp_annot + ".tmp", std::ofstream::binary);
-
-    // Open file streams to temporary annotation_table files
-    // for(unsigned int i=0; i < db_info.db_names.size(); i++ ) {
-    //     writer_data->output[i].open( db_info.TempFile1(options.output_comp_annot,  db_info.db_names[i]).c_str(), std::ofstream::binary);
-    // }
-
-    // Update writer data structure with parameters and options
     writer_data->thread_data = thread_data;
     writer_data->num_threads = options.num_threads;
     writer_data->db_info = db_info;
 
-    unsigned int b = 0; 
-    std::cout << "Begin processing:  \n";
+    if (options.debug) cout << "Begin processing: " << endl;
     parser.initializeBatchReading();
-
-    // writeAnnotatedPreamble(writer_data);
 
     while(parser.readBatch()) {  // main loop
         parser.distributeInput(thread_data);
-/*
-       for(unsigned int i = 0; i < options.num_threads; i++) 
-         thread_data[i].b = b;
-*/
         createThreadsAnnotate(options.num_threads, thread_data, writer_data);
-        b = (b+1) % 2;
     }
-    std::cout << "Done processing batches\n";
+    if (options.debug) cout << "Done processing batches" << endl;
     
-    // Debug statements: 
-    // if(options.debug) {
-    //     int total = 0;
-    //     cout << "globalDbNamesToHierachyIdentifierCounts:" << endl;
-    //     cout << writer_data->globalDbNamesToHierachyIdentifierCounts.size() << endl;
-    //     for ( map<string, map<string, int> >::iterator db_itr = writer_data->globalDbNamesToHierachyIdentifierCounts.begin();
-    //           db_itr != writer_data->globalDbNamesToHierachyIdentifierCounts.end();
-    //           db_itr ++
-    //           ) {
-    //         cout << db_itr->first << endl;
-    //         total = 0;
-    //         for (map<string, int>::iterator id_itr = writer_data->globalDbNamesToHierachyIdentifierCounts[db_itr->first].begin();
-    //              id_itr != writer_data->globalDbNamesToHierachyIdentifierCounts[db_itr->first].end();
-    //              id_itr++) {
-    //             cout << "\t" << id_itr->first << "\t" << id_itr->second << endl;
-    //             total += id_itr->second;
-    //         }
-    //         cout << "Total:" << total << endl;
-    //     }
-    // }
-    
-    // Writeout hierarchies to disk
+    // Write out hierarchies
     parser.writeFunctionalHierarchyFiles(writer_data, options);
-    
-    
-    
-    exit(3);
-
-    // Sorting the file
-    for (unsigned int i = 0; i < db_info.db_names.size(); i++ ) {
-        std::cout << "Sorting " << db_info.db_names[i] << std::endl;
-        disk_sort_file(string("/tmp"),
-                       db_info.TempFile1(options.output_gff,  db_info.db_names[i]),
-                       db_info.TempFile2(options.output_gff,  db_info.db_names[i]),
-                       CHUNK_SIZE,
-                       function_extractor_from_list
-        );
-
-        db_info.RemoveTempFile1(options.output_gff,  db_info.db_names[i]);
-
-        createFunctionWeights(
-                db_info.TempFile2(options.output_gff,  db_info.db_names[i]),
-                db_info.FinalFile(options.output_gff,  db_info.db_names[i])
-        );
-
-        db_info.RemoveTempFile2(options.output_gff,  db_info.db_names[i]);
-
-    }
 
     if (options.debug) { cout << "End of MPAnnotate()" << endl;}
 

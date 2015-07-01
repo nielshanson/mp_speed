@@ -232,14 +232,14 @@ void MPAnnotateParser::writeFunctionalHierarchyFiles(WRITER_DATA_ANNOT *writer_d
                       id_itr != writer_data->globalDbNamesToHierachyIdentifierCounts[db_itr->first].end();
                       id_itr++) {
                 total += id_itr->second;
-                output << id_itr->first << "\t" << id_itr->second << endl;
                 
+                output << id_itr->first << "\t" << id_itr->second << endl;
             }
             output.close();
             
             if (options.debug) cout << sample_name + "." + db_name + ending << ": " << total << " functional hierachy IDs" << endl;
         } else {
-            if (options.debug) cout << "Warning: Database " << db_name << " had no functional hierachy IDs!" << endl;
+            if (options.debug) cout << "Warning: " << sample_name + "." + db_name + ending << " contains no functional hierachy IDs!" << endl;
         }
     }
 }

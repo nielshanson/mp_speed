@@ -19,5 +19,6 @@
 #include "annotation.h"
 #include "MPAnnotateParser.h"
 #include "externalsort.h"
+#include "idTree.h"
 
 #endif //MP_SPEED_MP_ANNOTATE_H

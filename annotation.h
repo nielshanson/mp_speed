@@ -17,6 +17,7 @@
 #include "utilities.h"
 #include "types.h"
 #include "MPAnnotateOptions.h"
+#include "idTree.h"
 
 using namespace std;
 

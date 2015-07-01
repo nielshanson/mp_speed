@@ -447,7 +447,7 @@ int getBlastFileNames(string blastdir, string sample_name, MPAnnotateOptions opt
                 db_info.db_names.push_back(dbname);
                 db_info.input_blastouts.push_back(files[i]);
                 db_info.weight_dbs.push_back(1.0);
-                db_info.dbtypes.push_back(dbtype); // TODO: May not be nessisary
+                db_info.dbtypes.push_back(dbtype); // TODO: May not be unnessisary
                 db_info.idextractors[dbname] = idextractor;
             } else {
                 db_info.db_names.push_back(dbname);
@@ -534,7 +534,7 @@ void createThreadsAnnotate(int num_threads, THREAD_DATA_ANNOT *thread_data, WRIT
        }   
     }
     
-    cout << "Ran annotateOrfsForDBs() " << endl;
+    cout << "Finished annotateOrfsForDBs()" << endl;
     
     // Join threads
     void *status;
@@ -553,13 +553,17 @@ void createThreadsAnnotate(int num_threads, THREAD_DATA_ANNOT *thread_data, WRIT
     if( ( rc = pthread_create(&writer_thread, NULL, writeAnnotatedGFFs, (void *) (writer_data)) ) ) {
          cout << "Error: unable to create thread," << rc << endl;
          exit(-1);
-    }   
+    }
+    
+    cout << "Finished annotateOrfsForDBs()" << endl;
 
     rc = pthread_join(writer_thread, &status);
     if (rc) {
          printf("ERROR: return code from pthread_join() is %d\n", rc);
          exit(-1);
     }
+    
+    cout << "Joined threads..." << endl;
     
 }
 
@@ -582,6 +586,7 @@ void *annotateOrfsForDBs( void *_data) {
     string (*idextractor) (const char *);
     vector<string>::iterator it;
     unsigned int count = 0;
+    IDTREE *idtree = new IDTREE();
     
     for( it = data->orfids.begin(); it != data->orfids.end(); it++ )  {
         // for each ORF 
@@ -623,18 +628,29 @@ void *annotateOrfsForDBs( void *_data) {
                     max_score = score; // update score
                 }
                 
-                // Get db_id from annotation if needed - TODO use kishroi's genericIDExtractor hierarchy names
-                if (data->db_info.idextractors.find(db_name) !=
-                    data->db_info.idextractors.end()) {
+                // Get db_id from annotation if need
+                if (data->db_info.idextractors.find(db_name) != data->db_info.idextractors.end()) {
+                    // use idextractor function if found
                     idextractor = data->db_info.idextractors[db_name];
                     db_id = idextractor(annotation->product.c_str());
                     if (data->dbNamesToHierachyIdentifierCounts[db_name].find(db_id) == data->dbNamesToHierachyIdentifierCounts[db_name].end()) {
-                        // first time seeing db
+                        // First time seeing db
                         data->dbNamesToHierachyIdentifierCounts[db_name][db_id] = 0;
                     }
-                    data->dbNamesToHierachyIdentifierCounts[db_name][db_id] += 1; // add count to identifier
+                    data->dbNamesToHierachyIdentifierCounts[db_name][db_id] ++; // add count to identifier
                     
                     final_annotation->db_ids[db_name] = db_id; // TODO: probably not needed anymroe
+                } else if (data->dbNamesToHierarchyIdTree.find(db_name) != data->dbNamesToHierarchyIdTree.end()) {
+                    // Use generic idtree
+                    idtree = data->dbNamesToHierarchyIdTree[db_name];
+                    if (idtree->find(annotation->product).size() > 0) {
+                        db_id = idtree->find(annotation->product);
+                        if (data->dbNamesToHierachyIdentifierCounts[db_name].find(db_id) == data->dbNamesToHierachyIdentifierCounts[db_name].end()) {
+                            // First time seeing db
+                            data->dbNamesToHierachyIdentifierCounts[db_name][db_id] = 0;
+                        }
+                        data->dbNamesToHierachyIdentifierCounts[db_name][db_id] ++;
+                    }
                 }
             }
         }

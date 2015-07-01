@@ -13,7 +13,7 @@ HEADERS= $(SOURCES:.cpp=.h)
 MPANNO= mp_annotate
 MPANNO_SOURCES= MPAnnotate.cpp MPAnnotateOptions.cpp utilities.cpp outputparser.cpp\
                  annotation.cpp options.cpp externalsort.cpp heapsort.cpp\
-                 linereader.cpp MPAnnotateParser.cpp
+                 linereader.cpp MPAnnotateParser.cpp idTree.cpp
 
 MPANNO_OBJECTS= $(MPANNO_SOURCES:.cpp=.o)
 MPANNO_HEADERS= $(MPANNO_SOURCES:.cpp=.h)
