@@ -54,11 +54,11 @@ int main( int argc, char** argv) {
     string full_path = "";
     string db_name = "";
         
-    for (int i = 0; i < functional_hierarchy_files.size(); i++ ) {
+    for ( unsigned int i = 0; i < functional_hierarchy_files.size(); i++ ) {
         full_path = options.functional_categories + "/" + functional_hierarchy_files[i];
         db_name = removeEnding(functional_hierarchy_files[i], ".tree.txt");
-        for (int i = 0; i < db_info.db_names.size(); i++) {
-            if ( db_info.db_names[i] == db_name ) {
+        for (unsigned int j = 0; j < db_info.db_names.size(); j++) {
+            if ( db_info.db_names[j] == db_name ) {
                 dbNamesToHierarchyIdentifierMaps[db_name] = makeHierarchyIdentifierMap(full_path);
                 if (db_info.idextractors.find(db_name) == db_info.idextractors.end()) {
                     // Specific parser not found, use genertic idtree parser

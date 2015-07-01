@@ -1,6 +1,7 @@
 #ifndef _IDTREE
 #define _IDTREE
 
+#include <iostream>
 #include <string>
 #include <vector>
 #include <map>
@@ -22,14 +23,14 @@ class IDTREE {
 
     public:
         IDTREE();
-        ~IDTREE() {}
+        ~IDTREE();
         void createTrie(vector<string> &words);
         string find(string word);
 
     private:
+        void free(TRIENODE *node);
         TRIENODE *node;
         void insert(string word);
-
 
 };
 #endif

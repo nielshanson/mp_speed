@@ -65,8 +65,8 @@ map<string, string> makeHierarchyIdentifierMap(string hierarchy_filename) {
     // vector<HNODE *> node_stack;
     
     pnode->depth = -1;
-    pnode->name = 'root';
-    pnode->alias = 'root';
+    pnode->name = "root";
+    pnode->alias = "root";
     
     string line;
     std::ifstream input;
@@ -110,7 +110,7 @@ HNODE* createHNODE(string line) {
     int depth = 0;
     string name = "";
     string alias = "";
-    for (int i =0; i < line.size(); i++) {
+    for (unsigned int i=0; i < line.size(); i++) {
         if (line[i] == '\t') {
             depth++;
         }
@@ -123,7 +123,7 @@ HNODE* createHNODE(string line) {
     
     // parse out name and alias fields
     bool first = true;
-    for (int i=0; i < words.size(); i++) {
+    for (unsigned int i=0; i < words.size(); i++) {
         if (hasCharacter(words[i])) {
             if (first) {
                 name = words[i];
@@ -209,7 +209,6 @@ float computeAnnotationValue(ANNOTATION *annotation) {
 ANNOTATION* createAnnotation(const char * line, const string &dbname, bool taxonomy) {
      vector<char *>fields;
      char buf[10000];  
-     char tempbuf[1000];  
      string db_name;
      ANNOTATION *annotation = new ANNOTATION;
 
@@ -580,17 +579,18 @@ void *annotateOrfsForDBs( void *_data) {
     string db_id = "";
     
     // process fields
-    bool success = false;
+    bool success;
     ANNOTATION *annotation = new ANNOTATION();
     ANNOTATION *final_annotation = new ANNOTATION();
     string (*idextractor) (const char *);
     vector<string>::iterator it;
-    unsigned int count = 0;
+    unsigned int total_count = 0;
+    unsigned int annotated_count = 0;
     IDTREE *idtree = new IDTREE();
     
     for( it = data->orfids.begin(); it != data->orfids.end(); it++ )  {
         // for each ORF 
-        count++;
+        total_count++;
         max_score = 0; // reset score
         success = false;
         *annotation = ANNOTATION(); // clear
@@ -608,10 +608,9 @@ void *annotateOrfsForDBs( void *_data) {
                 data->dbNamesToHierachyIdentifierCounts[db_name] = newHierarchyMap;
             }
             
-            if( data->annot_objects[db_name].find(*it) !=
-                data->annot_objects[db_name].end()) {
+            if( data->annot_objects[db_name].find(*it) != data->annot_objects[db_name].end()) {
                 // Annotation orf_id found in database j
-                
+                success = true;
                 // Get the annotation
                 annotation = data->annot_objects[db_name][*it];
                 score = computeAnnotationValue(annotation) * data->db_info.weight_dbs[j]; // calculate information annotation score
@@ -630,7 +629,7 @@ void *annotateOrfsForDBs( void *_data) {
                 
                 // Get db_id from annotation if need
                 if (data->db_info.idextractors.find(db_name) != data->db_info.idextractors.end()) {
-                    // use idextractor function if found
+                    // Use idextractor function if found
                     idextractor = data->db_info.idextractors[db_name];
                     db_id = idextractor(annotation->product.c_str());
                     if (data->dbNamesToHierachyIdentifierCounts[db_name].find(db_id) == data->dbNamesToHierachyIdentifierCounts[db_name].end()) {
@@ -649,16 +648,20 @@ void *annotateOrfsForDBs( void *_data) {
                             // First time seeing db
                             data->dbNamesToHierachyIdentifierCounts[db_name][db_id] = 0;
                         }
+                        
                         data->dbNamesToHierachyIdentifierCounts[db_name][db_id] ++;
                     }
                 }
             }
         }
         // TODO: place to check for pathway tools annotation
-        data->db_hits[*it] = *final_annotation;
+        if (success) {
+            data->db_hits[*it] = *final_annotation;
+            annotated_count++;
+        }
     }
 
-    std::cout << "counter " << count << std::endl;
+    std::cout << "annotateOrfsForDBs(): " << annotated_count << " of " << total_count  << " ORFs annotated" << std::endl;
     return (void *) NULL;
 
 }
@@ -689,8 +692,6 @@ void *writeAnnotatedGFFs( void *_writer_data) {
         b =  (thread_data[i].b+1)%2;
         
         // reduce dbNamesToHierachyIdentifierCounts
-        
-        writer_data->globalDbNamesToHierachyIdentifierCounts;
         std::cout << "Reducing DbNamesToHierachyIdentifierCounts results from thread " << i << " buffer " << b << std::endl;
         for ( map<string, map<string, int> >::iterator db_itr = thread_data[i].dbNamesToHierachyIdentifierCounts.begin();
               db_itr != thread_data[i].dbNamesToHierachyIdentifierCounts.end();
