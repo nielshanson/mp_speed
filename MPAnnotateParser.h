@@ -21,7 +21,7 @@ class MPAnnotateParser {
 
 private:
         std::ifstream input;
-        
+        std::ofstream output;
         int i;
         DB_INFO db_info;
         int BATCH_SIZE; 
@@ -41,6 +41,7 @@ public:
       void closeBatchReading();
       void initializeBatchReading();
       void distributeInput(THREAD_DATA_ANNOT  *thread_data);
+      void writeFunctionalHierarchyFiles(WRITER_DATA_ANNOT *writer_data, MPAnnotateOptions options);
 };
 
 

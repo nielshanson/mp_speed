@@ -191,6 +191,59 @@ bool MPAnnotateParser::readBatch() {
     return false;
 }
 
+/*
+ * Writes functional annotation hits to results folder as .tree.count.txt files
+ */
+void MPAnnotateParser::writeFunctionalHierarchyFiles(WRITER_DATA_ANNOT *writer_data, MPAnnotateOptions options) {
+    string output_dir = options.output_comp_annot;
+    string db_name = "";
+    string ending = ".tree.count.txt";
+    string filename = "";
+    string header = "ID\tcount";
+    string sample_name = options.sample_name;
+    
+    int total = 0;
+    
+    if (options.debug) cout << "globalDbNamesToHierachyIdentifierCounts:" << endl;
+    
+    for ( map<string, map<string, int> >::iterator db_itr = writer_data->globalDbNamesToHierachyIdentifierCounts.begin();
+        db_itr != writer_data->globalDbNamesToHierachyIdentifierCounts.end();
+        db_itr ++ ) {
+            
+        db_name = db_itr->first;
+        
+        if (writer_data->globalDbNamesToHierachyIdentifierCounts[db_itr->first].size() > 0) {
+            
+            filename = output_dir + "/" + sample_name + "." + db_name + ending;
+            this->output.open(filename.c_str(), std::ofstream::out);
+            
+            if(!this->output.good()){
+                std::cerr << "Error opening '" << filename <<"'. Bailing out." << std::endl;
+                exit(-1);
+            }
+            
+            // Write header
+            output << header << endl;
+            
+            total = 0;
+            
+            // Iterate through ids
+            for (map<string, int>::iterator id_itr = writer_data->globalDbNamesToHierachyIdentifierCounts[db_itr->first].begin();
+                      id_itr != writer_data->globalDbNamesToHierachyIdentifierCounts[db_itr->first].end();
+                      id_itr++) {
+                total += id_itr->second;
+                output << id_itr->first << "\t" << id_itr->second << endl;
+                
+            }
+            output.close();
+            
+            if (options.debug) cout << sample_name + "." + db_name + ending << ": " << total << " functional hierachy IDs" << endl;
+        } else {
+            if (options.debug) cout << "Warning: Database " << db_name << " had no functional hierachy IDs!" << endl;
+        }
+    }
+}
+
 MPAnnotateParser::~MPAnnotateParser() {
 
 }

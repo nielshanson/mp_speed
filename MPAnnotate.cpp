@@ -45,18 +45,12 @@ int main( int argc, char** argv) {
         }
     }
     
-    // Extract and create functional and taxonomic hierachy maps from from available databases
+    // Extract and create functional and taxonomic hierachy maps from from available .B/LASTout.parsed files
     vector<string> functional_hierarchy_files = getFunctionalHierarchyFiles(options.functional_categories, options);
-    
-    // Match with .B/LASTout.parsed files found above
-    
-    
     
     map<string, map<string, string> > dbNamesToHierarchyIdentifierMaps;
     string full_path = "";
     string db_name = "";
-    
-    
     for (int i = 0; i < functional_hierarchy_files.size(); i++ ) {
         full_path = options.functional_categories + "/" + functional_hierarchy_files[i];
         db_name = removeEnding(functional_hierarchy_files[i], ".tree.txt");
@@ -75,9 +69,6 @@ int main( int argc, char** argv) {
             cout << itr->first << endl;
         }
     }
-    
-    exit(-1);
-    
 
     // Sort the gff file by the orf ids
     if (options.debug) {
@@ -87,7 +78,8 @@ int main( int argc, char** argv) {
     disk_sort_file(string("/tmp/"), options.input_gff, temp_gff, 1000000, orf_extractor_from_gff);
     remove(options.input_gff.c_str());
     rename(temp_gff.c_str(), options.input_gff.c_str());
-
+    
+    
     // Initialize MPAnnotateParser
     MPAnnotateParser parser(options, db_info);
     // Create array for thread data
@@ -97,6 +89,7 @@ int main( int argc, char** argv) {
     for(unsigned int i = 0; i < options.num_threads; i++) {
         thread_data[i].options = options;
         thread_data[i].db_info = db_info;
+        thread_data[i].dbNamesToHierarchyIdentifierMaps = dbNamesToHierarchyIdentifierMaps;
     }
 
     // Create the writer's data object
@@ -138,6 +131,33 @@ int main( int argc, char** argv) {
         b = (b+1) % 2;
     }
     std::cout << "Done processing batches\n";
+    
+    // Debug statements: 
+    // if(options.debug) {
+    //     int total = 0;
+    //     cout << "globalDbNamesToHierachyIdentifierCounts:" << endl;
+    //     cout << writer_data->globalDbNamesToHierachyIdentifierCounts.size() << endl;
+    //     for ( map<string, map<string, int> >::iterator db_itr = writer_data->globalDbNamesToHierachyIdentifierCounts.begin();
+    //           db_itr != writer_data->globalDbNamesToHierachyIdentifierCounts.end();
+    //           db_itr ++
+    //           ) {
+    //         cout << db_itr->first << endl;
+    //         total = 0;
+    //         for (map<string, int>::iterator id_itr = writer_data->globalDbNamesToHierachyIdentifierCounts[db_itr->first].begin();
+    //              id_itr != writer_data->globalDbNamesToHierachyIdentifierCounts[db_itr->first].end();
+    //              id_itr++) {
+    //             cout << "\t" << id_itr->first << "\t" << id_itr->second << endl;
+    //             total += id_itr->second;
+    //         }
+    //         cout << "Total:" << total << endl;
+    //     }
+    // }
+    
+    // Writeout hierarchies to disk
+    parser.writeFunctionalHierarchyFiles(writer_data, options);
+    
+    
+    
     exit(3);
 
     // Sorting the file

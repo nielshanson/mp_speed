@@ -138,8 +138,10 @@ typedef struct _THREAD_DATA_ANNOT {
     ANNOTATION_RESULTS annot_objects;
     vector<ANNOTATION>  output[2]; 
     vector<string> orfids; // orf_ids this particular thread deals with
-    vector<short int> annot_from_db; 
+    vector<short int> annot_from_db;
     map<string, ANNOTATION> db_hits;
+    map<string, map<string, string> > dbNamesToHierarchyIdentifierMaps;
+    map<string, map<string, int> > dbNamesToHierachyIdentifierCounts;
 
     MPAnnotateOptions options;
     unsigned int b;
@@ -153,13 +155,11 @@ typedef struct _THREAD_DATA_ANNOT {
 
     void clear() {
         lines.clear();
-
+        dbNamesToHierachyIdentifierCounts.clear();
         // annot_object.clear();
         orfids.clear();
         // annot_from_db.clear();
         // db_hits.clear();
-
-
     }
 
 } THREAD_DATA_ANNOT;
@@ -170,6 +170,7 @@ typedef struct _WRITER_DATA_ANNOT {
     THREAD_DATA_ANNOT  *thread_data;
     unsigned int num_threads;
     DB_INFO db_info;
+    map<string, map<string, int> > globalDbNamesToHierachyIdentifierCounts;
     
     std::ofstream *gff_output;
     std::ofstream *functional_and_taxonomic_output;

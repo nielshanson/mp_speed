@@ -273,7 +273,7 @@ int processParsedBlastout(string db_name, float weight, string blastoutput, MPAn
     string product;
     string taxonomy = "";
 
-    // Parse each line and create ANNOTATION objects
+    // Parse annotation hit line, create ANNOTATION objects
     while( std::getline(input, line ).good()) {
         split(line, fields, buf,'\t');
         if (count == 0) { count++; continue; };
@@ -561,7 +561,6 @@ void createThreadsAnnotate(int num_threads, THREAD_DATA_ANNOT *thread_data, WRIT
          exit(-1);
     }
     
-    
 }
 
 /*
@@ -592,14 +591,24 @@ void *annotateOrfsForDBs( void *_data) {
         *annotation = ANNOTATION(); // clear
         *final_annotation = ANNOTATION();
         
+        string db_name = ""; // helper
+        
         for( unsigned int j = 0; j < data->db_info.db_names.size(); j++ ) { 
             // For each database j
-            if( data->annot_objects[data->db_info.db_names[j]].find(*it) !=
-                data->annot_objects[data->db_info.db_names[j]].end()) {
+            db_name = data->db_info.db_names[j];
+            // increment thread's dbHierachy Counter counter
+            if (data->dbNamesToHierachyIdentifierCounts.find(db_name) == data->dbNamesToHierachyIdentifierCounts.end()) {
+                // add database to map
+                map<string, int> newHierarchyMap;
+                data->dbNamesToHierachyIdentifierCounts[db_name] = newHierarchyMap;
+            }
+            
+            if( data->annot_objects[db_name].find(*it) !=
+                data->annot_objects[db_name].end()) {
                 // Annotation orf_id found in database j
                 
                 // Get the annotation
-                annotation = data->annot_objects[data->db_info.db_names[j]][*it];
+                annotation = data->annot_objects[db_name][*it];
                 score = computeAnnotationValue(annotation) * data->db_info.weight_dbs[j]; // calculate information annotation score
                 
                 // Set annotation to best hit
@@ -614,15 +623,22 @@ void *annotateOrfsForDBs( void *_data) {
                     max_score = score; // update score
                 }
                 
-                // Get db_id from annotation if needed
-                if (data->db_info.idextractors.find(data->db_info.db_names[j]) !=
+                // Get db_id from annotation if needed - TODO use kishroi's genericIDExtractor hierarchy names
+                if (data->db_info.idextractors.find(db_name) !=
                     data->db_info.idextractors.end()) {
-                    idextractor = data->db_info.idextractors[data->db_info.db_names[j]];
+                    idextractor = data->db_info.idextractors[db_name];
                     db_id = idextractor(annotation->product.c_str());
-                    final_annotation->db_ids[data->db_info.db_names[j]] = db_id;
+                    if (data->dbNamesToHierachyIdentifierCounts[db_name].find(db_id) == data->dbNamesToHierachyIdentifierCounts[db_name].end()) {
+                        // first time seeing db
+                        data->dbNamesToHierachyIdentifierCounts[db_name][db_id] = 0;
+                    }
+                    data->dbNamesToHierachyIdentifierCounts[db_name][db_id] += 1; // add count to identifier
+                    
+                    final_annotation->db_ids[db_name] = db_id; // TODO: probably not needed anymroe
                 }
             }
         }
+        // TODO: place to check for pathway tools annotation
         data->db_hits[*it] = *final_annotation;
     }
 
@@ -646,38 +662,65 @@ void *writeAnnotatedGFFs( void *_writer_data) {
 
     unsigned int b;  
     // char buf[10000];
-    WRITER_DATA_ANNOT *writer_data = (WRITER_DATA_ANNOT *)_writer_data;
+    WRITER_DATA_ANNOT *writer_data = (WRITER_DATA_ANNOT *) _writer_data;
     unsigned int num_threads = writer_data->num_threads;
-    THREAD_DATA_ANNOT *thread_data = writer_data->thread_data;
+    THREAD_DATA_ANNOT *thread_data = writer_data->thread_data; // get annotation data
     ANNOTATION result_annotation;
     string print_line; // line to print
-
     for(unsigned int i = 0; i < num_threads; i++) {
         // for each thread
         
         b =  (thread_data[i].b+1)%2;
-        std::cout << "Writing results from thread " << i << " buffer " << b << std::endl;
-        for( vector<string>::iterator orf_itr = thread_data[i].orfids.begin(); orf_itr != thread_data[i].orfids.end(); orf_itr++ ) {
-            // for each ORF
-            unsigned int k = 0;
-            if (thread_data[i].db_hits.find(*orf_itr) != thread_data[i].db_hits.end()) {
-                // for each valid hit
-                result_annotation = thread_data[i].db_hits[*orf_itr];
-                print_line = createFunctionalAndTaxonomicTableLine(result_annotation);
-                // annotatedGFF
-                // functional_and_taxonomic_table
-                // <sample>.1.txt
-                // <sample>.2.txt
-                // <sample>.metacyc.orf.annots.txt
-                
-                
-                k++;
-            } else {
-                // write out hypothetical annotation
-                
+        
+        // reduce dbNamesToHierachyIdentifierCounts
+        
+        writer_data->globalDbNamesToHierachyIdentifierCounts;
+        std::cout << "Reducing DbNamesToHierachyIdentifierCounts results from thread " << i << " buffer " << b << std::endl;
+        for ( map<string, map<string, int> >::iterator db_itr = thread_data[i].dbNamesToHierachyIdentifierCounts.begin();
+              db_itr != thread_data[i].dbNamesToHierachyIdentifierCounts.end();
+              db_itr ++
+              ) {
+            // For each db_name
+            if ( writer_data->globalDbNamesToHierachyIdentifierCounts.find(db_itr->first) == writer_data->globalDbNamesToHierachyIdentifierCounts.end()) {
+                // create database map if not present in globalDbNamesToHierachyIdentifierCounts
+                map<string, int> newHierarchyMap;
+                writer_data->globalDbNamesToHierachyIdentifierCounts[db_itr->first] = newHierarchyMap;
             }
-            
+            // Iterate through all ids
+            for (map<string, int>::iterator id_itr = thread_data[i].dbNamesToHierachyIdentifierCounts[db_itr->first].begin();
+                 id_itr != thread_data[i].dbNamesToHierachyIdentifierCounts[db_itr->first].end();
+                 id_itr++) {
+                 if ( writer_data->globalDbNamesToHierachyIdentifierCounts[db_itr->first].find(id_itr->first) == writer_data->globalDbNamesToHierachyIdentifierCounts[db_itr->first].end()) {
+                     // create id slot if not present
+                     writer_data->globalDbNamesToHierachyIdentifierCounts[db_itr->first][id_itr->first] = 0;
+                 }
+                 // iterate global count
+                 writer_data->globalDbNamesToHierachyIdentifierCounts[db_itr->first][id_itr->first]++;
+            }
         }
+        
+        
+        // for( vector<string>::iterator orf_itr = thread_data[i].orfids.begin(); orf_itr != thread_data[i].orfids.end(); orf_itr++ ) {
+        //     // for each ORF
+        //     unsigned int k = 0;
+        //     if (thread_data[i].db_hits.find(*orf_itr) != thread_data[i].db_hits.end()) {
+        //         // for each valid hit
+        //         result_annotation = thread_data[i].db_hits[*orf_itr];
+        //         print_line = createFunctionalAndTaxonomicTableLine(result_annotation);
+        //         // annotatedGFF
+        //         // functional_and_taxonomic_table
+        //         // <sample>.1.txt
+        //         // <sample>.2.txt
+        //         // <sample>.metacyc.orf.annots.txt
+                
+                
+        //         k++;
+        //     } else {
+        //         // write out hypothetical annotation
+                
+        //     }
+            
+        // }
         // for(unsigned int j =0; j < thread_data[i].orfids.size(); j++) {
         //     unsigned int k = 0;
         //     thread_data[i].orfids[j]
