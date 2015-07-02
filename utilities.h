@@ -8,6 +8,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <regex.h>
+#include <sys/stat.h>
 
 using namespace std;
 

@@ -119,7 +119,7 @@ int main( int argc, char** argv) {
 
     if (options.debug) {
         cout << "DEBUG: Loaded tree" << endl;
-        printMetaCycTree(root);
+        // printMetaCycTree(root);
     }
 
     // Sort the gff file by the orf ids
@@ -149,6 +149,7 @@ int main( int argc, char** argv) {
     writer_data->thread_data = thread_data;
     writer_data->num_threads = options.num_threads;
     writer_data->db_info = db_info;
+    writer_data->options = options;
 
     if (options.debug) cout << "Begin processing: " << endl;
     parser.initializeBatchReading();
@@ -162,6 +163,9 @@ int main( int argc, char** argv) {
     
     // Write out hierarchies
     parser.writeFunctionalHierarchyFiles(writer_data, options);
+    
+    // write ptools admin files
+    writePToolsAdminFiles(options.ptools_dir, options.sample_name);
 
     if (options.debug) { cout << "End of MPAnnotate()" << endl;}
 

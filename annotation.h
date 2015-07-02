@@ -59,7 +59,9 @@ string processAnnotationForPtools(vector <char *> annotation_words, PTOOLS_NODE 
 
 bool pushWordForward(string word, PTOOLS_NODE *& ptools_ptr);
 
-void writePfEntry(string orf_id, string annotation_product, string ec_number, int &start_base, int length, std::ofstream &output);
+void writePfEntry(string orf_id, string annotation_product, string ec_number, string start_base, string end_base, std::ofstream &output);
+
+void writePToolsAdminFiles(string ptools_dir, string sample_name);
 
 bool  createFunctionWeights(const string &intpufile, const string &outputfile);
 #endif //MP_SPEED_ANNOTATION_H

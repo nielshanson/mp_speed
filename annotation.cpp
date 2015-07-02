@@ -219,12 +219,11 @@ ANNOTATION* createAnnotation(const char * line, const string &dbname, bool taxon
 
      try {
         annotation->bsr = atof(fields[4]);
-        annotation->ec = string(fields[4]);
+        annotation->ec = string(fields[8]);
         annotation->product = string(fields[9]);
-        
+        annotation->length = atoi(fields[6]);
         db_name = to_upper(dbname);
 
-        annotation->bsr = atof(fields[4]);
         if (taxonomy && (db_name.find("REFSEQ") != std::string::npos)) {
             // TODO: Could be more reliable to get taxonomy from GI number.
              annotation->taxonomy = getTaxonomyFromProduct(annotation->product.c_str());
@@ -634,6 +633,7 @@ void *annotateOrfsForDBs( void *_data) {
                     final_annotation->value = annotation->value;
                     final_annotation->ec = annotation->ec;
                     final_annotation->taxonomy = annotation->taxonomy;
+                    final_annotation->length = annotation->length;
                     
                     max_score = score; // update score
                 }
@@ -678,7 +678,7 @@ void *annotateOrfsForDBs( void *_data) {
             // Process annotation through MetaCyc trie
             // annotation_product = processAnnotationForPtools(annotation_words, root);
             metacyc_annotation_product = processAnnotationForPtools(annotation_words, data->root, ptools_ptr, complete, word_list, max_word_list, annotation_str);
-            
+
             if (metacyc_annotation_product != "") {
                 final_annotation->product = metacyc_annotation_product;
                 data->metaCycHits.push_back(*final_annotation);
@@ -723,6 +723,21 @@ void *writeAnnotatedGFFs( void *_writer_data) {
     THREAD_DATA_ANNOT *thread_data = writer_data->thread_data; // get annotation data
     ANNOTATION result_annotation;
     string print_line; // line to print
+    
+    
+    string pf_file = writer_data->options.ptools_dir + "/" + "0.pf";
+    ofstream pf_output;
+    pf_output.open(pf_file.c_str(), std::ofstream::out);
+    if(!pf_output.good()){
+        cerr << "Error opening '" << pf_file << "'. " << endl;
+        exit(-1);
+    }
+    
+    int start_base = 0;
+    int end_base = 0;
+    char start_base_str[30];
+    char end_base_str[30];
+    
     for(unsigned int i = 0; i < num_threads; i++) {
         // for each thread
         
@@ -756,6 +771,26 @@ void *writeAnnotatedGFFs( void *_writer_data) {
         // Writeout metacyc results to .pf file
         cout << "MetaCyc hits:" << thread_data[i].metaCycHits.size() << endl;
         
+        for (vector<ANNOTATION>::iterator mc_itr = thread_data[i].metaCycHits.begin();
+            mc_itr != thread_data[i].metaCycHits.end(); 
+            mc_itr++) {
+            
+            end_base = start_base + mc_itr->length;
+            
+            sprintf(start_base_str, "%d", start_base);
+            sprintf(end_base_str, "%d", end_base);
+            writePfEntry(mc_itr->orf_id,
+                         mc_itr->product,
+                         mc_itr->ec,
+                         string(start_base_str),
+                         string(end_base_str), 
+                         pf_output);
+            // update startbase
+            start_base = start_base + mc_itr->length + 10;
+        }
+        
+        
+        thread_data[i].clear();
         
         // for( vector<string>::iterator orf_itr = thread_data[i].orfids.begin(); orf_itr != thread_data[i].orfids.end(); orf_itr++ ) {
         //     // for each ORF
@@ -788,14 +823,15 @@ void *writeAnnotatedGFFs( void *_writer_data) {
         //          k++;
         //     }
         // }
-        thread_data[i].clear();
+        
 /*
        for(vector<string>::iterator it = thread_data[i].orfids.begin(); it != thread_data[i].orfids.end(); it++) {
            writer_data->output << *it << std::endl; 
        }   
        thread_data[i].orfids.clear();
 */
-    }   
+    }
+    pf_output.close();
    //    std::cout << "done \n";
        
     return (void *)NULL;
@@ -1029,7 +1065,7 @@ bool pushWordForward(string word, PTOOLS_NODE *& ptools_ptr) {
  * Function takes all ingredients for a Pathway Tools pf file entry, creates the string, and writes the string to the
  * .pf output file.
  */
-void writePfEntry(string orf_id, string annotation_product, string ec_number, int &start_base, int length, std::ofstream &output) {
+void writePfEntry(string orf_id, string annotation_product, string ec_number, string start_base, string end_base, std::ofstream &output) {
 
     // Example .pf format
     // ID <orf_id>
@@ -1044,22 +1080,76 @@ void writePfEntry(string orf_id, string annotation_product, string ec_number, in
     // //
 
     // remove last string
+    // cout << "start_base: " << start_base << " end_base: " << end_base << endl;
 
     string pf_entry = "";
     pf_entry = pf_entry + "ID " + orf_id + "\n";
     pf_entry = pf_entry + "NAME " + orf_id + "\n";
-    pf_entry = pf_entry + "STARTBASE " + to_string(start_base) + "\n";
-    pf_entry = pf_entry + "ENDBASE " + to_string(start_base + length) + "\n";
+    pf_entry = pf_entry + "STARTBASE " + start_base + "\n";
+    pf_entry = pf_entry + "ENDBASE " + end_base + "\n";
     pf_entry = pf_entry + "PRODUCT-TYPE P" + "\n";
     pf_entry = pf_entry + "FUNCTION " + annotation_product + "\n"; // remove extract character
     if (ec_number != "")
         pf_entry = pf_entry + "EC " + ec_number + "\n";
     pf_entry = pf_entry + "//" + "\n";
+    cout << pf_entry;
     output << pf_entry;
+}
 
-    // update startbase
-    start_base += length + 10;
+void writePToolsAdminFiles(string ptools_dir, string sample_name) {
 
+    // Create genetic-elements.dat
+    // ID      0
+    // NAME    0
+    // TYPE    :READ/CONTIG
+    // ANNOT-FILE      0.pf
+
+    string genetic_elements_file = ptools_dir + "/" + "genetic-elements.dat";
+    ofstream output;
+    output.open(genetic_elements_file.c_str(), std::ofstream::out);
+    if(!output.good()){
+        cerr << "Error opening '" << genetic_elements_file << "'. " << endl;
+        return ;
+    }
+
+    string genetic_elements_text = "";
+    genetic_elements_text = genetic_elements_text + "ID      0" + "\n";
+    genetic_elements_text = genetic_elements_text + "NAME    0" + "\n";
+    genetic_elements_text = genetic_elements_text + "TYPE    :READ/CONTIG" + "\n";
+    genetic_elements_text = genetic_elements_text + "ANNOT-FILE      0.pf" + "\n";
+
+    output << genetic_elements_text;
+
+    output.close();
+
+    // Create organism-params.dat
+    // ID      hmp_airways_SRS014682
+    // STORAGE FILE
+    // NAME    hmp_airways_SRS014682
+    // ABBREV-NAME     hmp_airways_SRS014682
+    // STRAIN  1
+    // RANK    |species|
+    // NCBI-TAXON-ID   12908
+
+    string orgamism_params_file = ptools_dir + "/" + "organism-params.dat";
+    output.open(orgamism_params_file.c_str(), std::ofstream::out);
+    if(!output.good()){
+        cerr << "Error opening '" << orgamism_params_file << "'. " << endl;
+        return ;
+    }
+
+    string organism_params_text = "";
+    organism_params_text = organism_params_text + "ID      " + sample_name + "\n";
+    organism_params_text = organism_params_text + "STORAGE FILE" + "\n";
+    organism_params_text = organism_params_text + "NAME    " + sample_name + "\n";
+    organism_params_text = organism_params_text + "ABBREV-NAME     " + sample_name + "\n";
+    organism_params_text = organism_params_text + "STRAIN  1" + "\n";
+    organism_params_text = organism_params_text + "RANK    |species|" + "\n";
+    organism_params_text = organism_params_text + "NCBI-TAXON-ID   12908" + "\n";
+
+    output << organism_params_text;
+
+    output.close();
 }
 
 string createFunctionalAndTaxonomicTableLine(ANNOTATION annotation) {

@@ -121,7 +121,7 @@ typedef struct _ANNOTATION {
     string ec, product, taxonomy;
     
     string orf_id, contig_name, strand;
-    unsigned int start, end, contig_length;
+    unsigned int start, end, length;
     map<string, string> db_ids;
 } ANNOTATION;
 
@@ -227,6 +227,7 @@ typedef struct _WRITER_DATA_ANNOT {
     unsigned int num_threads;
     DB_INFO db_info;
     map<string, map<string, int> > globalDbNamesToHierachyIdentifierCounts;
+    MPAnnotateOptions options;
     
 } WRITER_DATA_ANNOT;
 
