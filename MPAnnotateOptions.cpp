@@ -11,10 +11,10 @@
 bool MPAnnotateOptions::SetOptions(int argc, char *argv[]) {
     for(int i = 1; i < argc ; i++) {
         if( strncmp(argv[i], "-b", strlen("-b")) == 0 ) {
-            this->blast_dir =argv[++i];
+            this->blast_dir = argv[++i];
         }
         else if ( strncmp(argv[i], "--blast_dir", strlen("--blast_dir")) == 0 ) {
-            this->blast_dir =argv[++i];
+            this->blast_dir = argv[++i];
         }
         else if( strncmp(argv[i], "-a", strlen("-a")) == 0 ) {
             this->algorithm = argv[++i];
@@ -28,8 +28,8 @@ bool MPAnnotateOptions::SetOptions(int argc, char *argv[]) {
         else if( strncmp(argv[i], "--functional_categories", strlen("--functional_categories")) == 0 ) {
             this->functional_categories = argv[++i];
         }
-        else if( strncmp(argv[i], "-g", strlen("-g")) == 0 ) {
-            this->results_dir = argv[++i];
+        else if( strncmp(argv[i], "-i", strlen("-i")) == 0 ) {
+            this->input_gff = argv[++i];
         }
         else if( strncmp(argv[i], "--input_gff", strlen("--input_gff")) == 0 ) {
             this->input_gff = argv[++i];
@@ -45,6 +45,18 @@ bool MPAnnotateOptions::SetOptions(int argc, char *argv[]) {
         }
         else if( strncmp(argv[i], "--results_dir", strlen("--results_dir")) == 0 ) {
             this->results_dir = argv[++i];
+        }
+        else if (strncmp(argv[i], "-p", strlen("-p")) == 0) {
+            this->ptools_rxn_file = argv[++i];
+        }
+        else if (strncmp(argv[i], "--ptools_rxns", strlen("--ptools_rxns")) == 0) {
+            this->ptools_rxn_file = argv[++i];
+        }
+        else if (strncmp(argv[i], "-t", strlen("-t")) == 0) {
+            this->ptools_dir = argv[++i];
+        }
+        else if (strncmp(argv[i], "--ptools_dir", strlen("--ptools_dir")) == 0) {
+            this->ptools_dir = argv[++i];
         }
         else if( strncmp(argv[i], "--tax", strlen("--tax")) == 0 ) {
             this->taxonomy = true;
@@ -85,11 +97,12 @@ void MPAnnotateOptions::printOptions() {
          << "sample_name:       " <<  sample_name << "\n"\
          << "taxonomy:          " <<  taxonomy << "\n"\
          << "results_dir:       " <<  results_dir << "\n"\
+         << "ptools_rxn_file:   " <<  ptools_rxn_file << "\n"\
+         << "ptools_dir:        " <<  ptools_dir << "\n"\
          << "num_threads:       " <<  num_threads << "\n"\
          << "weight_db:         " <<  weight_db << "\n"\
          << "debug:             " <<  debug << "\n"
          << "---------------\n\n";
-    
 }
 
 /*

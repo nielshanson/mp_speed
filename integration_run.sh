@@ -43,6 +43,8 @@ my_cmd="./mp_annotate --input_gff ${mp_output}/${sample_name}/orf_prediction/${s
                     --results_dir ${mp_output}/${sample_name}/results/annotation_table/ \
                     --blast_dir ${mp_output}/${sample_name}/blast_results/ \
                     --functional_categories ${mp_databases}/functional_categories \
+                    --ptools_rxns ${resources}/metacyc_enzymes_rxns_ecs.txt \
+                    --ptools_dir /Users/nielshanson/Dropbox/projects/mp_speed/data \
                     --sample_name ${sample_name} \
                     --algorithm LAST \
                     --tax \

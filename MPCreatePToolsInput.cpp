@@ -271,7 +271,6 @@ void processAnnotationsForPTools(PTOOLS_NODE *root, string annotation_file, stri
 
     // Annotation preparation variables
     PTOOLS_NODE *ptools_ptr;
-    PTOOLS_NODE *my_root;
     bool complete = false;
     vector <string> word_list;
     vector <string> max_word_list;

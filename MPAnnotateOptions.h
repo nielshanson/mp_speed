@@ -26,6 +26,8 @@ struct MPAnnotateOptions {
     string sample_name;
     string input_gff;
     bool taxonomy;
+    string ptools_rxn_file;
+    string ptools_dir;
     string results_dir;
     float weight_db;
 
@@ -43,6 +45,8 @@ struct MPAnnotateOptions {
         sample_name = "";
         input_gff = "";
         taxonomy = true;
+        ptools_rxn_file = "";
+        ptools_dir = "";
         results_dir = "";
         num_threads = 1;
         weight_db = 1.0;

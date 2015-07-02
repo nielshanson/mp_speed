@@ -130,10 +130,61 @@ typedef map<string, map<string, ANNOTATION *> > ANNOTATION_RESULTS;
 
 typedef vector<string> DB_HIT;
 
-// Data structure for MPAnnotateThreads
 /*
- * 
+ * PTOOLS_NODE that makes up the pathway tools annotation tree
  */
+struct PTOOLS_NODE {
+
+    string id1; // lowercase
+    string id2; // fullcase
+    map<string, PTOOLS_NODE*> children;
+    // int count; // annotation count
+    bool complete; // Marks that this node ends a complete strand of annotations
+
+    /*
+     * Checks to see if this node has a child with a particular name w
+     */
+    bool hasChild(string w) {
+        string lower =  to_lower(w);
+        if (children.find( lower ) != children.end()) {
+            return true;
+        }
+        return false;
+    }
+
+    /*
+     * Inserts adds a child to the current node
+     */
+    void insertChild(string w) {
+        PTOOLS_NODE *child = new PTOOLS_NODE; // create child
+        string lower = to_lower(w);
+        child->id1 = lower;
+        child->id2 = w;
+        child->complete = false; // default not leaf
+        children[lower] = child;
+    }
+    /*
+     * Sets current node to finished.
+     */
+    void flagChildFinished(string w) {
+        children[to_lower(w)]->complete = true;
+    }
+    /*
+     * Gets the child node of a particular annotation string.
+     */
+    PTOOLS_NODE* getChildNode(string w) {
+        string lower = to_lower(w);
+        if (this->hasChild(lower)) {
+            return children[lower];
+        } else {
+            return this;
+        }
+
+    }
+};
+
+
+// Data structure for MPAnnotateThreads
 typedef struct _THREAD_DATA_ANNOT {
     vector<ANNOTATION>  lines; // annotation lines
     ANNOTATION_RESULTS annot_objects;
@@ -144,6 +195,8 @@ typedef struct _THREAD_DATA_ANNOT {
     map<string, IDTREE*> dbNamesToHierarchyIdTree;
     // map<string, map<string, string> > dbNamesToHierarchyIdentifierMaps;
     map<string, map<string, int> > dbNamesToHierachyIdentifierCounts;
+    vector<ANNOTATION> metaCycHits;
+    PTOOLS_NODE *root;
 
     MPAnnotateOptions options;
     unsigned int b;
@@ -158,6 +211,7 @@ typedef struct _THREAD_DATA_ANNOT {
     void clear() {
         lines.clear();
         dbNamesToHierachyIdentifierCounts.clear();
+        metaCycHits.clear();
         // annot_object.clear();
         orfids.clear();
         // annot_from_db.clear();
@@ -180,65 +234,6 @@ typedef struct _WRITER_DATA_ANNOT {
 typedef map<string, map<string, ANNOTATION *> > ANNOTATION_RESULTS;
 
 // MPCreatePToolsInput functions
-
-/*
- * PTOOLS_NODE that makes up the pathway tools annotation tree
- */
-struct PTOOLS_NODE {
-
-    string id1; // lowercase
-    string id2; // fullcase
-    map<string, PTOOLS_NODE*> children;
-    // int count; // annotation count
-    bool complete; // Marks that this node ends a complete strand of annotations
-
-    /*
-     * Checks to see if this node has a child with a particular name w
-     */
-    bool hasChild(string w) {
-        string lower =  to_lower(w);
-        if (children.find( lower ) != children.end()) {
-            return true;
-        }
-        return false;
-    }
-//
-//    bool hasChild(char *w) {
-//        string lower =  to_lower(string(w));
-//        if (children.find( lower ) != children.end()) {
-//            return true;
-//        }
-//        return false;
-//    }
-    /*
-     * Inserts adds a child to the current node
-     */
-    void insertChild(string w) {
-        PTOOLS_NODE *child = new PTOOLS_NODE; // create child
-        string lower = to_lower(w);
-        child->id1 = lower;
-        child->id2 = w;
-        children[lower] = child;
-    }
-    /*
-     * Sets current node to finished.
-     */
-    void flagChildFinished(string w) {
-        children[to_lower(w)]->complete = true;
-    }
-    /*
-     * Gets the child node of a particular annotation string.
-     */
-    PTOOLS_NODE* getChildNode(string w) {
-        string lower = to_lower(w);
-        if (this->hasChild(lower)) {
-            return children[lower];
-        } else {
-            return this;
-        }
-
-    }
-};
 
 /*
  * LIST_NODE forms an linked list of pointers into nodes of the Pathway Tools annotation tree

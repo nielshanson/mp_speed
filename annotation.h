@@ -49,6 +49,17 @@ int process_all_parsed_blastout(THREAD_DATA_ANNOT *thread_data);
 
 string createFunctionalAndTaxonomicTableLine(ANNOTATION annotation);
 // void *writeAnnotatedPreamble(void *_writer_data);
+void printMetaCycTree(PTOOLS_NODE *root);
+
+void processPToolsRxnsFile( string ptools_rxn_file, vector<string> &ptools_list );
+
+string processAnnotationForPtools(vector <char *> annotation_words, PTOOLS_NODE *root, PTOOLS_NODE *ptools_ptr,
+                                  bool complete, vector <string> word_list, vector <string> max_word_list,
+                                  string annotation);
+
+bool pushWordForward(string word, PTOOLS_NODE *& ptools_ptr);
+
+void writePfEntry(string orf_id, string annotation_product, string ec_number, int &start_base, int length, std::ofstream &output);
 
 bool  createFunctionWeights(const string &intpufile, const string &outputfile);
 #endif //MP_SPEED_ANNOTATION_H

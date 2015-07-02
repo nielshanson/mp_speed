@@ -86,8 +86,42 @@ int main( int argc, char** argv) {
             cout << itr->first << endl;
         }
     }
-
     
+    // Load Pathway Tools Trie
+    vector<string> ptools_list;
+    processPToolsRxnsFile(options.ptools_rxn_file, ptools_list);
+
+    PTOOLS_NODE *root = new PTOOLS_NODE();
+    PTOOLS_NODE *start;
+
+    // Iterate through the ptools list of annotations
+    char buf[10000]; // Temp buffer
+    vector<char *> words; // Vector for parsed fields
+
+    // Parse each line of ptools annotations
+    for (std::vector<string>::iterator itr = ptools_list.begin() ; itr != ptools_list.end(); ++itr) {
+        split(*itr, words, buf,' ');
+        start = root;
+        for( unsigned int i=0; i < words.size(); i++) {
+            string word = string(words[i]);
+            // cout << word << endl;
+            if(!start->hasChild(word)) {
+                // Create child node
+                start->insertChild(word);
+                if (i == (words.size()-1)) {
+                    // Flag node as finished
+                    start->flagChildFinished(word);
+                }
+            }
+            start = start->getChildNode(word);
+        }
+    }
+
+    if (options.debug) {
+        cout << "DEBUG: Loaded tree" << endl;
+        printMetaCycTree(root);
+    }
+
     // Sort the gff file by the orf ids
     if (options.debug) cout << "Sort GFF file by ORF order" << endl;
  
@@ -107,6 +141,7 @@ int main( int argc, char** argv) {
         thread_data[i].options = options;
         thread_data[i].db_info = db_info;
         thread_data[i].dbNamesToHierarchyIdTree = dbNamesToHierarchyIdTree;
+        thread_data[i].root = root;
     }
 
     // Create the writer's data object
