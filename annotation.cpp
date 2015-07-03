@@ -643,25 +643,29 @@ void *annotateOrfsForDBs( void *_data) {
                     // Use idextractor function if found
                     idextractor = data->db_info.idextractors[db_name];
                     db_id = idextractor(annotation->product.c_str());
-                    if (data->dbNamesToHierachyIdentifierCounts[db_name].find(db_id) == data->dbNamesToHierachyIdentifierCounts[db_name].end()) {
-                        // First time seeing db
-                        data->dbNamesToHierachyIdentifierCounts[db_name][db_id] = 0;
+                    if (db_id != "") {
+                        if (data->dbNamesToHierachyIdentifierCounts[db_name].find(db_id) == data->dbNamesToHierachyIdentifierCounts[db_name].end()) {
+                            // First time seeing db
+                            data->dbNamesToHierachyIdentifierCounts[db_name][db_id] = 0;
+                        }
+                        data->dbNamesToHierachyIdentifierCounts[db_name][db_id]++; // add count to identifier
                     }
-                    data->dbNamesToHierachyIdentifierCounts[db_name][db_id] ++; // add count to identifier
-                    
                     final_annotation->db_ids[db_name] = db_id; // TODO: probably not needed anymroe
                 } else if (data->dbNamesToHierarchyIdTree.find(db_name) != data->dbNamesToHierarchyIdTree.end()) {
                     // Use generic idtree
                     idtree = data->dbNamesToHierarchyIdTree[db_name];
                     if (idtree->find(annotation->product).size() > 0) {
                         db_id = idtree->find(annotation->product);
-                        if (data->dbNamesToHierachyIdentifierCounts[db_name].find(db_id) == data->dbNamesToHierachyIdentifierCounts[db_name].end()) {
-                            // First time seeing db
-                            data->dbNamesToHierachyIdentifierCounts[db_name][db_id] = 0;
+                        if (db_id != "") {
+                            if (data->dbNamesToHierachyIdentifierCounts[db_name].find(db_id) == data->dbNamesToHierachyIdentifierCounts[db_name].end()) {
+                                // First time seeing db
+                                data->dbNamesToHierachyIdentifierCounts[db_name][db_id] = 0;
+                            }
+                            
+                            data->dbNamesToHierachyIdentifierCounts[db_name][db_id]++;
                         }
-                        
-                        data->dbNamesToHierachyIdentifierCounts[db_name][db_id] ++;
                     }
+                    final_annotation->db_ids[db_name] = db_id; // TODO: probably not needed anymroe
                 }
             }
         }

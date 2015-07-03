@@ -127,8 +127,6 @@ void create_threads_refscores(int num_threads, THREAD_DATA *thread_data ) {
 
 }
 
-
-
 void create_threads_parse(int num_threads, THREAD_DATA *thread_data, WRITER_DATA *writer_data) {
     pthread_t *threads;
     if((threads = (pthread_t *)malloc(sizeof(pthread_t)*num_threads))==0) {
