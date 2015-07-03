@@ -792,48 +792,9 @@ void *writeAnnotatedGFFs( void *_writer_data) {
         
         thread_data[i].clear();
         
-        // for( vector<string>::iterator orf_itr = thread_data[i].orfids.begin(); orf_itr != thread_data[i].orfids.end(); orf_itr++ ) {
-        //     // for each ORF
-        //     unsigned int k = 0;
-        //     if (thread_data[i].db_hits.find(*orf_itr) != thread_data[i].db_hits.end()) {
-        //         // for each valid hit
-        //         result_annotation = thread_data[i].db_hits[*orf_itr];
-        //         print_line = createFunctionalAndTaxonomicTableLine(result_annotation);
-        //         // annotatedGFF
-        //         // functional_and_taxonomic_table
-        //         // <sample>.1.txt
-        //         // <sample>.2.txt
-        //         // <sample>.metacyc.orf.annots.txt
-                
-                
-        //         k++;
-        //     } else {
-        //         // write out hypothetical annotation
-                
-        //     }
-            
-        // }
-        // for(unsigned int j =0; j < thread_data[i].orfids.size(); j++) {
-        //     unsigned int k = 0;
-        //     thread_data[i].orfids[j]
-        //     for(vector<ANNOTATION>::iterator itr = thread_data[i].db_hits[j].begin(); itr != thread_data[i].db_hits[j].end(); itr++) {
-        //          result_annotation = *itr;
-        //          // writer_data->output[b] << result_annotation.product << std::endl;
-        //          cout << result_annotation.product << endl;
-        //          k++;
-        //     }
-        // }
-        
-/*
-       for(vector<string>::iterator it = thread_data[i].orfids.begin(); it != thread_data[i].orfids.end(); it++) {
-           writer_data->output << *it << std::endl; 
-       }   
-       thread_data[i].orfids.clear();
-*/
     }
     pf_output.close();
-   //    std::cout << "done \n";
-       
+    
     return (void *)NULL;
 
 }
@@ -903,101 +864,6 @@ void processPToolsRxnsFile( string ptools_rxn_file, vector<string> &ptools_list 
 
     input.close();
 }
-
-// /*
-//  * Scans annotations and checks to see if annotations (or their sub-strings) are complete annotations
-//  * in the MetaCyc trie.
-//  */
-// void processAnnotationsForPToolsThreaded (PTOOLS_NODE *root, string annotation_file, string ptools_dir) {
-
-//     // Opening annotation and output file
-//     // cout << "Reading annotation_file " << annotation_file << endl;
-//     // input.open(annotation_file.c_str(), std::ifstream::in);
-//     // if(!input.good()){
-//     //     cerr << "Error opening '"<< annotation_file <<"'. " << endl;
-//     //     return ;
-//     // }
-//     // string pf_file = ptools_dir + "/" + "0.pf";
-//     // cout << "Opening handle to .pf file " << pf_file <<  endl;
-
-//     // output.open(pf_file.c_str(), std::ofstream::out);
-//     // if(!output.good()){
-//     //     cerr << "Error opening '" << pf_file << "'. " << endl;
-//     //     return ;
-//     // }
-
-//     // Scanning variables
-//     int count =0;
-//     string line;
-//     char buf[10000]; // Temp buffer
-//     vector <char *> fields; // Vector for parsed fields
-//     vector <char *> annotation_words; // Vector of annotation words
-
-//     // .pf file fields
-//     string orf_id; // MetaPathways ORFID
-//     string annotation_product; // MetaCyc FUNCTION field
-//     string metacyc_annotation_product; // returned from MetaCyc tree
-//     string ec_number; // MetaCyc EC field
-//     int start_base = 0; // Starting base
-//     int length = 0; // Basenumber
-
-//     // Annotation preparation variables
-//     PTOOLS_NODE *ptools_ptr;
-//     PTOOLS_NODE *my_root;
-//     bool complete = false;
-//     vector <string> word_list;
-//     vector <string> max_word_list;
-//     string annotation = "";
-
-//     // For each annotation in annotation_file
-//     while( std::getline( input, line ).good() ) {
-//         if (count == 0) {
-//             count++;
-//             continue; // skip header
-//         }
-
-//         // Clear annotation fields
-//         orf_id.clear();
-//         annotation_product.clear();
-//         ec_number.clear();
-//         length = -1;
-//         fields.clear();
-
-//         // String line into fields and split annotation into words
-//         split(line, fields, buf, '\t');
-
-//         // cout << fields[0] << endl;
-
-//         // Fill annotations
-//         orf_id = fields[0];
-//         annotation_product = fields[9];
-//         ec_number = fields[7];
-//         length = atoi(fields[1]);
-
-//         // Split annotation into separate words
-//         split(annotation_product, annotation_words, buf, ' ');
-
-//         // Process annotation through MetaCyc trie
-//         // annotation_product = processAnnotationForPtools(annotation_words, root);
-//         metacyc_annotation_product = processAnnotationForPtools(annotation_words, root, ptools_ptr, complete, word_list, max_word_list, annotation);
-
-//         // If valid annotation product or EC number
-//         if (ec_number != "") {
-//             // If ec_number valid use original annotation
-//             writePfEntry(orf_id, annotation_product, ec_number, start_base, length, output);
-//         } else if (metacyc_annotation_product != "") {
-//             writePfEntry(orf_id, metacyc_annotation_product, ec_number, start_base, length, output);
-//         }
-
-//         count++;
-//         if (count % 100000 == 0) {
-//             cout << count << endl;
-//         }
-//     }
-
-//     input.close();
-//     output.close();
-// }
 
 /*
  * Checks an individual annotation (list of words) and its word-strings for 'complete' status in the MetaCyc trie. If a
@@ -1092,7 +958,6 @@ void writePfEntry(string orf_id, string annotation_product, string ec_number, st
     if (ec_number != "")
         pf_entry = pf_entry + "EC " + ec_number + "\n";
     pf_entry = pf_entry + "//" + "\n";
-    cout << pf_entry;
     output << pf_entry;
 }
 
@@ -1150,15 +1015,6 @@ void writePToolsAdminFiles(string ptools_dir, string sample_name) {
     output << organism_params_text;
 
     output.close();
-}
-
-string createFunctionalAndTaxonomicTableLine(ANNOTATION annotation) {
-    //ORF_ID	ORF_length	start	end	Contig_Name	Contig_length	strand	ec	taxonomy	product
-    // contig_num + "_" +
-    // hierarchy[db_name][id] = count
-
-    
-    return string("");
 }
  
 bool createFunctionWeights(const string &inputfile, const string &outputfile) {

@@ -13,8 +13,73 @@ resources=${data_folder}/resources
 sample_name=hmp_airways_SRS014682
 num_threads=4
 
-# LAST
- 
+## Remove old data
+
+# LASTDBs
+my_cmd="rm ${mp_databases}/functional/formatted/*.bck"
+echo $my_cmd
+eval $my_cmd
+my_cmd="rm ${mp_databases}/functional/formatted/*.des"
+echo $my_cmd
+eval $my_cmd
+my_cmd="rm ${mp_databases}/functional/formatted/*.prj"
+echo $my_cmd
+eval $my_cmd
+my_cmd="rm ${mp_databases}/functional/formatted/*.sds"
+echo $my_cmd
+eval $my_cmd
+my_cmd="rm ${mp_databases}/functional/formatted/*.ssp"
+echo $my_cmd
+eval $my_cmd
+my_cmd="rm ${mp_databases}/functional/formatted/*.suf"
+echo $my_cmd
+eval $my_cmd
+my_cmd="rm ${mp_databases}/functional/formatted/*.tis"
+echo $my_cmd
+eval $my_cmd
+
+# LASTouts
+my_cmd="rm ${mp_output}/${sample_name}/blast_results/*LASTout*"
+echo $my_cmd
+eval $my_cmd
+
+# functional hierarchy hits
+my_cmd="rm ${mp_output}/${sample_name}/results/annotation_table/*tree.count.txt"
+echo $my_cmd
+eval $my_cmd
+
+# ptools/
+my_cmd="rm ${mp_output}/${sample_name}/ptools/*"
+echo $my_cmd
+eval $my_cmd
+
+
+## Integration run
+# Format lastdbs
+for db_file in ${mp_databases}/functional/*-*
+do
+    filename="${db_file##*/}"
+    my_cmd="./lastdb+ -p ${mp_databases}/functional/formatted/${filename} $db_file"
+    echo $my_cmd
+    eval $my_cmd
+done
+
+# LAST/data
+for db_file in ${mp_databases}/functional/*-*
+do
+    filename="${db_file##*/}"
+    my_cmd="./lastal+ -S 20 \
+                      -E 1e-05 \
+                      -P ${num_threads} \
+                      -K 10 \
+                      -f 2 \
+                      -o ${mp_output}/${sample_name}/blast_results/${sample_name}.${filename}.LASTout \
+                      ${mp_databases}/functional/formatted/${filename} \
+                      ${mp_output}/${sample_name}/orf_prediction/${sample_name}.qced.faa"
+    echo $my_cmd
+    eval $my_cmd
+done
+
 
 # parseB/LAST
 for file in ${mp_output}/${sample_name}/blast_results/*LASTout
