@@ -6,7 +6,7 @@
 #include <map>
 #include <stdio.h>
 
-#include "options.h"
+#include "MPParseBlastOptions.h"
 #include "MPAnnotateOptions.h"
 #include "utilities.h"
 #include "idTree.h"
@@ -24,7 +24,7 @@ typedef struct _THREAD_DATA {
     vector< std::pair<std::string, std::string> > refscorePairs;
     map<std::string, float> refscores;
     float ln2, lnk, lambda;
-    Options options;
+    MPParseBlastOptions options;
     map<std::string, std::string> *annot_map;
     unsigned int b;
 } THREAD_DATA;

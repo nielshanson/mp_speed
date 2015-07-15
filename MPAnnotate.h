@@ -14,7 +14,7 @@
 
 #include "utilities.h"
 #include "types.h"
-#include "process_blastoutput.h"
+#include "MPProcessBlastout.h"
 #include "MPAnnotateOptions.h"
 #include "annotation.h"
 #include "MPAnnotateParser.h"

@@ -1,4 +1,4 @@
-#include "outputparser.h"
+#include "MPOutputParser.h"
 
 
 using namespace std;
@@ -6,7 +6,7 @@ using namespace std;
 #define BATCH_SIZE_PER_CORE 1000000
 
 
-OutputParser::OutputParser(const Options &options, const GLOBAL_PARAMS &params){
+OutputParser::OutputParser(const MPParseBlastOptions &options, const GLOBAL_PARAMS &params){
     this->options = options;
     this->params = params;
     this->ln2 =  0.69314718055994530941;

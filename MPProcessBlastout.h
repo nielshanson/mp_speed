@@ -7,9 +7,9 @@
 
 #include "utilities.h"
 #include "types.h"
-#include "outputparser.h"
+#include "MPOutputParser.h"
 #include "externalsort.h"
 
-void process_blastoutput(const Options &options, const GLOBAL_PARAMS &params);
+void MPProcessBlastout(const MPParseBlastOptions &options, const GLOBAL_PARAMS &params);
 
 #endif

@@ -212,7 +212,7 @@ void MPAnnotateParser::writeFunctionalHierarchyFiles(WRITER_DATA_ANNOT *writer_d
             
         db_name = db_itr->first;
         
-        if (writer_data->globalDbNamesToHierachyIdentifierCounts[db_itr->first].size() > 0) {
+        if (writer_data->globalDbNamesToHierachyIdentifierCounts[db_itr->first].size() >= 0) {
             
             filename = output_dir + "/" + sample_name + "." + db_name + ending;
             this->output.open(filename.c_str(), std::ofstream::out);

@@ -1,5 +1,5 @@
-#ifndef _OPTIONS
-#define _OPTIONS
+#ifndef _MPPARSEBLASTOPTIONS
+#define _MPPARSEBLASTOPTIONS
 
 #include <iostream>
 #include <fstream>
@@ -13,7 +13,7 @@
 using namespace std;
 
 // Structure for RPKM input options
-struct Options {
+struct MPParseBlastOptions {
     string input_blastout;
     string database_name;
     string parsed_output;
@@ -42,7 +42,7 @@ struct Options {
     string reads_map_file_format; // aligner type BWA or BLAST, two SAM files or one
     
     // Constructor with default settings 
-    Options(){
+    MPParseBlastOptions(){
 
        input_blastout ="";
        database_name="";
@@ -81,5 +81,5 @@ struct Options {
 };
 
 
-#endif //_OPTIONS
+#endif //_MPPARSEBLASTOPTIONS
 

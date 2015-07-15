@@ -1,9 +1,9 @@
-#include "options.h"
+#include "MPParseBlastOptions.h"
 //#include <iostream>
 //#include <fstream>
 
 
-void Options::print_usage(char *arg) {
+void MPParseBlastOptions::print_usage(char *arg) {
    std::cout << "USAGE : "   << arg <<"\n"\
              << "      : -b  <blastoutput>    [REQUIRED]\n"\
              << "      : -d  <database name>  [REQUIRED]\n"\
@@ -24,7 +24,7 @@ void Options::print_usage(char *arg) {
              << std::endl;
 }
 
-bool Options::SetOptions(int argc, char *argv[]) { 
+bool MPParseBlastOptions::SetOptions(int argc, char *argv[]) {
    for(int i = 1; i < argc ; i++) {   
        if( strncmp(argv[i], "-b", strlen("-b")) == 0 ) {   
           this->input_blastout = argv[++i];
@@ -91,7 +91,7 @@ bool Options::SetOptions(int argc, char *argv[]) {
 };
 
 
-bool Options::check_arguments(){
+bool MPParseBlastOptions::check_arguments(){
 
     if(this->input_blastout.size() == 0) {
          cout << "There sould be at least one blastoutput file"  << std::endl; 
@@ -116,6 +116,6 @@ bool Options::check_arguments(){
     return true;
 }
 
-void Options::print_options() {
+void MPParseBlastOptions::print_options() {
 }
 

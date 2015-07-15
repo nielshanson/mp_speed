@@ -584,7 +584,7 @@ void *annotateOrfsForDBs( void *_data) {
     string (*idextractor) (const char *);
     vector<string>::iterator it;
     unsigned int total_count = 0;
-    unsigned int annotated_count = 0;
+    // unsigned int annotated_count = 0;
     IDTREE *idtree = new IDTREE();
     
     // Ptools Annotation variables
@@ -882,10 +882,10 @@ string processAnnotationForPtools(vector <char *> annotation_words, PTOOLS_NODE 
     annotation.clear();
 
     // Try to push current word
-    for (int i = 0; i < annotation_words.size(); i++) {
+    for (unsigned int i = 0; i < annotation_words.size(); i++) {
         word_list.clear();
         ptools_ptr = root; // reset to root
-        for (int j = i; j < annotation_words.size(); j++) {
+        for (unsigned int j = i; j < annotation_words.size(); j++) {
             string word = string(annotation_words[j]);
             if (pushWordForward(word, ptools_ptr)) {
                 // Check to see if pointer now at word that completes an annotation

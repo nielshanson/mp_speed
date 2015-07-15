@@ -2,7 +2,7 @@
 #include <vector>
 #include <algorithm>
 #include <assert.h>
-#include "parse.h"
+#include "MPParseBlast.h"
 
 using namespace std;
 
@@ -10,7 +10,7 @@ GLOBAL_PARAMS params;
 
 int main( int argc, char **argv ){
     // Parse options
-    Options options;
+    MPParseBlastOptions options;
     // if (argc < 9) { options.print_usage(argv[0]); exit(1); }
     if (options.SetOptions(argc, argv)==false) {
         // Something went wrong in arguments, print usage
@@ -32,7 +32,7 @@ int main( int argc, char **argv ){
       }
     }
 
-    process_blastoutput(options, params);
+    MPProcessBlastout(options, params);
     //options.print_options();
 
 } 

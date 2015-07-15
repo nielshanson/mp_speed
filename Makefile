@@ -4,15 +4,15 @@ CC = g++ -Wall
 CCFLAGS=  -m64 -pthread
 
 
-PROG = parse
-SOURCES= linereader.cpp utilities.cpp parse.cpp  process_blastoutput.cpp\
-           outputparser.cpp options.cpp externalsort.cpp heapsort.cpp 
+PROG = mp_parseblast
+SOURCES= linereader.cpp utilities.cpp MPParseBlast.cpp  MPProcessBlastout.cpp\
+           MPOutputParser.cpp MPParseBlastOptions.cpp externalsort.cpp heapsort.cpp
 OBJECTS= $(SOURCES:.cpp=.o)
 HEADERS= $(SOURCES:.cpp=.h)
 
 MPANNO= mp_annotate
-MPANNO_SOURCES= MPAnnotate.cpp MPAnnotateOptions.cpp utilities.cpp outputparser.cpp\
-                 annotation.cpp options.cpp externalsort.cpp heapsort.cpp\
+MPANNO_SOURCES= MPAnnotate.cpp MPAnnotateOptions.cpp utilities.cpp MPOutputParser.cpp\
+                 annotation.cpp MPParseBlastOptions.cpp externalsort.cpp heapsort.cpp\
                  linereader.cpp MPAnnotateParser.cpp idTree.cpp
 
 MPANNO_OBJECTS= $(MPANNO_SOURCES:.cpp=.o)

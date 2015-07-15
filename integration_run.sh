@@ -88,7 +88,7 @@ do
     db="$(echo ${file} | sed -e 's/\(.*\)\.LASTout$/\1/g' | sed -e 's/.*\.//g')"
     
     # Parse B/LAST output
-    my_cmd="./parse -d ${db} \
+    my_cmd="./mp_parseblast -d ${db} \
           -b ${mp_output}/${sample_name}/blast_results/${sample_name}.${db}.LASTout \
           -m ${mp_databases}/functional/formatted/${db}-names.txt \
           -r ${mp_output}/${sample_name}/blast_results/${sample_name}.refscores.LAST \

@@ -1,4 +1,4 @@
-#include "process_blastoutput.h"
+#include "MPProcessBlastout.h"
 
 #define CHUNK_SIZE 1000000
 
@@ -184,7 +184,7 @@ string createParsedBlastoutHeader() {
     return header_line;
 }
 
-void process_blastoutput(const Options& options, const GLOBAL_PARAMS &params) {
+void MPProcessBlastout(const MPParseBlastOptions& options, const GLOBAL_PARAMS &params) {
     unsigned int b =0;
     OutputParser parser(options, params);
     map<std::string, std::string> *annot_map = new map<std::string, std::string>;

@@ -42,10 +42,10 @@ private:
 public:
       void initialize(); 
       char buf[10000];
-      Options options;
+      MPParseBlastOptions options;
       GLOBAL_PARAMS params;
       vector<char *> fields;
-      OutputParser(const Options &options, const GLOBAL_PARAMS &params);
+      OutputParser(const MPParseBlastOptions &options, const GLOBAL_PARAMS &params);
       ~OutputParser();
       void create_query_dictionary();
       void create_annotation_dictionary(map<string, string> * annot_map);
