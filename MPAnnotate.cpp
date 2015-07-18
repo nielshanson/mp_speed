@@ -21,6 +21,12 @@ int main( int argc, char** argv) {
     if (options.debug) {
         options.printOptions();
     }
+    
+    if (options.taxonomy) {
+        cout << "Building NCBI Taxonomy Database Hierarchy" << endl;
+    }
+    
+    exit(1);
 
     // Determine database and load matching functional hierarchy information if present
     DB_INFO db_info;

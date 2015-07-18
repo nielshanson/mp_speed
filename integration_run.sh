@@ -15,93 +15,93 @@ num_threads=4
 
 ## Remove old data
 
-# LASTDBs
-my_cmd="rm ${mp_databases}/functional/formatted/*.bck"
-echo $my_cmd
-eval $my_cmd
-my_cmd="rm ${mp_databases}/functional/formatted/*.des"
-echo $my_cmd
-eval $my_cmd
-my_cmd="rm ${mp_databases}/functional/formatted/*.prj"
-echo $my_cmd
-eval $my_cmd
-my_cmd="rm ${mp_databases}/functional/formatted/*.sds"
-echo $my_cmd
-eval $my_cmd
-my_cmd="rm ${mp_databases}/functional/formatted/*.ssp"
-echo $my_cmd
-eval $my_cmd
-my_cmd="rm ${mp_databases}/functional/formatted/*.suf"
-echo $my_cmd
-eval $my_cmd
-my_cmd="rm ${mp_databases}/functional/formatted/*.tis"
-echo $my_cmd
-eval $my_cmd
+# # LASTDBs
+# my_cmd="rm ${mp_databases}/functional/formatted/*.bck"
+# echo $my_cmd
+# eval $my_cmd
+# my_cmd="rm ${mp_databases}/functional/formatted/*.des"
+# echo $my_cmd
+# eval $my_cmd
+# my_cmd="rm ${mp_databases}/functional/formatted/*.prj"
+# echo $my_cmd
+# eval $my_cmd
+# my_cmd="rm ${mp_databases}/functional/formatted/*.sds"
+# echo $my_cmd
+# eval $my_cmd
+# my_cmd="rm ${mp_databases}/functional/formatted/*.ssp"
+# echo $my_cmd
+# eval $my_cmd
+# my_cmd="rm ${mp_databases}/functional/formatted/*.suf"
+# echo $my_cmd
+# eval $my_cmd
+# my_cmd="rm ${mp_databases}/functional/formatted/*.tis"
+# echo $my_cmd
+# eval $my_cmd
 
-# LASTouts
-my_cmd="rm ${mp_output}/${sample_name}/blast_results/*LASTout*"
-echo $my_cmd
-eval $my_cmd
+# # LASTouts
+# my_cmd="rm ${mp_output}/${sample_name}/blast_results/*LASTout*"
+# echo $my_cmd
+# eval $my_cmd
 
-# functional hierarchy hits
-my_cmd="rm ${mp_output}/${sample_name}/results/annotation_table/*tree.count.txt"
-echo $my_cmd
-eval $my_cmd
+# # functional hierarchy hits
+# my_cmd="rm ${mp_output}/${sample_name}/results/annotation_table/*tree.count.txt"
+# echo $my_cmd
+# eval $my_cmd
 
-# ptools/
-my_cmd="rm ${mp_output}/${sample_name}/ptools/*"
-echo $my_cmd
-eval $my_cmd
-
-
-## Integration run
-# Format lastdbs
-for db_file in ${mp_databases}/functional/*-*
-do
-    filename="${db_file##*/}"
-    my_cmd="./lastdb+ -p ${mp_databases}/functional/formatted/${filename} $db_file"
-    echo $my_cmd
-    eval $my_cmd
-done
-
-# LAST/data
-for db_file in ${mp_databases}/functional/*-*
-do
-    filename="${db_file##*/}"
-    my_cmd="./lastal+ -S 20 \
-                      -E 1e-05 \
-                      -P ${num_threads} \
-                      -K 10 \
-                      -f 2 \
-                      -o ${mp_output}/${sample_name}/blast_results/${sample_name}.${filename}.LASTout \
-                      ${mp_databases}/functional/formatted/${filename} \
-                      ${mp_output}/${sample_name}/orf_prediction/${sample_name}.qced.faa"
-    echo $my_cmd
-    eval $my_cmd
-done
+# # ptools/
+# my_cmd="rm ${mp_output}/${sample_name}/ptools/*"
+# echo $my_cmd
+# eval $my_cmd
 
 
-# parseB/LAST
-for file in ${mp_output}/${sample_name}/blast_results/*LASTout
-do
-    # extract database names from LASTout file
-    db="$(echo ${file} | sed -e 's/\(.*\)\.LASTout$/\1/g' | sed -e 's/.*\.//g')"
+# ## Integration run
+# # Format lastdbs
+# for db_file in ${mp_databases}/functional/*-*
+# do
+#     filename="${db_file##*/}"
+#     my_cmd="./lastdb+ -p ${mp_databases}/functional/formatted/${filename} $db_file"
+#     echo $my_cmd
+#     eval $my_cmd
+# done
+
+# # LAST/data
+# for db_file in ${mp_databases}/functional/*-*
+# do
+#     filename="${db_file##*/}"
+#     my_cmd="./lastal+ -S 20 \
+#                       -E 1e-05 \
+#                       -P ${num_threads} \
+#                       -K 10 \
+#                       -f 2 \
+#                       -o ${mp_output}/${sample_name}/blast_results/${sample_name}.${filename}.LASTout \
+#                       ${mp_databases}/functional/formatted/${filename} \
+#                       ${mp_output}/${sample_name}/orf_prediction/${sample_name}.qced.faa"
+#     echo $my_cmd
+#     eval $my_cmd
+# done
+
+
+# # parseB/LAST
+# for file in ${mp_output}/${sample_name}/blast_results/*LASTout
+# do
+#     # extract database names from LASTout file
+#     db="$(echo ${file} | sed -e 's/\(.*\)\.LASTout$/\1/g' | sed -e 's/.*\.//g')"
     
-    # Parse B/LAST output
-    my_cmd="./mp_parseblast -d ${db} \
-          -b ${mp_output}/${sample_name}/blast_results/${sample_name}.${db}.LASTout \
-          -m ${mp_databases}/functional/formatted/${db}-names.txt \
-          -r ${mp_output}/${sample_name}/blast_results/${sample_name}.refscores.LAST \
-          --min_bsr 0.4 \
-          --min_score 20 \
-          --min_length 30 \
-          --max_evalue 0.000001 \
-          -a LAST \
-          --num_threads ${num_threads} \
-          -o ${mp_output}/${sample_name}/blast_results/${sample_name}.${db}.LASTout.parsed.txt"
-    echo $my_cmd
-    eval $my_cmd
-done
+#     # Parse B/LAST output
+#     my_cmd="./mp_parseblast -d ${db} \
+#           -b ${mp_output}/${sample_name}/blast_results/${sample_name}.${db}.LASTout \
+#           -m ${mp_databases}/functional/formatted/${db}-names.txt \
+#           -r ${mp_output}/${sample_name}/blast_results/${sample_name}.refscores.LAST \
+#           --min_bsr 0.4 \
+#           --min_score 20 \
+#           --min_length 30 \
+#           --max_evalue 0.000001 \
+#           -a LAST \
+#           --num_threads ${num_threads} \
+#           -o ${mp_output}/${sample_name}/blast_results/${sample_name}.${db}.LASTout.parsed.txt"
+#     echo $my_cmd
+#     eval $my_cmd
+# done
 
 # Annotate
 my_cmd="./mp_annotate --input_gff ${mp_output}/${sample_name}/orf_prediction/${sample_name}.unannot.gff \
@@ -113,6 +113,9 @@ my_cmd="./mp_annotate --input_gff ${mp_output}/${sample_name}/orf_prediction/${s
                     --sample_name ${sample_name} \
                     --algorithm LAST \
                     --tax \
+                    --ncbi_catalog ${resources}/RefSeq-release69.catalog.small.txt \
+                    --ncbi_catalog_names_map ${resources}/RefSeq-release69.catalog.taxid2taxa.txt \
+                    --ncbi_nodes ${resources}/ncbi_nodes_paraen_child_ids.txt \
                     --debug \
                     --num_threads ${num_threads}"
 echo $my_cmd

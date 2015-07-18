@@ -30,6 +30,9 @@ struct MPAnnotateOptions {
     string ptools_dir;
     string results_dir;
     float weight_db;
+    string ncbi_catalog;
+    string ncbi_catalog_names_map;
+    string ncbi_nodes;
 
     // Threading options
     unsigned int num_threads;

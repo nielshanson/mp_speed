@@ -67,6 +67,15 @@ bool MPAnnotateOptions::SetOptions(int argc, char *argv[]) {
         else if( strncmp(argv[i], "--weight_db", strlen("--weight_db")) == 0 ) {
             this->weight_db = atof(argv[++i]);
         }
+        else if( strncmp(argv[i], "--ncbi_catalog", strlen("--ncbi_catalog")) == 0 ) {
+            this->ncbi_catalog = argv[++i];
+        }
+        else if( strncmp(argv[i], "--ncbi_catalog_names_map", strlen("--ncbi_catalog_names_map")) == 0 ) {
+            this->ncbi_catalog_names_map = argv[++i];
+        }
+        else if ( strncmp(argv[i], "--ncbi_nodes", strlen("--ncbi_nodes")) == 0 ) {
+            this->ncbi_nodes = argv[++i];
+        }
         else if( strncmp(argv[i], "--num_threads", strlen("--num_threads")) == 0 ) {
             this->num_threads = atoi(argv[++i]);
         }
