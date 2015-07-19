@@ -180,7 +180,6 @@ float wordInformation(const string &product) {
     return word_information_score;
 }
 
-
 /*
  * Computes the annotation value of the given ANNOTATION object. Returns an annotation value based on the presence
  * of Enzyme Commission (EC) numbers (+10) and the number of non-trivial words in the ANNOTATION product field.

@@ -39,6 +39,28 @@ struct HNODE {
     vector<HNODE*> children;
 };
 
+
+/*
+ * Node of the ncbi taxonomy for calculating the Lowest Common Ancestor (LCA) algorithm
+ */
+struct TREENODE {
+    string taxa_id;
+    TREENODE* parent;
+    map<string, TREENODE*> children;
+    /*
+     * Inserts adds a child to the current node
+     */
+    void insertChild(TREENODE *child) {
+        child->parent = this;
+        children[child->taxa_id] = child;
+    }
+
+    TREENODE() {
+        taxa_id = "-1";
+    }
+
+};
+
 typedef enum {KEGG, COG, SEED, CAZY} DBTYPE;
 
 /*

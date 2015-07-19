@@ -3,7 +3,8 @@
 # integration_run.sh
 # Script to test all C++ code in MetaPathways v3.0
 
-data_folder=/home/ubuntu/workspace/data
+#data_folder=/home/ubuntu/workspace/data
+data_folder=/Users/nielshanson/Dropbox/projects/mp_speed/data
 mp_output=${data_folder}/mp_output
 mp_databases=${data_folder}/mp_databases/MetaPathways_DBs
 mp_source=${data_folder}/metapathways2
@@ -113,9 +114,9 @@ my_cmd="./mp_annotate --input_gff ${mp_output}/${sample_name}/orf_prediction/${s
                     --sample_name ${sample_name} \
                     --algorithm LAST \
                     --tax \
-                    --ncbi_catalog ${resources}/RefSeq-release69.catalog.small.txt \
+                    --ncbi_catalog_map ${resources}/RefSeq-release69.catalog.small.txt \
                     --ncbi_catalog_names_map ${resources}/RefSeq-release69.catalog.taxid2taxa.txt \
-                    --ncbi_nodes ${resources}/ncbi_nodes_paraen_child_ids.txt \
+                    --ncbi_nodes ${resources}/ncbi_nodes_parent_child_ids.txt \
                     --debug \
                     --num_threads ${num_threads}"
 echo $my_cmd

@@ -25,6 +25,16 @@ int main( int argc, char** argv) {
     if (options.taxonomy) {
         cout << "Building NCBI Taxonomy Database Hierarchy" << endl;
     }
+
+    NCBITree *ncbi_tree = new NCBITree(options.ncbi_catalog, options.ncbi_catalog_names_map, options.ncbi_nodes);
+
+    vector<string> test_vector;
+    test_vector.push_back("131567");
+    test_vector.push_back("267890");
+    test_vector.push_back("49928");
+    test_vector.push_back("28221");
+
+    ncbi_tree->getLCA(test_vector);
     
     exit(1);
 
