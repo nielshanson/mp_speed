@@ -217,6 +217,9 @@ ANNOTATION* createAnnotation(const char * line, const string &dbname, bool taxon
      }
 
      try {
+        annotation->query = string(fields[0]);
+        annotation->target = string(fields[1]);
+        annotation->bitscore =  atof(fields[3]);
         annotation->bsr = atof(fields[4]);
         annotation->ec = string(fields[8]);
         annotation->product = string(fields[9]);
@@ -547,12 +550,12 @@ void createThreadsAnnotate(int num_threads, THREAD_DATA_ANNOT *thread_data, WRIT
     
     // Create new writer_tread for writeannotate GFFs
     pthread_t writer_thread; //(pthread_t *)malloc(sizeof(pthread_t)); 
-    if( ( rc = pthread_create(&writer_thread, NULL, writeAnnotatedGFFs, (void *) (writer_data)) ) ) {
+    if( ( rc = pthread_create(&writer_thread, NULL, writeAnnotations, (void *) (writer_data)) ) ) {
          cout << "Error: unable to create thread," << rc << endl;
          exit(-1);
     }
     
-    cout << "Finished annotateOrfsForDBs()" << endl;
+    cout << "Finished writeAnnotations()" << endl;
 
     rc = pthread_join(writer_thread, &status);
     if (rc) {
@@ -564,11 +567,25 @@ void createThreadsAnnotate(int num_threads, THREAD_DATA_ANNOT *thread_data, WRIT
     
 }
 
+ANNOTATION* getBestAnnotation(vector<ANNOTATION *> annotation_list, ANNOTATION* annotation) {
+    if (annotation_list.size() > 0) {
+        annotation = annotation_list[0];
+        for(vector<ANNOTATION*>::iterator itr = annotation_list.begin(); itr != annotation_list.end(); ++itr) {
+            if ((*itr)->bitscore > annotation->bitscore) {
+                annotation = *itr;
+            }
+        }
+    }
+    return annotation;
+}
+
 /*
  * Creates annotation for functional_and_taxonomic table using hits from available
  * databases.
  */
 void *annotateOrfsForDBs( void *_data) {
+    //cout << "In annotateOrfsForDBs()" << endl;
+
     // cast _data to THREAD_DATA_ANNOT
     THREAD_DATA_ANNOT *data = static_cast<THREAD_DATA_ANNOT *> (_data);
     
@@ -579,12 +596,22 @@ void *annotateOrfsForDBs( void *_data) {
     // process fields
     bool success;
     ANNOTATION *annotation = new ANNOTATION();
+    vector<ANNOTATION *> annotation_list;
     ANNOTATION *final_annotation = new ANNOTATION();
     string (*idextractor) (const char *);
     vector<string>::iterator it;
     unsigned int total_count = 0;
     // unsigned int annotated_count = 0;
     IDTREE *idtree = new IDTREE();
+
+    // Helper variables for lca calculation
+    string db_name_upper = "";
+    vector<string> ncbi_taxa_ids;
+    string lca = "";
+    vector <char *> ncbiID_parsed_fields; // Vector of annotation words
+    string refseq_id = "";
+    char buf2[1000]; // Temp buffer
+    NCBITree *ncbi_tree = data->ncbi_tree;
     
     // Ptools Annotation variables
     PTOOLS_NODE *ptools_ptr; 
@@ -606,10 +633,11 @@ void *annotateOrfsForDBs( void *_data) {
         *final_annotation = ANNOTATION();
         
         string db_name = ""; // helper string
-        
+
         for( unsigned int j = 0; j < data->db_info.db_names.size(); j++ ) { 
             // For each database j
             db_name = data->db_info.db_names[j];
+            db_name_upper = to_upper(db_name);
             if (data->dbNamesToHierachyIdentifierCounts.find(db_name) == data->dbNamesToHierachyIdentifierCounts.end()) {
                 // add database to map
                 map<string, int> newHierarchyMap;
@@ -619,8 +647,11 @@ void *annotateOrfsForDBs( void *_data) {
             if( data->annot_objects[db_name].find(*it) != data->annot_objects[db_name].end()) {
                 // Annotation orf_id found in database j
                 success = true;
+                annotation = new ANNOTATION();
                 // Get the annotation
-                annotation = data->annot_objects[db_name][*it];
+                annotation_list = data->annot_objects[db_name][*it];
+                annotation = getBestAnnotation(annotation_list, annotation);
+                cout << "Best annotation product: " << annotation->product << endl;
                 score = computeAnnotationValue(annotation) * data->db_info.weight_dbs[j]; // calculate information annotation score
                 
                 // Set annotation to best hit
@@ -665,6 +696,25 @@ void *annotateOrfsForDBs( void *_data) {
                         }
                     }
                     final_annotation->db_ids[db_name] = db_id; // TODO: probably not needed anymroe
+                } else if (db_name_upper.find("REFSEQ") != std::string::npos) {
+                    // calculate LCA
+                    ncbi_taxa_ids.clear();
+                    for (vector<ANNOTATION*>::iterator itr = annotation_list.begin(); itr != annotation_list.end(); ++itr) {
+                        ncbiID_parsed_fields.clear();
+                        refseq_id = (*itr)->target;
+                        split(refseq_id, ncbiID_parsed_fields, buf2, '|');
+                        refseq_id = ncbiID_parsed_fields[3];
+                        if (ncbi_tree->RefSeqID_to_NCBI_ID.find(refseq_id) != ncbi_tree->RefSeqID_to_NCBI_ID.end()) {
+                            ncbi_taxa_ids.push_back(ncbi_tree->RefSeqID_to_NCBI_ID[refseq_id]);
+                        }
+                    }
+
+                    lca = ncbi_tree->getLCA(ncbi_taxa_ids);
+                    if (data->dbNamesToHierachyIdentifierCounts[db_name].find(db_id) == data->dbNamesToHierachyIdentifierCounts[db_name].end()) {
+                        // First time seeing db_id
+                        data->dbNamesToHierachyIdentifierCounts[db_name][db_id] = 0;
+                    }
+                    data->dbNamesToHierachyIdentifierCounts[db_name][lca]++; // add count to identifier
                 }
             }
         }
@@ -717,7 +767,7 @@ void *annotateOrfsForDBs( void *_data) {
 //    }
 //}
 
-void *writeAnnotatedGFFs( void *_writer_data) {
+void *writeAnnotations( void *_writer_data) {
     
     unsigned int b;  
     // char buf[10000];

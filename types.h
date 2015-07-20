@@ -10,6 +10,7 @@
 #include "MPAnnotateOptions.h"
 #include "utilities.h"
 #include "idTree.h"
+#include "NCBITree.h"
 
 typedef struct _GLOBAL_PARAMS {
     float lambda;
@@ -37,28 +38,6 @@ struct HNODE {
     string alias;
     int depth;
     vector<HNODE*> children;
-};
-
-
-/*
- * Node of the ncbi taxonomy for calculating the Lowest Common Ancestor (LCA) algorithm
- */
-struct TREENODE {
-    string taxa_id;
-    TREENODE* parent;
-    map<string, TREENODE*> children;
-    /*
-     * Inserts adds a child to the current node
-     */
-    void insertChild(TREENODE *child) {
-        child->parent = this;
-        children[child->taxa_id] = child;
-    }
-
-    TREENODE() {
-        taxa_id = "-1";
-    }
-
 };
 
 typedef enum {KEGG, COG, SEED, CAZY} DBTYPE;
@@ -139,8 +118,9 @@ typedef struct _WRITER_DATA {
  */
 typedef struct _ANNOTATION {
     // functional_and_taxonomic fields: ORF_ID	ORF_length	start	end	Contig_Name	Contig_length	strand	ec	taxonomy	product
-    float bsr, value;
+    float bsr, value, bitscore;
     string ec, product, taxonomy;
+    string query, target;
     
     string orf_id, contig_name, strand;
     unsigned int start, end, length;
@@ -148,7 +128,7 @@ typedef struct _ANNOTATION {
 } ANNOTATION;
 
 
-typedef map<string, map<string, ANNOTATION *> > ANNOTATION_RESULTS;
+typedef map<string, map<string, vector<ANNOTATION *> > > ANNOTATION_RESULTS;
 
 typedef vector<string> DB_HIT;
 
@@ -219,6 +199,7 @@ typedef struct _THREAD_DATA_ANNOT {
     map<string, map<string, int> > dbNamesToHierachyIdentifierCounts;
     vector<ANNOTATION> metaCycHits;
     PTOOLS_NODE *root;
+    NCBITree *ncbi_tree; // formatted NCBI hierarchy for calculating LCA
 
     MPAnnotateOptions options;
     unsigned int b;
@@ -253,8 +234,6 @@ typedef struct _WRITER_DATA_ANNOT {
     
 } WRITER_DATA_ANNOT;
 
-// Annotation map
-typedef map<string, map<string, ANNOTATION *> > ANNOTATION_RESULTS;
 
 // MPCreatePToolsInput functions
 

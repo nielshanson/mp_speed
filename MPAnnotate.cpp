@@ -28,15 +28,28 @@ int main( int argc, char** argv) {
 
     NCBITree *ncbi_tree = new NCBITree(options.ncbi_catalog, options.ncbi_catalog_names_map, options.ncbi_nodes);
 
-    vector<string> test_vector;
-    test_vector.push_back("131567");
-    test_vector.push_back("267890");
-    test_vector.push_back("49928");
-    test_vector.push_back("28221");
-
-    ncbi_tree->getLCA(test_vector);
-    
-    exit(1);
+//    vector<string> test_vector;
+//    test_vector.push_back("131567");
+//    test_vector.push_back("267890");
+//    test_vector.push_back("49928");
+//    test_vector.push_back("28221");
+//
+//    ncbi_tree->getLCA(test_vector);
+//
+//    test_vector.clear();
+//    test_vector.push_back("131567");
+//    test_vector.push_back("131567");
+//    test_vector.push_back("131567");
+//    ncbi_tree->getLCA(test_vector);
+//
+//    test_vector.clear();
+//    test_vector.push_back("131567");
+//    ncbi_tree->getLCA(test_vector);
+//
+//    test_vector.clear();
+//    ncbi_tree->getLCA(test_vector);
+//
+//    exit(1);
 
     // Determine database and load matching functional hierarchy information if present
     DB_INFO db_info;
@@ -116,7 +129,7 @@ int main( int argc, char** argv) {
 
     // Parse each line of ptools annotations
     for (std::vector<string>::iterator itr = ptools_list.begin() ; itr != ptools_list.end(); ++itr) {
-        split(*itr, words, buf,' ');
+        split(*itr, words, buf, ' ');
         start = root;
         for( unsigned int i=0; i < words.size(); i++) {
             string word = string(words[i]);
@@ -145,8 +158,7 @@ int main( int argc, char** argv) {
     disk_sort_file(string("/tmp/"), options.input_gff, temp_gff, 1000000, orf_extractor_from_gff);
     remove(options.input_gff.c_str());
     rename(temp_gff.c_str(), options.input_gff.c_str());
-    
-    
+
     // Initialize MPAnnotateParser
     MPAnnotateParser parser(options, db_info);
     // Create array for thread data
@@ -157,6 +169,7 @@ int main( int argc, char** argv) {
         thread_data[i].options = options;
         thread_data[i].db_info = db_info;
         thread_data[i].dbNamesToHierarchyIdTree = dbNamesToHierarchyIdTree;
+        thread_data[i].ncbi_tree = ncbi_tree;
         thread_data[i].root = root;
     }
 

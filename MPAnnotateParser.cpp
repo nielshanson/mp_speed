@@ -65,49 +65,49 @@ void MPAnnotateParser::distributeInput(THREAD_DATA_ANNOT *thread_data) {
 
     vector<string>::iterator it;
     string orfid, prevorfid;
-    float evalue, prevevalue;
+    // float evalue, prevevalue;
     
     if (this->options.debug) {
         std::cout << "input size " << i << "  " << this->inputbuffer.size() << std::endl;
     }
     
     prevorfid = "";
-    prevevalue = 100;
+    //prevevalue = 100;
+    int max_num_hits_db = 5; // top hits pull from options
+    int num_hits_db = 0;
     for(unsigned int i = 0; i < db_info.db_names.size(); i++ ) {
         //  std::cout << db_info.db_names[i] << std::endl;
         int j = 0;
         // interate through the results from a given database and select the annotation with the
         // smallest evalue for each ORF
-        prevevalue = 100;
+        // prevevalue = 100;
         prevorfid = "";
+        num_hits_db = 0;
         for(it =  dbwise_inputs[db_info.db_names[i]].begin(); it !=  dbwise_inputs[db_info.db_names[i]].end(); it++ ) {
             // for each annotation
-            
             // extract ORF and evalue
             orfid = orf_extractor_from_blast((*it).c_str());
-            evalue = evalue_extractor_from_blast((*it).c_str());
+            // evalue = evalue_extractor_from_blast((*it).c_str());
 
             // calculate thread to send result to
             bucketIndex = hashIntoBucket(orfid.c_str(), options.num_threads);
             
             // If database not in annot_objects, create it
             if(thread_data[bucketIndex].annot_objects.find(db_info.db_names[i])==thread_data[bucketIndex].annot_objects.end())
-                thread_data[bucketIndex].annot_objects[db_info.db_names[i]]= map<string, ANNOTATION *>();
+                thread_data[bucketIndex].annot_objects[db_info.db_names[i]]= map<string, vector< ANNOTATION *> >();
             
             // if this is new orfid and not first entry (header)
             if(prevorfid != orfid) {
-                prevevalue  = 100; // reset evalue
+                num_hits_db = 0;
                 // std::cout << orfid << "\t" << annotation->product << std::endl;
                 thread_data[bucketIndex].orfids.push_back(orfid);
-                annotation = createAnnotation((*it).c_str(), db_info.db_names[i]);
-                thread_data[bucketIndex].annot_objects[db_info.db_names[i]][orfid] = annotation;
             }
-            else if(prevevalue > evalue) {
+            if (num_hits_db < max_num_hits_db) {
                 annotation = createAnnotation((*it).c_str(), db_info.db_names[i]);
-                thread_data[bucketIndex].annot_objects[db_info.db_names[i]][orfid] = annotation;
+                thread_data[bucketIndex].annot_objects[db_info.db_names[i]][orfid].push_back(annotation);
             }
-
-            prevevalue = evalue; prevorfid = orfid;
+            prevorfid = orfid;
+            num_hits_db++;
             j++;
         }
     }
@@ -184,7 +184,6 @@ bool MPAnnotateParser::readBatch() {
            std::cout << "\t" << db_info.db_names[i] << ": " << dbwise_inputs[db_info.db_names[i]].size() << std::endl; 
        }
    }
-
 
     if(count>0) return true;
 

@@ -12,7 +12,7 @@ resources=${data_folder}/resources
 
 # sample paramters
 sample_name=hmp_airways_SRS014682
-num_threads=4
+num_threads=1
 
 ## Remove old data
 
@@ -82,12 +82,12 @@ num_threads=4
 # done
 
 
-# # parseB/LAST
+ # parseB/LAST
 # for file in ${mp_output}/${sample_name}/blast_results/*LASTout
 # do
 #     # extract database names from LASTout file
 #     db="$(echo ${file} | sed -e 's/\(.*\)\.LASTout$/\1/g' | sed -e 's/.*\.//g')"
-    
+#
 #     # Parse B/LAST output
 #     my_cmd="./mp_parseblast -d ${db} \
 #           -b ${mp_output}/${sample_name}/blast_results/${sample_name}.${db}.LASTout \

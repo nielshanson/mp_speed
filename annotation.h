@@ -41,9 +41,11 @@ void createThreadsAnnotate(int num_threads, THREAD_DATA_ANNOT *thread_data, WRIT
 
 void *annotateOrfsForDBs( void *_data) ;
 
-void *writeAnnotatedGFFs( void *_data) ;
+void *writeAnnotations( void *_writer_data)  ;
 
-ANNOTATION * createAnnotation(const char * line, const string &dbname, bool taxonomy =true);
+ANNOTATION* createAnnotation(const char * line, const string &dbname, bool taxonomy =true);
+
+ANNOTATION* getBestAnnotation(vector<ANNOTATION *> annotation_list, ANNOTATION* annotation);
 
 int process_all_parsed_blastout(THREAD_DATA_ANNOT *thread_data);
 
