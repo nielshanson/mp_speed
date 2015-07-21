@@ -362,7 +362,7 @@ string getTaxonomyFromProduct(const char *str) {
  * "[[<cazyid]]" and return as a string
  */
 string getCAZYID(const char *str) {
-    char buf[100];
+    char buf[1000];
     unsigned int S=0, i=0;
     const char *c;
 
@@ -371,12 +371,6 @@ string getCAZYID(const char *str) {
         if(S==0) {  
             if(*c=='[') {
                 S++;
-            } 
-            else { 
-                if( *c!=' ' || i==0 || buf[i-1] != ' ')  {
-                    buf[i] =*c;
-                    i++;
-                }
             }
         }
         else if (S==1) {
@@ -396,6 +390,7 @@ string getCAZYID(const char *str) {
                 S++;
             } else {
                 S = 0;
+                i = 0;
             }
         }
         c++;
@@ -403,9 +398,9 @@ string getCAZYID(const char *str) {
 
     if(i > 0 && buf[i-1] == ' ') {
         buf[i-1] = '\0';
-    } else {
-        buf[i]='\0';
     }
+    buf[i]='\0';
+
     return string(buf);
 }
 

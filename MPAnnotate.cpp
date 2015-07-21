@@ -90,6 +90,7 @@ int main( int argc, char** argv) {
                 dbNamesToHierarchyIdentifierMaps[db_name] = makeHierarchyIdentifierMap(full_path);
                 if (db_info.idextractors.find(db_name) == db_info.idextractors.end()) {
                     // Specific parser not found, use genertic idtree parser
+                    cout << "Specific extractor not found for " << db_name << endl;
                     db_id_list.clear();
                     // Get identifers from database
                     for(map<string, string>::iterator itr = dbNamesToHierarchyIdentifierMaps[db_name].begin();

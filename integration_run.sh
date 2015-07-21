@@ -82,7 +82,7 @@ num_threads=1
 # done
 
 
- # parseB/LAST
+# parseB/LAST
 # for file in ${mp_output}/${sample_name}/blast_results/*LASTout
 # do
 #     # extract database names from LASTout file

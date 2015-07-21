@@ -444,16 +444,12 @@ int getBlastFileNames(string blastdir, string sample_name, MPAnnotateOptions opt
             }
 
             if(usedb) {
-                db_info.db_names.push_back(dbname);
-                db_info.input_blastouts.push_back(files[i]);
-                db_info.weight_dbs.push_back(1.0);
                 db_info.dbtypes.push_back(dbtype); // TODO: May not be unnessisary
                 db_info.idextractors[dbname] = idextractor;
-            } else {
-                db_info.db_names.push_back(dbname);
-                db_info.input_blastouts.push_back(files[i]);
-                db_info.weight_dbs.push_back(1.0);
             }
+            db_info.db_names.push_back(dbname);
+            db_info.input_blastouts.push_back(files[i]);
+            db_info.weight_dbs.push_back(1.0);
         }
     }
 
@@ -651,7 +647,7 @@ void *annotateOrfsForDBs( void *_data) {
                 // Get the annotation
                 annotation_list = data->annot_objects[db_name][*it];
                 annotation = getBestAnnotation(annotation_list, annotation);
-                cout << "Best annotation product: " << annotation->product << endl;
+                // cout << "Best annotation product: " << annotation->product << endl;
                 score = computeAnnotationValue(annotation) * data->db_info.weight_dbs[j]; // calculate information annotation score
                 
                 // Set annotation to best hit
@@ -668,9 +664,11 @@ void *annotateOrfsForDBs( void *_data) {
                     max_score = score; // update score
                 }
                 
-                // Get db_id from annotation if need
+                // Get db_id from annotation
+
                 if (data->db_info.idextractors.find(db_name) != data->db_info.idextractors.end()) {
                     // Use idextractor function if found
+                    //cout << "Extractor for " << db_name << "found." << endl;
                     idextractor = data->db_info.idextractors[db_name];
                     db_id = idextractor(annotation->product.c_str());
                     if (db_id != "") {
@@ -681,8 +679,9 @@ void *annotateOrfsForDBs( void *_data) {
                         data->dbNamesToHierachyIdentifierCounts[db_name][db_id]++; // add count to identifier
                     }
                     final_annotation->db_ids[db_name] = db_id; // TODO: probably not needed anymroe
-                } else if (data->dbNamesToHierarchyIdTree.find(db_name) != data->dbNamesToHierarchyIdTree.end()) {
+                } else if ( (data->dbNamesToHierarchyIdTree.find(db_name) != data->dbNamesToHierarchyIdTree.end())) {
                     // Use generic idtree
+                    //cout << "Generic extractor for " << db_name << "found." << endl;
                     idtree = data->dbNamesToHierarchyIdTree[db_name];
                     if (idtree->find(annotation->product).size() > 0) {
                         db_id = idtree->find(annotation->product);
@@ -698,6 +697,7 @@ void *annotateOrfsForDBs( void *_data) {
                     final_annotation->db_ids[db_name] = db_id; // TODO: probably not needed anymroe
                 } else if (db_name_upper.find("REFSEQ") != std::string::npos) {
                     // calculate LCA
+                    // cout << "Using REFSEQ specific extractor for " << db_name << "." << endl;
                     ncbi_taxa_ids.clear();
                     for (vector<ANNOTATION*>::iterator itr = annotation_list.begin(); itr != annotation_list.end(); ++itr) {
                         ncbiID_parsed_fields.clear();
@@ -710,9 +710,9 @@ void *annotateOrfsForDBs( void *_data) {
                     }
 
                     lca = ncbi_tree->getLCA(ncbi_taxa_ids);
-                    if (data->dbNamesToHierachyIdentifierCounts[db_name].find(db_id) == data->dbNamesToHierachyIdentifierCounts[db_name].end()) {
+                    if (data->dbNamesToHierachyIdentifierCounts[db_name].find(lca) == data->dbNamesToHierachyIdentifierCounts[db_name].end()) {
                         // First time seeing db_id
-                        data->dbNamesToHierachyIdentifierCounts[db_name][db_id] = 0;
+                        data->dbNamesToHierachyIdentifierCounts[db_name][lca] = 0;
                     }
                     data->dbNamesToHierachyIdentifierCounts[db_name][lca]++; // add count to identifier
                 }
