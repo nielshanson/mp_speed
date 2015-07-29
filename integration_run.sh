@@ -12,7 +12,7 @@ resources=${data_folder}/resources
 
 # sample paramters
 sample_name=hmp_airways_SRS014682
-num_threads=1
+num_threads=4
 
 ## Remove old data
 

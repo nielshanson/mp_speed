@@ -48,8 +48,10 @@ class NCBITree {
         map<string, string> NCBI_ID_to_Common;
         map<string, string> RefSeqID_to_NCBI_ID;
         map<string, TREENODE*> treeNodeLookup;
+        bool built;
         // methods
         NCBITree(string ncbi_catalog, string ncbi_catalog_names_map, string ncbi_nodes); // constructor
+        bool init(); // build NCBI Tree
         bool BuildCatalogNamesMap();
         bool BuildRefSeqCatalog();
         bool CreateNCBITree();

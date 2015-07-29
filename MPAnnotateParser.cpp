@@ -3,7 +3,7 @@
 
 using namespace std;
 #define PRINT_INTERVAL 5000000
-#define BATCH_SIZE_PER_CORE 5000
+#define BATCH_SIZE_PER_CORE 1000
 
 /*
  * Initialize MPAnnotateParser. Set batch size to the number of threads * core batch size
@@ -68,9 +68,16 @@ void MPAnnotateParser::distributeInput(THREAD_DATA_ANNOT *thread_data) {
     // float evalue, prevevalue;
     
     if (this->options.debug) {
-        std::cout << "input size " << i << "  " << this->inputbuffer.size() << std::endl;
+        std::cout << "distributeInput()" << endl;
+        std::cout << "Threads: " << i << " Parsed_GFF_Lines:" << this->inputbuffer.size() << std::endl;
     }
-    
+
+    // clear old annotations
+    for (unsigned int k = 0; k < options.num_threads; k++) {
+            thread_data[k].annot_objects.clear();
+            thread_data[k].orfids.clear();
+    }
+
     prevorfid = "";
     //prevevalue = 100;
     int max_num_hits_db = 5; // top hits pull from options
@@ -95,8 +102,7 @@ void MPAnnotateParser::distributeInput(THREAD_DATA_ANNOT *thread_data) {
             // If database not in annot_objects, create it
             if(thread_data[bucketIndex].annot_objects.find(db_info.db_names[i])==thread_data[bucketIndex].annot_objects.end())
                 thread_data[bucketIndex].annot_objects[db_info.db_names[i]]= map<string, vector< ANNOTATION *> >();
-            
-            // if this is new orfid and not first entry (header)
+
             if(prevorfid != orfid) {
                 num_hits_db = 0;
                 // std::cout << orfid << "\t" << annotation->product << std::endl;
@@ -110,17 +116,39 @@ void MPAnnotateParser::distributeInput(THREAD_DATA_ANNOT *thread_data) {
             num_hits_db++;
             j++;
         }
+        cout << db_info.db_names[i] << ":" << j << endl;
     }
 
 //  thread_data[bucketIndex].annot_objects.push_back(*it);
+    int grand_total_orfs = 0;
+    int grand_total_anno = 0;
+    int total_orfs = 0;
+    int total_num_anno = 0;
+    int orfs = 0;
+    int num_anno = 0;
     if (this->options.debug) {
         for(unsigned int i=0; i< options.num_threads; i++) {
             std::cout << "Thread data " << i <<  std::endl;
+            total_orfs = 0;
+            total_num_anno = 0;
             for(unsigned int j = 0; j < db_info.db_names.size(); j++ ) {
-                std::cout << "  " << db_info.db_names[j] << " : " <<\
-                thread_data[i].annot_objects[db_info.db_names[j]].size() << std::endl;
-            }    
+                orfs = 0;
+                num_anno = 0;
+                orfs = thread_data[i].annot_objects[db_info.db_names[j]].size();
+                for (map<string, vector< ANNOTATION *> >::iterator itr = thread_data[i].annot_objects[db_info.db_names[j]].begin();
+                     itr != thread_data[i].annot_objects[db_info.db_names[j]].end();
+                     ++itr) {
+                     num_anno += (itr->second).size();
+                }
+                std::cout << "  " << db_info.db_names[j] << " : " << orfs << " ORFs with " << num_anno << " annotations" << std::endl;
+                total_orfs += orfs;
+                total_num_anno += num_anno;
+            }
+            std::cout << " Total ORFs " << total_orfs << " with " << total_num_anno << " annotations" << endl;
+            grand_total_orfs += total_orfs;
+            grand_total_anno += total_num_anno;
         }
+        std::cout << "Grand Total ORFs " << grand_total_orfs << " with " << grand_total_anno << " annotations" << endl;
     }
     if (this-options.debug)
         cout << "End of distributeInput()" << endl;
@@ -143,6 +171,7 @@ bool MPAnnotateParser::readBatch() {
         dbwise_inputs[db_info.db_names[i]].clear();
     }
 
+    // Read ORF_IDs from gff file to handle
     string orfid;
     while( std::getline(this->input, line ).good()) {
         this->inputbuffer.push_back(line);
@@ -154,14 +183,15 @@ bool MPAnnotateParser::readBatch() {
             std::cout << count << std::endl;
     }
 
-    map<string, std::ifstream *>::iterator it;
-
     if(count == 0) return false;
 
+
+    map<string, std::ifstream *>::iterator it;
     std::ifstream *parsedinput;
     for(unsigned int i = 0; i < db_info.db_names.size(); i++ ) {
         if(leftover_lines[db_info.db_names[i]].size() > 0)
             dbwise_inputs[db_info.db_names[i]].push_back(leftover_lines[db_info.db_names[i]]);
+            leftover_lines[db_info.db_names[i]].clear();
 
         parsedinput = parsed_file_streams[db_info.db_names[i]];
         while( std::getline(*parsedinput, line ).good()) {
@@ -169,7 +199,7 @@ bool MPAnnotateParser::readBatch() {
 //           std::cout << line << std::endl;
             orfid = orf_extractor_from_blast(line);
             if( gfforfs.find(orfid) == gfforfs.end()) {
-                // save line
+                // found ORF that was not in gff BATCH
                 leftover_lines[db_info.db_names[i]] = line;
                 break;
             }

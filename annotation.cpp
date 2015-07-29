@@ -794,20 +794,20 @@ void *writeAnnotations( void *_writer_data) {
     for(unsigned int i = 0; i < num_threads; i++) {
         // for each thread
         
-        b =  (thread_data[i].b+1)%2;
-        
         // reduce dbNamesToHierachyIdentifierCounts
-        std::cout << "Reducing DbNamesToHierachyIdentifierCounts results from thread " << i << " buffer " << b << std::endl;
+        std::cout << "Reducing DbNamesToHierachyIdentifierCounts results from thread " << i << std::endl;
         for ( map<string, map<string, int> >::iterator db_itr = thread_data[i].dbNamesToHierachyIdentifierCounts.begin();
               db_itr != thread_data[i].dbNamesToHierachyIdentifierCounts.end();
               db_itr ++
               ) {
+
             // For each db_name
             if ( writer_data->globalDbNamesToHierachyIdentifierCounts.find(db_itr->first) == writer_data->globalDbNamesToHierachyIdentifierCounts.end()) {
                 // create database map if not present in globalDbNamesToHierachyIdentifierCounts
                 map<string, int> newHierarchyMap;
                 writer_data->globalDbNamesToHierachyIdentifierCounts[db_itr->first] = newHierarchyMap;
             }
+
             // Iterate through all ids
             for (map<string, int>::iterator id_itr = thread_data[i].dbNamesToHierachyIdentifierCounts[db_itr->first].begin();
                  id_itr != thread_data[i].dbNamesToHierachyIdentifierCounts[db_itr->first].end();
@@ -816,14 +816,30 @@ void *writeAnnotations( void *_writer_data) {
                      // create id slot if not present
                      writer_data->globalDbNamesToHierachyIdentifierCounts[db_itr->first][id_itr->first] = 0;
                  }
-                 // iterate global count
-                 writer_data->globalDbNamesToHierachyIdentifierCounts[db_itr->first][id_itr->first]++;
+                 // add to global count
+                 writer_data->globalDbNamesToHierachyIdentifierCounts[db_itr->first][id_itr->first] += id_itr->second;
             }
         }
+
+        // debug print of
+//        int num = 0;
+//        int total = 0;
+//        for ( map<string, map<string, int> >::iterator db_itr = thread_data[i].dbNamesToHierachyIdentifierCounts.begin();
+//              db_itr != thread_data[i].dbNamesToHierachyIdentifierCounts.end();
+//              db_itr ++
+//                ) {
+//            num = 0;
+//            for (map<string, int>::iterator id_itr = thread_data[i].dbNamesToHierachyIdentifierCounts[db_itr->first].begin();
+//                 id_itr != thread_data[i].dbNamesToHierachyIdentifierCounts[db_itr->first].end();
+//                 id_itr++) {
+//
+//            }
+//            cout << " " << db_itr->first << ": " << db_itr->second.size() << endl;
+//        }
         
         // Writeout metacyc results to .pf file
-        cout << "MetaCyc hits:" << thread_data[i].metaCycHits.size() << endl;
-        
+        // cout << "MetaCyc hits:" << thread_data[i].metaCycHits.size() << endl;
+
         for (vector<ANNOTATION>::iterator mc_itr = thread_data[i].metaCycHits.begin();
             mc_itr != thread_data[i].metaCycHits.end(); 
             mc_itr++) {

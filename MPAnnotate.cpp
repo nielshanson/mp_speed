@@ -26,31 +26,6 @@ int main( int argc, char** argv) {
         cout << "Building NCBI Taxonomy Database Hierarchy" << endl;
     }
 
-    NCBITree *ncbi_tree = new NCBITree(options.ncbi_catalog, options.ncbi_catalog_names_map, options.ncbi_nodes);
-
-//    vector<string> test_vector;
-//    test_vector.push_back("131567");
-//    test_vector.push_back("267890");
-//    test_vector.push_back("49928");
-//    test_vector.push_back("28221");
-//
-//    ncbi_tree->getLCA(test_vector);
-//
-//    test_vector.clear();
-//    test_vector.push_back("131567");
-//    test_vector.push_back("131567");
-//    test_vector.push_back("131567");
-//    ncbi_tree->getLCA(test_vector);
-//
-//    test_vector.clear();
-//    test_vector.push_back("131567");
-//    ncbi_tree->getLCA(test_vector);
-//
-//    test_vector.clear();
-//    ncbi_tree->getLCA(test_vector);
-//
-//    exit(1);
-
     // Determine database and load matching functional hierarchy information if present
     DB_INFO db_info;
     
@@ -70,7 +45,19 @@ int main( int argc, char** argv) {
             }
         }
     }
-    
+
+    // Build NCBI Tree if RefSeq results found
+    NCBITree *ncbi_tree = new NCBITree(options.ncbi_catalog, options.ncbi_catalog_names_map, options.ncbi_nodes);
+    string temp_db_str = "";
+
+    for (unsigned int i =0; i < db_info.input_blastouts.size(); i++ ) {
+        temp_db_str = to_upper(db_info.db_names[i]);
+        if ( (temp_db_str.find("REFSEQ") != std::string::npos) && (ncbi_tree->built == false)) {
+            // build tree
+            ncbi_tree->init();
+        }
+    }
+
     // Extract and create functional and taxonomic hierachy maps
     vector<string> functional_hierarchy_files = getFunctionalHierarchyFiles(options.functional_categories, options);
     

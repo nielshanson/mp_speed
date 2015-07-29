@@ -4,19 +4,21 @@
 
 #include "NCBITree.h"
 
-NCBITree::NCBITree(string ncbi_catalog_file, string ncbi_catalog_names_map_file, string ncbi_nodes_file) {
+NCBITree::NCBITree(string ncbi_catalog_file = "", string ncbi_catalog_names_map_file = "", string ncbi_nodes_file = "") {
     this->ncbi_catalog_file = ncbi_catalog_file;
     this->ncbi_catalog_names_map_file = ncbi_catalog_names_map_file;
     this->ncbi_nodes_file = ncbi_nodes_file;
+    this->built = false;
+}
 
+bool NCBITree::init() {
     this->BuildRefSeqCatalog();
     this->BuildCatalogNamesMap();
     this->CreateNCBITree();
+    this->built = true;
+    return true;
 }
 
-/*
- *
- */
 bool NCBITree::BuildRefSeqCatalog() {
     ifstream input;
     string filename = this->ncbi_catalog_names_map_file;
