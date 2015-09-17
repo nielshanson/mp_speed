@@ -105,22 +105,41 @@ num_threads=4
 # done
 
 # Annotate
-my_cmd="./mp_annotate --input_gff ${mp_output}/${sample_name}/orf_prediction/${sample_name}.unannot.gff \
-                    --results_dir ${mp_output}/${sample_name}/results/annotation_table/ \
-                    --blast_dir ${mp_output}/${sample_name}/blast_results/ \
-                    --functional_categories ${mp_databases}/functional_categories \
-                    --ptools_rxns ${resources}/metacyc_enzymes_rxns_ecs.txt \
-                    --ptools_dir ${mp_output}/${sample_name}/ptools \
-                    --sample_name ${sample_name} \
-                    --algorithm LAST \
-                    --tax \
-                    --ncbi_catalog_map ${resources}/RefSeq-release69.catalog.small.txt \
-                    --ncbi_catalog_names_map ${resources}/RefSeq-release69.catalog.taxid2taxa.txt \
-                    --ncbi_nodes ${resources}/ncbi_nodes_parent_child_ids.txt \
-                    --debug \
-                    --num_threads ${num_threads}"
+#my_cmd="./mp_annotate --input_gff ${mp_output}/${sample_name}/orf_prediction/${sample_name}.unannot.gff \
+#                    --results_dir ${mp_output}/${sample_name}/results/annotation_table/ \
+#                    --blast_dir ${mp_output}/${sample_name}/blast_results/ \
+#                    --functional_categories ${mp_databases}/functional_categories \
+#                    --ptools_rxns ${resources}/metacyc_enzymes_rxns_ecs.txt \
+#                    --ptools_dir ${mp_output}/${sample_name}/ptools \
+#                    --sample_name ${sample_name} \
+#                    --algorithm LAST \
+#                    --tax \
+#                    --ncbi_catalog_map ${resources}/RefSeq-release69.catalog.small.txt \
+#                    --ncbi_catalog_names_map ${resources}/RefSeq-release69.catalog.taxid2taxa.txt \
+#                    --ncbi_nodes ${resources}/ncbi_nodes_parent_child_ids.txt \
+#                    --debug \
+#                    --num_threads ${num_threads}"
+#echo $my_cmd
+#eval $my_cmd
+
+my_cmd="./mp_annotate --input_gff /Users/nielshanson/Documents/pycharm/metapathways3/regtests/mp3_benchmarking/mp3_output/bench_90k/orf_prediction//bench_90k.unannot.gff \
+ --results_dir /Users/nielshanson/Documents/pycharm/metapathways3/regtests/mp3_benchmarking/mp3_output/bench_90k/results//annotation_table// \
+ --blast_dir /Users/nielshanson/Documents/pycharm/metapathways3/regtests/mp3_benchmarking/mp3_output/bench_90k/blast_results/ \
+ --functional_categories /Users/nielshanson/Documents/pycharm/metapathways3/databases//functional_categories \
+ --ptools_rxns /Users/nielshanson/Documents/pycharm/metapathways3/databases//functional_categories/metacyc_enzymes_rxns_ecs.txt \
+ --ptools_dir /Users/nielshanson/Documents/pycharm/metapathways3/regtests/mp3_benchmarking/mp3_output/bench_90k/ptools/ \
+ --sample_name bench_90k \
+ --algorithm LAST \
+ --tax \
+ --ncbi_catalog_map /Users/nielshanson/Documents/pycharm/metapathways3//resources//RefSeq-release69.catalog.small.txt \
+ --ncbi_catalog_names_map /Users/nielshanson/Documents/pycharm/metapathways3//resources//RefSeq-release69.catalog.taxid2taxa.txt \
+ --ncbi_nodes /Users/nielshanson/Documents/pycharm/metapathways3//resources//ncbi_nodes_parent_child_ids.txt \
+ --debug \
+ --num_threads 4"
+
 echo $my_cmd
 eval $my_cmd
+
 
 # Prepare Ptools Input
 #./mp_create_ptools_input --ptools_rxns /Users/nielshanson/Dropbox/projects/mp_speed/data/metacyc_enzymes_rxns_ecs.txt \

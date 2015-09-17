@@ -579,7 +579,7 @@ ANNOTATION* getBestAnnotation(vector<ANNOTATION *> annotation_list, ANNOTATION* 
  * Creates annotation for functional_and_taxonomic table using hits from available
  * databases.
  */
-void *annotateOrfsForDBs( void *_data) {
+void* annotateOrfsForDBs( void *_data) {
     //cout << "In annotateOrfsForDBs()" << endl;
 
     // cast _data to THREAD_DATA_ANNOT
@@ -592,6 +592,7 @@ void *annotateOrfsForDBs( void *_data) {
     // process fields
     bool success;
     ANNOTATION *annotation = new ANNOTATION();
+    ANNOTATION *metacyc_annotation = new ANNOTATION();
     vector<ANNOTATION *> annotation_list;
     ANNOTATION *final_annotation = new ANNOTATION();
     string (*idextractor) (const char *);
@@ -627,6 +628,7 @@ void *annotateOrfsForDBs( void *_data) {
         success = false;
         *annotation = ANNOTATION(); // clear
         *final_annotation = ANNOTATION();
+        *metacyc_annotation = ANNOTATION();
         
         string db_name = ""; // helper string
 
@@ -647,9 +649,31 @@ void *annotateOrfsForDBs( void *_data) {
                 // Get the annotation
                 annotation_list = data->annot_objects[db_name][*it];
                 annotation = getBestAnnotation(annotation_list, annotation);
-                // cout << "Best annotation product: " << annotation->product << endl;
+                annotation->dbname = db_name;
+
+                // Pass annotation through ptools tree and add if hit
+                annotation_product = annotation->product;
+
+                // Split annotation into separate words
+                split(annotation_product, annotation_words, buf, ' ');
+
+                // Process annotation through MetaCyc trie
+                // annotation_product = processAnnotationForPtools(annotation_words, root);
+                metacyc_annotation_product = processAnnotationForPtools(annotation_words, data->root, ptools_ptr, complete, word_list, max_word_list, annotation_str);
+
                 score = computeAnnotationValue(annotation) * data->db_info.weight_dbs[j]; // calculate information annotation score
-                
+                annotation->annotation_score = score;
+
+                if (metacyc_annotation_product != "") {
+                    *metacyc_annotation = *annotation;
+                    metacyc_annotation->product = metacyc_annotation_product;
+                    metacyc_annotation->ptools_match = true;
+                    data->metaCycHits.push_back(*metacyc_annotation);
+                } else if ( annotation->ec != "" ) {
+                    annotation->ptools_match = false;
+                    data->metaCycHits.push_back(*annotation);
+                }
+
                 // Set annotation to best hit
                 if (score > max_score) {
                     // set final annotation to main fields
@@ -665,10 +689,9 @@ void *annotateOrfsForDBs( void *_data) {
                 }
                 
                 // Get db_id from annotation
-
                 if (data->db_info.idextractors.find(db_name) != data->db_info.idextractors.end()) {
                     // Use idextractor function if found
-                    //cout << "Extractor for " << db_name << "found." << endl;
+                    // cout << "Extractor for " << db_name << "found." << endl;
                     idextractor = data->db_info.idextractors[db_name];
                     db_id = idextractor(annotation->product.c_str());
                     if (db_id != "") {
@@ -678,7 +701,7 @@ void *annotateOrfsForDBs( void *_data) {
                         }
                         data->dbNamesToHierachyIdentifierCounts[db_name][db_id]++; // add count to identifier
                     }
-                    final_annotation->db_ids[db_name] = db_id; // TODO: probably not needed anymroe
+                    final_annotation->db_ids[db_name] = db_id; // TODO: probably not needed anymore
                 } else if ( (data->dbNamesToHierarchyIdTree.find(db_name) != data->dbNamesToHierarchyIdTree.end())) {
                     // Use generic idtree
                     //cout << "Generic extractor for " << db_name << "found." << endl;
@@ -694,7 +717,7 @@ void *annotateOrfsForDBs( void *_data) {
                             data->dbNamesToHierachyIdentifierCounts[db_name][db_id]++;
                         }
                     }
-                    final_annotation->db_ids[db_name] = db_id; // TODO: probably not needed anymroe
+                    final_annotation->db_ids[db_name] = db_id; // TODO: probably not needed anymore
                 } else if (db_name_upper.find("REFSEQ") != std::string::npos) {
                     // calculate LCA
                     // cout << "Using REFSEQ specific extractor for " << db_name << "." << endl;
@@ -718,37 +741,37 @@ void *annotateOrfsForDBs( void *_data) {
                 }
             }
         }
-        // TODO: place to check for pathway tools annotation
-        if (success) {
-            // data->db_hits[*it] = *final_annotation;
-            
-            // Clear annotation fields
-            annotation_product = final_annotation->product;
-    
-            // Split annotation into separate words
-            split(annotation_product, annotation_words, buf, ' ');
-    
-            // Process annotation through MetaCyc trie
-            // annotation_product = processAnnotationForPtools(annotation_words, root);
-            metacyc_annotation_product = processAnnotationForPtools(annotation_words, data->root, ptools_ptr, complete, word_list, max_word_list, annotation_str);
-
-            if (metacyc_annotation_product != "") {
-                final_annotation->product = metacyc_annotation_product;
-                data->metaCycHits.push_back(*final_annotation);
-            } else if ( final_annotation->ec != "" ) {
-                data->metaCycHits.push_back(*final_annotation);
-            }
-            // If valid annotation product or EC number
-            // if (ec_number != "") {
-            //     // If ec_number valid use original annotation
-            //     writePfEntry(orf_id, annotation_product, ec_number, start_base, length, output);
-            // } else if (metacyc_annotation_product != "") {
-            //     writePfEntry(orf_id, metacyc_annotation_product, ec_number, start_base, length, output);
-            // }
-            
-            // metacyc_annotation_product = processAnnotationForPtools(annotation_words, root, ptools_ptr, complete, word_list, max_word_list, annotation);
-            // annotated_count++;
-        }
+//        // TODO: place to check for pathway tools annotation
+//        if (success) {
+//            // data->db_hits[*it] = *final_annotation;
+//
+//            // Clear annotation fields
+//            annotation_product = final_annotation->product;
+//
+//            // Split annotation into separate words
+//            split(annotation_product, annotation_words, buf, ' ');
+//
+//            // Process annotation through MetaCyc trie
+//            // annotation_product = processAnnotationForPtools(annotation_words, root);
+//            metacyc_annotation_product = processAnnotationForPtools(annotation_words, data->root, ptools_ptr, complete, word_list, max_word_list, annotation_str);
+//
+//            if (metacyc_annotation_product != "") {
+//                final_annotation->product = metacyc_annotation_product;
+//                data->metaCycHits.push_back(*final_annotation);
+//            } else if ( final_annotation->ec != "" ) {
+//                data->metaCycHits.push_back(*final_annotation);
+//            }
+//            // If valid annotation product or EC number
+//            // if (ec_number != "") {
+//            //     // If ec_number valid use original annotation
+//            //     writePfEntry(orf_id, annotation_product, ec_number, start_base, length, output);
+//            // } else if (metacyc_annotation_product != "") {
+//            //     writePfEntry(orf_id, metacyc_annotation_product, ec_number, start_base, length, output);
+//            // }
+//
+//            // metacyc_annotation_product = processAnnotationForPtools(annotation_words, root, ptools_ptr, complete, word_list, max_word_list, annotation);
+//            // annotated_count++;
+//        }
     }
 
     // cout << "annotateOrfsForDBs(): " << annotated_count << " of " << total_count  << " ORFs annotated" << endl;
@@ -776,20 +799,6 @@ void *writeAnnotations( void *_writer_data) {
     THREAD_DATA_ANNOT *thread_data = writer_data->thread_data; // get annotation data
     ANNOTATION result_annotation;
     string print_line; // line to print
-    
-    
-    string pf_file = writer_data->options.ptools_dir + "/" + "0.pf";
-    ofstream pf_output;
-    pf_output.open(pf_file.c_str(), std::ofstream::out);
-    if(!pf_output.good()){
-        cerr << "Error opening '" << pf_file << "'. " << endl;
-        exit(-1);
-    }
-    
-    int start_base = 0;
-    int end_base = 0;
-    char start_base_str[30];
-    char end_base_str[30];
     
     for(unsigned int i = 0; i < num_threads; i++) {
         // for each thread
@@ -821,6 +830,8 @@ void *writeAnnotations( void *_writer_data) {
             }
         }
 
+
+
         // debug print of
 //        int num = 0;
 //        int total = 0;
@@ -836,33 +847,42 @@ void *writeAnnotations( void *_writer_data) {
 //            }
 //            cout << " " << db_itr->first << ": " << db_itr->second.size() << endl;
 //        }
-        
-        // Writeout metacyc results to .pf file
-        // cout << "MetaCyc hits:" << thread_data[i].metaCycHits.size() << endl;
+
+
+        // Calculate the global metacyc
+        writer_data->globalMetaCycNamesToAnnotations;
+        writer_data->globalMetaCycNamesToDbCounts;
+        string metacyc_label = ""; // ec match or metacyc annotation
 
         for (vector<ANNOTATION>::iterator mc_itr = thread_data[i].metaCycHits.begin();
-            mc_itr != thread_data[i].metaCycHits.end(); 
-            mc_itr++) {
-            
-            end_base = start_base + mc_itr->length;
-            
-            sprintf(start_base_str, "%d", start_base);
-            sprintf(end_base_str, "%d", end_base);
-            writePfEntry(mc_itr->orf_id,
-                         mc_itr->product,
-                         mc_itr->ec,
-                         string(start_base_str),
-                         string(end_base_str), 
-                         pf_output);
-            // update startbase
-            start_base = start_base + mc_itr->length + 10;
+             mc_itr != thread_data[i].metaCycHits.end();
+             mc_itr++) {
+             if (mc_itr->ptools_match) {
+                 metacyc_label = mc_itr->product;
+
+             } else {
+                 metacyc_label = mc_itr->ec;
+             }
+             // Create new entrys if needed
+             // Set annotation (default is the first)
+             if (writer_data->globalMetaCycNamesToAnnotations.find(metacyc_label) == writer_data->globalMetaCycNamesToAnnotations.end()) {
+                 writer_data->globalMetaCycNamesToAnnotations[metacyc_label] = *mc_itr;
+             }
+             if (writer_data->globalMetaCycNamesToDbCounts.find(metacyc_label) == writer_data->globalMetaCycNamesToDbCounts.end()) {
+                 map<string, int> newMetaCycDbNameCountMap;
+                 writer_data->globalMetaCycNamesToDbCounts[metacyc_label] = newMetaCycDbNameCountMap;
+             }
+
+             // Add database count
+             if (writer_data->globalMetaCycNamesToDbCounts[metacyc_label].find(mc_itr->dbname) == writer_data->globalMetaCycNamesToDbCounts[metacyc_label].end()) {
+                 writer_data->globalMetaCycNamesToDbCounts[metacyc_label][mc_itr->dbname] = 0;
+             }
+             writer_data->globalMetaCycNamesToDbCounts[metacyc_label][mc_itr->dbname]++;
         }
-        
-        
+
         thread_data[i].clear();
         
     }
-    pf_output.close();
     
     return (void *)NULL;
 
@@ -1030,7 +1050,78 @@ void writePfEntry(string orf_id, string annotation_product, string ec_number, st
     output << pf_entry;
 }
 
-void writePToolsAdminFiles(string ptools_dir, string sample_name) {
+void writePToolsResults(WRITER_DATA_ANNOT* writer_data, string ptools_dir, string sample_name) {
+
+    // create 0.pf file
+    string pf_file = writer_data->options.ptools_dir + "/" + "0.pf";
+    ofstream pf_output;
+    pf_output.open(pf_file.c_str(), std::ofstream::out);
+    if(!pf_output.good()){
+        cerr << "Error opening '" << pf_file << "'. " << endl;
+        exit(-1);
+    }
+    int start_base = 0;
+    int end_base = 0;
+    char start_base_str[30];
+    char end_base_str[30];
+
+    // Writeout metaCycHits to .pf file
+    for (map<string, ANNOTATION>::iterator mc_itr =  writer_data->globalMetaCycNamesToAnnotations.begin();
+         mc_itr != writer_data->globalMetaCycNamesToAnnotations.end();
+         mc_itr++) {
+         ANNOTATION anno = mc_itr->second;
+         end_base = start_base + anno.length;
+
+         sprintf(start_base_str, "%d", start_base);
+         sprintf(end_base_str, "%d", end_base);
+         writePfEntry(anno.orf_id,
+                      anno.product,
+                      anno.ec,
+                     string(start_base_str),
+                     string(end_base_str),
+                     pf_output);
+         // update startbase
+         start_base = start_base + anno.length + 10;
+    }
+
+    pf_output.close();
+
+    // create counts file
+    string counts_file = writer_data->options.ptools_dir + "/" + "counts_0.pf";
+
+    pf_output.open(counts_file.c_str(), std::ofstream::out);
+    if(!pf_output.good()){
+        cerr << "Error opening '" << pf_file << "'. " << endl;
+        exit(-1);
+    }
+
+    // databases header line
+    string header_line = "Annotation";
+    for (int i = 0; i < writer_data->db_info.db_names.size(); ++i) {
+        header_line = header_line + "\t" + writer_data->db_info.db_names[i];
+    }
+    header_line = header_line + "\n";
+    pf_output << header_line;
+
+    for (map<string, map<string, int> >::iterator mc_itr =  writer_data->globalMetaCycNamesToDbCounts.begin();
+         mc_itr != writer_data->globalMetaCycNamesToDbCounts.end();
+         mc_itr++) {
+         string anno = mc_itr->first;
+         string line = anno;
+         map<string, int> db_counts = mc_itr->second;
+         for (int i = 0; i < writer_data->db_info.db_names.size(); ++i) {
+             if (db_counts.find(writer_data->db_info.db_names[i]) == db_counts.end() ) {
+                 line = line + "\t" + "0";
+             } else {
+                 ostringstream s;
+                 s << db_counts[writer_data->db_info.db_names[i]];
+                 line = line + "\t" + s.str();
+             }
+         }
+         line = line + "\n";
+         pf_output << line;
+    }
+    pf_output.close();
 
     // Create genetic-elements.dat
     // ID      0

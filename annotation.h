@@ -13,6 +13,7 @@
 #include <dirent.h>
 #include <stdio.h>
 #include <pthread.h>
+#include <sstream>
 
 #include "utilities.h"
 #include "types.h"
@@ -63,7 +64,7 @@ bool pushWordForward(string word, PTOOLS_NODE *& ptools_ptr);
 
 void writePfEntry(string orf_id, string annotation_product, string ec_number, string start_base, string end_base, std::ofstream &output);
 
-void writePToolsAdminFiles(string ptools_dir, string sample_name);
+void writePToolsResults(WRITER_DATA_ANNOT* writer_data, string ptools_dir, string sample_name);
 
 bool  createFunctionWeights(const string &intpufile, const string &outputfile);
 #endif //MP_SPEED_ANNOTATION_H

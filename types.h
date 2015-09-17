@@ -125,6 +125,9 @@ typedef struct _ANNOTATION {
     string orf_id, contig_name, strand;
     unsigned int start, end, length;
     map<string, string> db_ids;
+    bool ptools_match = false; // flag to say annotation comes from trie
+    string dbname; // database origin
+    unsigned int annotation_score;
 } ANNOTATION;
 
 
@@ -230,6 +233,8 @@ typedef struct _WRITER_DATA_ANNOT {
     unsigned int num_threads;
     DB_INFO db_info;
     map<string, map<string, int> > globalDbNamesToHierachyIdentifierCounts;
+    map<string, ANNOTATION > globalMetaCycNamesToAnnotations;
+    map<string, map<string, int> > globalMetaCycNamesToDbCounts;
     MPAnnotateOptions options;
     
 } WRITER_DATA_ANNOT;

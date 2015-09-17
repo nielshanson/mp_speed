@@ -3,7 +3,7 @@
 
 using namespace std;
 #define PRINT_INTERVAL 5000000
-#define BATCH_SIZE_PER_CORE 1000
+#define BATCH_SIZE_PER_CORE 100000
 
 /*
  * Initialize MPAnnotateParser. Set batch size to the number of threads * core batch size

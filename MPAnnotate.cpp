@@ -21,10 +21,6 @@ int main( int argc, char** argv) {
     if (options.debug) {
         options.printOptions();
     }
-    
-    if (options.taxonomy) {
-        cout << "Building NCBI Taxonomy Database Hierarchy" << endl;
-    }
 
     // Determine database and load matching functional hierarchy information if present
     DB_INFO db_info;
@@ -54,6 +50,9 @@ int main( int argc, char** argv) {
         temp_db_str = to_upper(db_info.db_names[i]);
         if ( (temp_db_str.find("REFSEQ") != std::string::npos) && (ncbi_tree->built == false)) {
             // build tree
+            if (options.taxonomy) {
+                cout << "Building NCBI Taxonomy Database Hierarchy" << endl;
+            }
             ncbi_tree->init();
         }
     }
@@ -181,8 +180,8 @@ int main( int argc, char** argv) {
     // Write out hierarchies
     parser.writeFunctionalHierarchyFiles(writer_data, options);
     
-    // write ptools admin files
-    writePToolsAdminFiles(options.ptools_dir, options.sample_name);
+    // write ptools results
+    writePToolsResults(writer_data, options.ptools_dir, options.sample_name);
 
     if (options.debug) { cout << "End of MPAnnotate()" << endl;}
 
