@@ -125,7 +125,7 @@ typedef struct _ANNOTATION {
     string orf_id, contig_name, strand;
     unsigned int start, end, length;
     map<string, string> db_ids;
-    bool ptools_match = false; // flag to say annotation comes from trie
+    bool ptools_match; // flag to say annotation comes from trie
     string dbname; // database origin
     unsigned int annotation_score;
 } ANNOTATION;

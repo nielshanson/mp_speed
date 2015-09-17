@@ -13,44 +13,44 @@ using namespace std;
 
 #define PRINT_INTERVAL 10000
 
-void readContigLengths(string file, map<string, unsigned int> &contig_lengths) {
-
-    string filename = file;
-    std::ifstream input;
-    char buf[1000];
-    vector <char *> fields;
-    int count = 0;
-
-    input.open(filename.c_str(), std::ifstream::in);
-    if(!input.good()){
-        std::cerr << "Error opening '"<< filename <<"'. Bailing out." << std::endl;
-        return ;
-    }
-
-    // int *counts  = (int *)calloc(options.num_threads, sizeof(int));
-    string line;
-    string contig_id;
-
-    while( std::getline(input, line ).good()) {
-        split(line, fields, buf,'\t');
-        if( fields.size()!=3) {
-            contig_id.clear();
-            input.close();
-            return;
-        }
-
-        contig_id = fields[0];
-        contig_lengths[contig_id] = atoi(fields[2]);
-
-        if (count%PRINT_INTERVAL==0)
-            std::cout << "x " << count << std::endl;
-        count++;
-    }
-    input.close();
-
-    std::cout << "Number of contig lengths loaded " <<  count << std::endl;
-
-}
+//void readContigLengths(string file, map<string, unsigned int> &contig_lengths) {
+//
+//    string filename = file;
+//    std::ifstream input;
+//    char buf[1000];
+//    vector <char *> fields;
+//    int count = 0;
+//
+//    input.open(filename.c_str(), std::ifstream::in);
+//    if(!input.good()){
+//        std::cerr << "Error opening '"<< filename <<"'. Bailing out." << std::endl;
+//        return ;
+//    }
+//
+//    // int *counts  = (int *)calloc(options.num_threads, sizeof(int));
+//    string line;
+//    string contig_id;
+//
+//    while( std::getline(input, line ).good()) {
+//        split(line, fields, buf,'\t');
+//        if( fields.size()!=3) {
+//            contig_id.clear();
+//            input.close();
+//            return;
+//        }
+//
+//        contig_id = fields[0];
+//        contig_lengths[contig_id] = atoi(fields[2]);
+//
+//        if (count%PRINT_INTERVAL==0)
+//            std::cout << "x " << count << std::endl;
+//        count++;
+//    }
+//    input.close();
+//
+//    std::cout << "Number of contig lengths loaded " <<  count << std::endl;
+//
+//}
 
 /*
  * Takes a functional hierarchy file and returns a map<string, string> of hierarchy identifiers to 
@@ -227,7 +227,7 @@ ANNOTATION* createAnnotation(const char * line, const string &dbname, bool taxon
         db_name = to_upper(dbname);
 
         if (taxonomy && (db_name.find("REFSEQ") != std::string::npos)) {
-            // TODO: Could be more reliable to get taxonomy from GI number.
+             // TODO: Could be more reliable to get taxonomy from GI number.
              annotation->taxonomy = getTaxonomyFromProduct(annotation->product.c_str());
         }
 
@@ -239,101 +239,101 @@ ANNOTATION* createAnnotation(const char * line, const string &dbname, bool taxon
     return annotation;
 }
 
-int processParsedBlastout(string db_name, float weight, string blastoutput, MPAnnotateOptions options, map<string, ANNOTATION> &annotation_results) {
-
-    if (options.debug) cout << "In processParsedBlastout()" << endl;
-
-    // Prepare inputs and buffers
-    string filename = options.blast_dir + "/" + blastoutput; // BLAST/LASTout.parsed.txt
-    std::ifstream input; // Input filestream
-    char buf[10000]; // Temp buffer TODO check to see if multiple buffers nessisary
-    vector <char *> fields; // Vector for parsed fields
-
-    int count = 0; // Line count
-
-    // char tempbuf[1000];
-
-    if (options.debug) {
-        cout << "Reading ParsedBlastout: " << filename << "\n";
-    }
-
-    // Open the file.
-    input.open(filename.c_str(), std::ifstream::in);
-    if(!input.good()){
-        std::cerr << "Error opening '" << filename << "'. Bailing out." << std::endl;
-        exit(1);
-    }
-
-    // ANNOTATION fields for parsing BLAST/LASTout.annotated.txt files
-    ANNOTATION annotation;
-    string line;
-    string query_id;
-    string bsr;
-    string ec;
-    string product;
-    string taxonomy = "";
-
-    // Parse annotation hit line, create ANNOTATION objects
-    while( std::getline(input, line ).good()) {
-        split(line, fields, buf,'\t');
-        if (count == 0) { count++; continue; };
-
-        if( fields.size()!=10) {
-            // Not a parsed blast file
-            cerr << "Parsed BLAST/LASTout file " <<  filename << " did not have the 10 columns." << endl;
-            query_id.clear();
-            input.close();
-            return 1;
-        }
-
-        query_id = fields[0];
-        bsr = fields[4];
-        ec = fields[8];
-        product = fields[9];
-
-        db_name = to_upper(db_name);
-
-        // Construct annotation
-        ANNOTATION annotation;
-        annotation.bsr = atof(bsr.c_str());
-        annotation.ec = ec;
-        annotation.product = product;
-
-        // Extract RefSeq taxonomy from product field
-        if (options.taxonomy && (db_name.find("REFSEQ") != std::string::npos)) {
-            // TODO: Could be more reliable to get taxonomy from GI number.
-            taxonomy = getTaxonomyFromProduct(product.c_str());
-        }
-        annotation.taxonomy = taxonomy;
-
-        // Compute information score of current annotation.
-        annotation.value = computeAnnotationValue(&annotation) * weight;
-
-        // Check to see if current query_id is already in this database's annotation_results
-        if (annotation_results.count(query_id) <= 0) {
-            annotation_results[query_id] = annotation;
-        }
-        else {
-            // Replace existing ANNOTATION with the current annotation if strong annotation score
-            if (annotation_results[query_id].value < annotation.value) {
-                annotation_results[query_id] = annotation;
-            }
-        }
-
-        if (options.debug) {
-            if (count%PRINT_INTERVAL==0)
-                std::cout << "x " << count << std::endl;
-        }
-
-        count++;
-    }
-    input.close();
-
-    if (options.debug) {
-        std::cout << "Number of parsed BLAST/LAST results loaded " <<  count << std::endl;
-    }
-    return count;
-}
+//int processParsedBlastout(string db_name, float weight, string blastoutput, MPAnnotateOptions options, map<string, ANNOTATION> &annotation_results) {
+//
+//    if (options.debug) cout << "In processParsedBlastout()" << endl;
+//
+//    // Prepare inputs and buffers
+//    string filename = options.blast_dir + "/" + blastoutput; // BLAST/LASTout.parsed.txt
+//    std::ifstream input; // Input filestream
+//    char buf[10000]; // Temp buffer TODO check to see if multiple buffers nessisary
+//    vector <char *> fields; // Vector for parsed fields
+//
+//    int count = 0; // Line count
+//
+//    // char tempbuf[1000];
+//
+//    if (options.debug) {
+//        cout << "Reading ParsedBlastout: " << filename << "\n";
+//    }
+//
+//    // Open the file.
+//    input.open(filename.c_str(), std::ifstream::in);
+//    if(!input.good()){
+//        std::cerr << "Error opening '" << filename << "'. Bailing out." << std::endl;
+//        exit(1);
+//    }
+//
+//    // ANNOTATION fields for parsing BLAST/LASTout.annotated.txt files
+//    ANNOTATION annotation;
+//    string line;
+//    string query_id;
+//    string bsr;
+//    string ec;
+//    string product;
+//    string taxonomy = "";
+//
+//    // Parse annotation hit line, create ANNOTATION objects
+//    while( std::getline(input, line ).good()) {
+//        split(line, fields, buf,'\t');
+//        if (count == 0) { count++; continue; };
+//
+//        if( fields.size()!=10) {
+//            // Not a parsed blast file
+//            cerr << "Parsed BLAST/LASTout file " <<  filename << " did not have the 10 columns." << endl;
+//            query_id.clear();
+//            input.close();
+//            return 1;
+//        }
+//
+//        query_id = fields[0];
+//        bsr = fields[4];
+//        ec = fields[8];
+//        product = fields[9];
+//
+//        db_name = to_upper(db_name);
+//
+//        // Construct annotation
+//        ANNOTATION annotation;
+//        annotation.bsr = atof(bsr.c_str());
+//        annotation.ec = ec;
+//        annotation.product = product;
+//
+//        // Extract RefSeq taxonomy from product field
+//        if (options.taxonomy && (db_name.find("REFSEQ") != std::string::npos)) {
+//            // TODO: Could be more reliable to get taxonomy from GI number.
+//            taxonomy = getTaxonomyFromProduct(product.c_str());
+//        }
+//        annotation.taxonomy = taxonomy;
+//
+//        // Compute information score of current annotation.
+//        annotation.value = computeAnnotationValue(&annotation) * weight;
+//
+//        // Check to see if current query_id is already in this database's annotation_results
+//        if (annotation_results.count(query_id) <= 0) {
+//            annotation_results[query_id] = annotation;
+//        }
+//        else {
+//            // Replace existing ANNOTATION with the current annotation if strong annotation score
+//            if (annotation_results[query_id].value < annotation.value) {
+//                annotation_results[query_id] = annotation;
+//            }
+//        }
+//
+//        if (options.debug) {
+//            if (count%PRINT_INTERVAL==0)
+//                std::cout << "x " << count << std::endl;
+//        }
+//
+//        count++;
+//    }
+//    input.close();
+//
+//    if (options.debug) {
+//        std::cout << "Number of parsed BLAST/LAST results loaded " <<  count << std::endl;
+//    }
+//    return count;
+//}
 
 
 /*
@@ -456,49 +456,9 @@ int getBlastFileNames(string blastdir, string sample_name, MPAnnotateOptions opt
     return 0;
 }
 
-void createAnnotation(map<string, float> dbname_weight, ANNOTATION_RESULTS results_dictionary, MPAnnotateOptions options, map<string, unsigned int> contig_lengths) {
-    // create_annotation(dbname_weight, results_dictionary, opts.input_gff, opts.rRNA_16S, opts.tRNA, opts.output_gff, opts.output_comparative_annotation, contig_lengths)
-    // orf_dictionary={};
-
-    if (options.debug) {
-        cout << "In createAnnotation()" << endl;
-    }
-    // string input_gff = options.input_gff;
-    // string rRNA_16S = options.rRNA_16S;
-    // string tRNA = options.tRNA;
-    // string output_gff = options.output_gff;
-    // string output_comp_annot = options.output_comp_annot;
-
-    // // read input ORFs the input GFF file
-    // cout << options.input_gff << endl;
-
-    // // Prepare inputs and buffers
-    // string filename = options.blast_dir + "/" + input_gff; // BLAST/LASTout.parsed.txt
-
-    // std::ifstream input; // Input filestream
-    // vector <char *> fields; // Vector for parsed fields
-
-
-
-
-
-//    output_gff_tmp = output_gff + ".tmp";
-//    outputgff_file = open( output_gff_tmp, 'w');
-//    output_comp_annot_file1 = open( output_comparative_annotation + '.1.txt', 'w');
-//    output_comp_annot_file2 = open( output_comparative_annotation + '.2.txt', 'w');
-//
-//    output_comp_annot_file1_Str = 'orf_id\tref dbname\tEC\tproduct\tvalue';
-//    fprintf(output_comp_annot_file1,'%s\n', output_comp_annot_file1_Str);
-//
-//    output_comp_annot_file2_Str = 'orf_id'
-//    dbnames = dbname_weight.keys()
-//    for dbname in dbnames:
-//    weight = dbname_weight[dbname]
-//    output_comp_annot_file2_Str += '\t{0}(EC) \t{0}(product)\t{0}(value)'.format(dbname)
-//    fprintf(output_comp_annot_file2,'%s\n', output_comp_annot_file2_Str)
-}
-
-
+/*
+ * Extracts ORF_ID from GFF line. Used for doing an on-disk sort.
+ */
 string orf_extractor_from_gff(const string &line){
    char buf[10000];
    string orfid;
@@ -512,7 +472,7 @@ string orf_extractor_from_gff(const string &line){
 }
 
 /*
- * Create threads and run annotateOrfsForDBs and writeAnnotatedGFFs 
+ * Main thread function to create and launch threads for ORF annotation and count reduction
  */
 void createThreadsAnnotate(int num_threads, THREAD_DATA_ANNOT *thread_data, WRITER_DATA_ANNOT *writer_data) {
     // Create threads
@@ -522,7 +482,7 @@ void createThreadsAnnotate(int num_threads, THREAD_DATA_ANNOT *thread_data, WRIT
     }
     int rc;
     
-    // Lanuch annotateOrfsForDBs
+    // Launch annotateOrfsForDBs
     for(int i = 0; i < num_threads; i++) {
        if( ( rc = pthread_create(&threads[i], NULL, annotateOrfsForDBs, (void *) (thread_data+i)) ) ) {
          cout << "Error: unable to create thread, " << rc << endl;
@@ -539,30 +499,33 @@ void createThreadsAnnotate(int num_threads, THREAD_DATA_ANNOT *thread_data, WRIT
       if (rc) {
          printf("ERROR: return code from pthread_join() is %d\n", rc);
          exit(-1);
-      }   
+      }
     }
     
-    cout << "Joined threads..." << endl;
+    cout << "Joined threads from annotateOrfsForDBs()" << endl;
     
-    // Create new writer_tread for writeannotate GFFs
-    pthread_t writer_thread; //(pthread_t *)malloc(sizeof(pthread_t)); 
-    if( ( rc = pthread_create(&writer_thread, NULL, writeAnnotations, (void *) (writer_data)) ) ) {
+    // Launch reduceAnnotations with annotated writer_data
+    pthread_t reducer_thread; //(pthread_t *)malloc(sizeof(pthread_t));
+    if( ( rc = pthread_create(&reducer_thread, NULL, reduceAnnotations, (void *) (writer_data)) ) ) {
          cout << "Error: unable to create thread," << rc << endl;
          exit(-1);
     }
     
-    cout << "Finished writeAnnotations()" << endl;
+    cout << "Finished reduceAnnotations()" << endl;
 
-    rc = pthread_join(writer_thread, &status);
+    // Join threads
+    rc = pthread_join(reducer_thread, &status);
     if (rc) {
          printf("ERROR: return code from pthread_join() is %d\n", rc);
          exit(-1);
     }
     
-    cout << "Joined threads..." << endl;
-    
+    cout << "Joined threads from reduceAnnotations()" << endl;
 }
 
+/*
+ * Given a list of annotations in annotation_list returns the best annotation object with the largest bit score
+ */
 ANNOTATION* getBestAnnotation(vector<ANNOTATION *> annotation_list, ANNOTATION* annotation) {
     if (annotation_list.size() > 0) {
         annotation = annotation_list[0];
@@ -576,77 +539,69 @@ ANNOTATION* getBestAnnotation(vector<ANNOTATION *> annotation_list, ANNOTATION* 
 }
 
 /*
- * Creates annotation for functional_and_taxonomic table using hits from available
- * databases.
+ * Main threaded annotation function. Scans ORF annotations and adds their count to for the hierarchical
+ * annotation tables
  */
 void* annotateOrfsForDBs( void *_data) {
-    //cout << "In annotateOrfsForDBs()" << endl;
 
-    // cast _data to THREAD_DATA_ANNOT
     THREAD_DATA_ANNOT *data = static_cast<THREAD_DATA_ANNOT *> (_data);
     
-    // annotation fields
-    unsigned int max_score = 0, score;
-    string db_id = "";
-    
-    // process fields
-    bool success;
+    // Annotation fields
     ANNOTATION *annotation = new ANNOTATION();
-    ANNOTATION *metacyc_annotation = new ANNOTATION();
     vector<ANNOTATION *> annotation_list;
-    ANNOTATION *final_annotation = new ANNOTATION();
-    string (*idextractor) (const char *);
-    vector<string>::iterator it;
-    unsigned int total_count = 0;
-    // unsigned int annotated_count = 0;
-    IDTREE *idtree = new IDTREE();
-
-    // Helper variables for lca calculation
-    string db_name_upper = "";
-    vector<string> ncbi_taxa_ids;
-    string lca = "";
-    vector <char *> ncbiID_parsed_fields; // Vector of annotation words
-    string refseq_id = "";
-    char buf2[1000]; // Temp buffer
-    NCBITree *ncbi_tree = data->ncbi_tree;
+    ANNOTATION *metacyc_annotation = new ANNOTATION(); // MetaCyc annotation for matches from MetaCyc Trie
+    string (*idextractor) (const char *); // Specific annotation ID extractor
+    IDTREE *idtree = new IDTREE(); // Generic DB parser
+    unsigned int score; // annotation information score
+    string db_id = ""; // database
+    string db_name = ""; // helper string for database name
     
     // Ptools Annotation variables
-    PTOOLS_NODE *ptools_ptr; 
+    PTOOLS_NODE *ptools_ptr = NULL;
     bool complete = false;
     vector <string> word_list;
     vector <string> max_word_list;
     string annotation_str = "";
-    char buf[10000]; // Temp buffer
+    char buf[10000];
     vector <char *> annotation_words; // Vector of annotation words
     string annotation_product;
     string metacyc_annotation_product;
-    
-    for( it = data->orfids.begin(); it != data->orfids.end(); it++ )  {
-        // for each ORF 
-        total_count++;
-        max_score = 0; // reset score
-        success = false;
+
+    // LCA calculation variables
+    NCBITree *ncbi_tree = data->ncbi_tree; // NCBI Taxonomy Tree
+    vector<string> ncbi_taxa_ids; // Vector of parsed taxonomy ids
+    string db_name_upper = "";
+    vector <char *> ncbiID_parsed_fields;
+    string lca = "";
+    string refseq_id = "";
+    char buf2[1000];
+
+    // Main loop
+    for( vector<string>::iterator it = data->orfids.begin(); it != data->orfids.end(); it++ )  {
+        // For each orf_id
+
+        // Clear previous annotation data
         *annotation = ANNOTATION(); // clear
-        *final_annotation = ANNOTATION();
         *metacyc_annotation = ANNOTATION();
-        
-        string db_name = ""; // helper string
+        db_name = "";
 
         for( unsigned int j = 0; j < data->db_info.db_names.size(); j++ ) { 
             // For each database j
             db_name = data->db_info.db_names[j];
             db_name_upper = to_upper(db_name);
+
+            // Add database to map if new
             if (data->dbNamesToHierachyIdentifierCounts.find(db_name) == data->dbNamesToHierachyIdentifierCounts.end()) {
-                // add database to map
                 map<string, int> newHierarchyMap;
                 data->dbNamesToHierachyIdentifierCounts[db_name] = newHierarchyMap;
             }
-            
+
+            // Get annotation if orf_id found
             if( data->annot_objects[db_name].find(*it) != data->annot_objects[db_name].end()) {
                 // Annotation orf_id found in database j
-                success = true;
                 annotation = new ANNOTATION();
-                // Get the annotation
+
+                // Get the hit with the highest score
                 annotation_list = data->annot_objects[db_name][*it];
                 annotation = getBestAnnotation(annotation_list, annotation);
                 annotation->dbname = db_name;
@@ -658,40 +613,34 @@ void* annotateOrfsForDBs( void *_data) {
                 split(annotation_product, annotation_words, buf, ' ');
 
                 // Process annotation through MetaCyc trie
-                // annotation_product = processAnnotationForPtools(annotation_words, root);
-                metacyc_annotation_product = processAnnotationForPtools(annotation_words, data->root, ptools_ptr, complete, word_list, max_word_list, annotation_str);
+                metacyc_annotation_product = processAnnotationForPtools(annotation_words,
+                                                                        data->root,
+                                                                        ptools_ptr,
+                                                                        complete,
+                                                                        word_list,
+                                                                        max_word_list,
+                                                                        annotation_str);
 
-                score = computeAnnotationValue(annotation) * data->db_info.weight_dbs[j]; // calculate information annotation score
+                // Calculate information annotation score
+                score = computeAnnotationValue(annotation) * data->db_info.weight_dbs[j];
                 annotation->annotation_score = score;
 
+                // If MetaCyc or EC number found add annotation to metaCycHits for ptools
                 if (metacyc_annotation_product != "") {
+                    // Matched some MetaCyc annotation
                     *metacyc_annotation = *annotation;
                     metacyc_annotation->product = metacyc_annotation_product;
                     metacyc_annotation->ptools_match = true;
                     data->metaCycHits.push_back(*metacyc_annotation);
                 } else if ( annotation->ec != "" ) {
+                    // Valid EC number
                     annotation->ptools_match = false;
                     data->metaCycHits.push_back(*annotation);
                 }
-
-                // Set annotation to best hit
-                if (score > max_score) {
-                    // set final annotation to main fields
-                    final_annotation->orf_id = *it;
-                    final_annotation->product = annotation->product;
-                    final_annotation->bsr = annotation->bsr;
-                    final_annotation->value = annotation->value;
-                    final_annotation->ec = annotation->ec;
-                    final_annotation->taxonomy = annotation->taxonomy;
-                    final_annotation->length = annotation->length;
-                    
-                    max_score = score; // update score
-                }
                 
-                // Get db_id from annotation
+                // Extract db_id from annotation text
                 if (data->db_info.idextractors.find(db_name) != data->db_info.idextractors.end()) {
-                    // Use idextractor function if found
-                    // cout << "Extractor for " << db_name << "found." << endl;
+                    // Use specific idextractor function if found
                     idextractor = data->db_info.idextractors[db_name];
                     db_id = idextractor(annotation->product.c_str());
                     if (db_id != "") {
@@ -701,10 +650,8 @@ void* annotateOrfsForDBs( void *_data) {
                         }
                         data->dbNamesToHierachyIdentifierCounts[db_name][db_id]++; // add count to identifier
                     }
-                    final_annotation->db_ids[db_name] = db_id; // TODO: probably not needed anymore
                 } else if ( (data->dbNamesToHierarchyIdTree.find(db_name) != data->dbNamesToHierarchyIdTree.end())) {
-                    // Use generic idtree
-                    //cout << "Generic extractor for " << db_name << "found." << endl;
+                    // Generic id extractor case
                     idtree = data->dbNamesToHierarchyIdTree[db_name];
                     if (idtree->find(annotation->product).size() > 0) {
                         db_id = idtree->find(annotation->product);
@@ -717,11 +664,11 @@ void* annotateOrfsForDBs( void *_data) {
                             data->dbNamesToHierachyIdentifierCounts[db_name][db_id]++;
                         }
                     }
-                    final_annotation->db_ids[db_name] = db_id; // TODO: probably not needed anymore
                 } else if (db_name_upper.find("REFSEQ") != std::string::npos) {
-                    // calculate LCA
-                    // cout << "Using REFSEQ specific extractor for " << db_name << "." << endl;
-                    ncbi_taxa_ids.clear();
+                    // RefSeq case
+
+                    // Calculate LCA
+                    ncbi_taxa_ids.clear(); // Collection of NCBI IDs
                     for (vector<ANNOTATION*>::iterator itr = annotation_list.begin(); itr != annotation_list.end(); ++itr) {
                         ncbiID_parsed_fields.clear();
                         refseq_id = (*itr)->target;
@@ -732,78 +679,40 @@ void* annotateOrfsForDBs( void *_data) {
                         }
                     }
 
-                    lca = ncbi_tree->getLCA(ncbi_taxa_ids);
+                    lca = ncbi_tree->getLCA(ncbi_taxa_ids); // search tree
+
+                    // Add LCA to the Hierarchy count
                     if (data->dbNamesToHierachyIdentifierCounts[db_name].find(lca) == data->dbNamesToHierachyIdentifierCounts[db_name].end()) {
                         // First time seeing db_id
                         data->dbNamesToHierachyIdentifierCounts[db_name][lca] = 0;
                     }
-                    data->dbNamesToHierachyIdentifierCounts[db_name][lca]++; // add count to identifier
+                    data->dbNamesToHierachyIdentifierCounts[db_name][lca]++; // Add count to identifier
                 }
             }
         }
-//        // TODO: place to check for pathway tools annotation
-//        if (success) {
-//            // data->db_hits[*it] = *final_annotation;
-//
-//            // Clear annotation fields
-//            annotation_product = final_annotation->product;
-//
-//            // Split annotation into separate words
-//            split(annotation_product, annotation_words, buf, ' ');
-//
-//            // Process annotation through MetaCyc trie
-//            // annotation_product = processAnnotationForPtools(annotation_words, root);
-//            metacyc_annotation_product = processAnnotationForPtools(annotation_words, data->root, ptools_ptr, complete, word_list, max_word_list, annotation_str);
-//
-//            if (metacyc_annotation_product != "") {
-//                final_annotation->product = metacyc_annotation_product;
-//                data->metaCycHits.push_back(*final_annotation);
-//            } else if ( final_annotation->ec != "" ) {
-//                data->metaCycHits.push_back(*final_annotation);
-//            }
-//            // If valid annotation product or EC number
-//            // if (ec_number != "") {
-//            //     // If ec_number valid use original annotation
-//            //     writePfEntry(orf_id, annotation_product, ec_number, start_base, length, output);
-//            // } else if (metacyc_annotation_product != "") {
-//            //     writePfEntry(orf_id, metacyc_annotation_product, ec_number, start_base, length, output);
-//            // }
-//
-//            // metacyc_annotation_product = processAnnotationForPtools(annotation_words, root, ptools_ptr, complete, word_list, max_word_list, annotation);
-//            // annotated_count++;
-//        }
     }
 
-    // cout << "annotateOrfsForDBs(): " << annotated_count << " of " << total_count  << " ORFs annotated" << endl;
     return (void *) NULL;
-
 }
 
-//void *writeAnnotatedPreamble(void *_writer_data) {
-//
-//    char buf[10000];
-//    string str;
-//    WRITER_DATA_ANNOT *writer_data = (WRITER_DATA_ANNOT *)_writer_data;
-//    std::cout << "preamble \n";
-//    for(unsigned int i = 0; i < writer_data->db_info.db_names.size(); i++) {
-//       writer_data->output[i] <<  "#"<< writer_data->db_info.db_names[i] << std::endl;
-//    }
-//}
 
-void *writeAnnotations( void *_writer_data) {
-    
-    unsigned int b;  
-    // char buf[10000];
+/*
+ * Collects annotation counts from each thread and combines them into their respective global data structures in writer_data
+ * to be written out to disk in the main function. Runs after each batch of annotations summarized.
+ * dbNamesToHierachyIdentifierCounts: database_name -> db_id -> count
+ * globalMetaCycNamesToAnnotations <MetaCycProductName/ECNumber> -> ANNOTATION object
+ * globalMetaCycNamesToDbCounts: <MetaCycProductName/ECNumber> -> database -> count
+ */
+void *reduceAnnotations( void *_writer_data) {
+
     WRITER_DATA_ANNOT *writer_data = (WRITER_DATA_ANNOT *) _writer_data;
-    unsigned int num_threads = writer_data->num_threads;
     THREAD_DATA_ANNOT *thread_data = writer_data->thread_data; // get annotation data
-    ANNOTATION result_annotation;
-    string print_line; // line to print
+    unsigned int num_threads = writer_data->num_threads;
     
     for(unsigned int i = 0; i < num_threads; i++) {
         // for each thread
         
-        // reduce dbNamesToHierachyIdentifierCounts
+        // reduce DB hierarchy counts in dbNamesToHierachyIdentifierCounts
         std::cout << "Reducing DbNamesToHierachyIdentifierCounts results from thread " << i << std::endl;
         for ( map<string, map<string, int> >::iterator db_itr = thread_data[i].dbNamesToHierachyIdentifierCounts.begin();
               db_itr != thread_data[i].dbNamesToHierachyIdentifierCounts.end();
@@ -812,7 +721,7 @@ void *writeAnnotations( void *_writer_data) {
 
             // For each db_name
             if ( writer_data->globalDbNamesToHierachyIdentifierCounts.find(db_itr->first) == writer_data->globalDbNamesToHierachyIdentifierCounts.end()) {
-                // create database map if not present in globalDbNamesToHierachyIdentifierCounts
+                // create database in map if not present
                 map<string, int> newHierarchyMap;
                 writer_data->globalDbNamesToHierachyIdentifierCounts[db_itr->first] = newHierarchyMap;
             }
@@ -822,7 +731,7 @@ void *writeAnnotations( void *_writer_data) {
                  id_itr != thread_data[i].dbNamesToHierachyIdentifierCounts[db_itr->first].end();
                  id_itr++) {
                  if ( writer_data->globalDbNamesToHierachyIdentifierCounts[db_itr->first].find(id_itr->first) == writer_data->globalDbNamesToHierachyIdentifierCounts[db_itr->first].end()) {
-                     // create id slot if not present
+                     // create id slot if not present in database
                      writer_data->globalDbNamesToHierachyIdentifierCounts[db_itr->first][id_itr->first] = 0;
                  }
                  // add to global count
@@ -830,30 +739,10 @@ void *writeAnnotations( void *_writer_data) {
             }
         }
 
+        // Calculate the global MetaCyc annotations
+        string metacyc_label = ""; // EC number match or MetaCyc annotation used as key
 
-
-        // debug print of
-//        int num = 0;
-//        int total = 0;
-//        for ( map<string, map<string, int> >::iterator db_itr = thread_data[i].dbNamesToHierachyIdentifierCounts.begin();
-//              db_itr != thread_data[i].dbNamesToHierachyIdentifierCounts.end();
-//              db_itr ++
-//                ) {
-//            num = 0;
-//            for (map<string, int>::iterator id_itr = thread_data[i].dbNamesToHierachyIdentifierCounts[db_itr->first].begin();
-//                 id_itr != thread_data[i].dbNamesToHierachyIdentifierCounts[db_itr->first].end();
-//                 id_itr++) {
-//
-//            }
-//            cout << " " << db_itr->first << ": " << db_itr->second.size() << endl;
-//        }
-
-
-        // Calculate the global metacyc
-        writer_data->globalMetaCycNamesToAnnotations;
-        writer_data->globalMetaCycNamesToDbCounts;
-        string metacyc_label = ""; // ec match or metacyc annotation
-
+        // For each annotation
         for (vector<ANNOTATION>::iterator mc_itr = thread_data[i].metaCycHits.begin();
              mc_itr != thread_data[i].metaCycHits.end();
              mc_itr++) {
@@ -1056,7 +945,7 @@ void writePfEntry(string orf_id, string annotation_product, string ec_number, st
  */
 void writePToolsResults(WRITER_DATA_ANNOT* writer_data, string ptools_dir, string sample_name) {
 
-    // create 0.pf file
+    // Create 0.pf file
     string pf_file = writer_data->options.ptools_dir + "/" + "0.pf";
     ofstream pf_output;
     pf_output.open(pf_file.c_str(), std::ofstream::out);
@@ -1070,7 +959,7 @@ void writePToolsResults(WRITER_DATA_ANNOT* writer_data, string ptools_dir, strin
     char end_base_str[30];
     string derived_orf_id;
 
-    // Writeout metaCycHits to .pf file
+    // Writeout metaCycHits to 0.pf file
     int i = 0;
     for (map<string, ANNOTATION>::iterator mc_itr =  writer_data->globalMetaCycNamesToAnnotations.begin();
          mc_itr != writer_data->globalMetaCycNamesToAnnotations.end();
@@ -1082,7 +971,7 @@ void writePToolsResults(WRITER_DATA_ANNOT* writer_data, string ptools_dir, strin
          sprintf(end_base_str, "%d", end_base);
          ostringstream ss;
          ss << i;
-         derived_orf_id = "DIR_" + sample_name + "_" + ss.str();
+         derived_orf_id = "DIR_" + sample_name + "_" + ss.str(); // modified orf_id
          writePfEntry(derived_orf_id,
                       anno.product,
                       anno.ec,
@@ -1097,7 +986,7 @@ void writePToolsResults(WRITER_DATA_ANNOT* writer_data, string ptools_dir, strin
 
     pf_output.close();
 
-    // create counts file
+    // Create counts file
     string counts_file = writer_data->options.ptools_dir + "/" + "ptools_counts.txt";
 
     pf_output.open(counts_file.c_str(), std::ofstream::out);
@@ -1106,23 +995,23 @@ void writePToolsResults(WRITER_DATA_ANNOT* writer_data, string ptools_dir, strin
         exit(-1);
     }
 
-    // databases header line
+    // Header line with database names
     string header_line = "Annotation";
-    for (int i = 0; i < writer_data->db_info.db_names.size(); ++i) {
+    for (unsigned int i = 0; i < writer_data->db_info.db_names.size(); ++i) {
         header_line = header_line + "\t" + writer_data->db_info.db_names[i];
     }
     header_line = header_line + "\t" + "total";
     header_line = header_line + "\n";
     pf_output << header_line;
 
+    // Create count line
     for (map<string, map<string, int> >::iterator mc_itr =  writer_data->globalMetaCycNamesToDbCounts.begin();
          mc_itr != writer_data->globalMetaCycNamesToDbCounts.end();
          mc_itr++) {
-         string anno = mc_itr->first;
-         string line = anno;
+         string line = mc_itr->first;
          int total = 0;
          map<string, int> db_counts = mc_itr->second;
-         for (int i = 0; i < writer_data->db_info.db_names.size(); ++i) {
+         for (unsigned int i = 0; i < writer_data->db_info.db_names.size(); ++i) {
              if (db_counts.find(writer_data->db_info.db_names[i]) == db_counts.end() ) {
                  line = line + "\t" + "0";
              } else {

@@ -28,13 +28,11 @@ vector<string> getFunctionalHierarchyFiles(string hierarhcy_dir, MPAnnotateOptio
 
 HNODE* createHNODE(string line);
 
-void readContigLengths(string contig_map_file, map<string, unsigned int> &contig_lengths);
+// void readContigLengths(string contig_map_file, map<string, unsigned int> &contig_lengths);
 
 int getBlastFileNames(string blastdir, string sample_name, MPAnnotateOptions options, DB_INFO &db_info);
 
-int processParsedBlastout(string db_name, float weight, string blastoutput, MPAnnotateOptions options, map<string, ANNOTATION> &annotation_results);
-
-void createAnnotation(map<string, float> dbname_weight, ANNOTATION_RESULTS results_dictionary, MPAnnotateOptions options, map<string, unsigned int> contig_lengths);
+// int processParsedBlastout(string db_name, float weight, string blastoutput, MPAnnotateOptions options, map<string, ANNOTATION> &annotation_results);
 
 string orf_extractor_from_gff(const string &line);
 
@@ -42,7 +40,7 @@ void createThreadsAnnotate(int num_threads, THREAD_DATA_ANNOT *thread_data, WRIT
 
 void *annotateOrfsForDBs( void *_data) ;
 
-void *writeAnnotations( void *_writer_data)  ;
+void *reduceAnnotations( void *_writer_data)  ;
 
 ANNOTATION* createAnnotation(const char * line, const string &dbname, bool taxonomy =true);
 
@@ -51,7 +49,9 @@ ANNOTATION* getBestAnnotation(vector<ANNOTATION *> annotation_list, ANNOTATION* 
 int process_all_parsed_blastout(THREAD_DATA_ANNOT *thread_data);
 
 string createFunctionalAndTaxonomicTableLine(ANNOTATION annotation);
+
 // void *writeAnnotatedPreamble(void *_writer_data);
+
 void printMetaCycTree(PTOOLS_NODE *root);
 
 void processPToolsRxnsFile( string ptools_rxn_file, vector<string> &ptools_list );
