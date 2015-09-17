@@ -1050,6 +1050,10 @@ void writePfEntry(string orf_id, string annotation_product, string ec_number, st
     output << pf_entry;
 }
 
+/*
+ * Creates the inputs for the ptools folder from the writer_data:
+ * 0.pf file, ptools_counts.txt, genetic-elements.dat, organism-params.dat
+ */
 void writePToolsResults(WRITER_DATA_ANNOT* writer_data, string ptools_dir, string sample_name) {
 
     // create 0.pf file
@@ -1064,8 +1068,10 @@ void writePToolsResults(WRITER_DATA_ANNOT* writer_data, string ptools_dir, strin
     int end_base = 0;
     char start_base_str[30];
     char end_base_str[30];
+    string derived_orf_id;
 
     // Writeout metaCycHits to .pf file
+    int i = 0;
     for (map<string, ANNOTATION>::iterator mc_itr =  writer_data->globalMetaCycNamesToAnnotations.begin();
          mc_itr != writer_data->globalMetaCycNamesToAnnotations.end();
          mc_itr++) {
@@ -1074,7 +1080,10 @@ void writePToolsResults(WRITER_DATA_ANNOT* writer_data, string ptools_dir, strin
 
          sprintf(start_base_str, "%d", start_base);
          sprintf(end_base_str, "%d", end_base);
-         writePfEntry(anno.orf_id,
+         ostringstream ss;
+         ss << i;
+         derived_orf_id = "DIR_" + sample_name + "_" + ss.str();
+         writePfEntry(derived_orf_id,
                       anno.product,
                       anno.ec,
                      string(start_base_str),
@@ -1082,12 +1091,14 @@ void writePToolsResults(WRITER_DATA_ANNOT* writer_data, string ptools_dir, strin
                      pf_output);
          // update startbase
          start_base = start_base + anno.length + 10;
+         i++;
+         ss.clear();
     }
 
     pf_output.close();
 
     // create counts file
-    string counts_file = writer_data->options.ptools_dir + "/" + "counts_0.pf";
+    string counts_file = writer_data->options.ptools_dir + "/" + "ptools_counts.txt";
 
     pf_output.open(counts_file.c_str(), std::ofstream::out);
     if(!pf_output.good()){
@@ -1100,6 +1111,7 @@ void writePToolsResults(WRITER_DATA_ANNOT* writer_data, string ptools_dir, strin
     for (int i = 0; i < writer_data->db_info.db_names.size(); ++i) {
         header_line = header_line + "\t" + writer_data->db_info.db_names[i];
     }
+    header_line = header_line + "\t" + "total";
     header_line = header_line + "\n";
     pf_output << header_line;
 
@@ -1108,16 +1120,21 @@ void writePToolsResults(WRITER_DATA_ANNOT* writer_data, string ptools_dir, strin
          mc_itr++) {
          string anno = mc_itr->first;
          string line = anno;
+         int total = 0;
          map<string, int> db_counts = mc_itr->second;
          for (int i = 0; i < writer_data->db_info.db_names.size(); ++i) {
              if (db_counts.find(writer_data->db_info.db_names[i]) == db_counts.end() ) {
                  line = line + "\t" + "0";
              } else {
-                 ostringstream s;
-                 s << db_counts[writer_data->db_info.db_names[i]];
-                 line = line + "\t" + s.str();
+                 ostringstream ss1;
+                 ss1 << db_counts[writer_data->db_info.db_names[i]];
+                 line = line + "\t" + ss1.str();
+                 total += db_counts[writer_data->db_info.db_names[i]];
              }
          }
+         ostringstream ss2;
+         ss2 << total;
+         line = line + "\t" + ss2.str();
          line = line + "\n";
          pf_output << line;
     }
