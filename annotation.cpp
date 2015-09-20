@@ -542,7 +542,7 @@ ANNOTATION* getBestAnnotation(vector<ANNOTATION *> annotation_list, ANNOTATION* 
  * Main threaded annotation function. Scans ORF annotations and adds their count to for the hierarchical
  * annotation tables
  */
-void* annotateOrfsForDBs( void *_data) {
+void* annotateOrfsForDBs(void *_data) {
 
     THREAD_DATA_ANNOT *data = static_cast<THREAD_DATA_ANNOT *> (_data);
     
@@ -700,7 +700,7 @@ void* annotateOrfsForDBs( void *_data) {
  * Collects annotation counts from each thread and combines them into their respective global data structures in writer_data
  * to be written out to disk in the main function. Runs after each batch of annotations summarized.
  * dbNamesToHierachyIdentifierCounts: database_name -> db_id -> count
- * globalMetaCycNamesToAnnotations <MetaCycProductName/ECNumber> -> ANNOTATION object
+ * globalMetaCycNamesToAnnotations: <MetaCycProductName/ECNumber> -> ANNOTATION object
  * globalMetaCycNamesToDbCounts: <MetaCycProductName/ECNumber> -> database -> count
  */
 void *reduceAnnotations( void *_writer_data) {
@@ -778,7 +778,7 @@ void *reduceAnnotations( void *_writer_data) {
 }
 
 /*
- * Print out MetaCyc word trie using a stack-based recursive post-order traversal
+ * Print out MetaCyc word trie using a stack-based recursive pre-order traversal
  */
 void printMetaCycTree(PTOOLS_NODE *root) {
     vector<PTOOLS_NODE *> node_stack; // Stack of nodes

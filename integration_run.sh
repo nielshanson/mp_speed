@@ -140,6 +140,24 @@ my_cmd="./mp_annotate --input_gff /Users/nielshanson/Documents/pycharm/metapathw
 echo $my_cmd
 eval $my_cmd
 
+#my_cmd="./mp_annotate --input_gff /Users/nielshanson/Desktop/kidney_stones_out/ALaw-C5_S6_contigs/orf_prediction/ALaw-C5_S6_contigs.unannot.gff \
+# --results_dir /Users/nielshanson/Desktop/kidney_stones_out/ALaw-C5_S6_contigs/results/annotation_table/ \
+# --blast_dir /Users/nielshanson/Desktop/kidney_stones_out/ALaw-C5_S6_contigs/blast_results/ \
+# --functional_categories /Users/nielshanson/Documents/pycharm/metapathways3/databases/functional_categories \
+# --ptools_rxns /Users/nielshanson/Documents/pycharm/metapathways3/databases/functional_categories/metacyc_enzymes_rxns_ecs.txt \
+# --ptools_dir /Users/nielshanson/Desktop/kidney_stones_out/ALaw-C5_S6_contigs/ptools/ \
+# --sample_name ALaw-C5_S6_contigs \
+# --algorithm LAST \
+# --tax \
+# --ncbi_catalog_map /Users/nielshanson/Documents/pycharm/metapathways3/resources/RefSeq-release69.catalog.small.txt \
+# --ncbi_catalog_names_map /Users/nielshanson/Documents/pycharm/metapathways3/resources/RefSeq-release69.catalog.taxid2taxa.txt \
+# --ncbi_nodes /Users/nielshanson/Documents/pycharm/metapathways3/resources/ncbi_nodes_parent_child_ids.txt \
+# --debug \
+# --num_threads 4"
+#
+#echo $my_cmd
+#eval $my_cmd
+
 
 # Prepare Ptools Input
 #./mp_create_ptools_input --ptools_rxns /Users/nielshanson/Dropbox/projects/mp_speed/data/metacyc_enzymes_rxns_ecs.txt \

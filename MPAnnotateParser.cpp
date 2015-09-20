@@ -220,6 +220,23 @@ bool MPAnnotateParser::readBatch() {
     return false;
 }
 
+
+/*
+ * Takes a ncbi taxonomy id and returns it full lineage separated by semicolons
+ */
+string MPAnnotateParser::prepareRefSeqTaxonomy(string ncbi_id, map<string, string> NCBI_ID_to_Common, NCBITree* ncbi_tree) {
+    string result = "";
+    vector<string> id_lineage = ncbi_tree->getLineage(ncbi_id);
+    reverse(id_lineage.begin(),id_lineage.end());
+    result = NCBI_ID_to_Common[ncbi_id];
+    for (unsigned int i = 1; i < id_lineage.size(); ++i) {
+        result = result + ";" + NCBI_ID_to_Common[id_lineage[i]];
+    }
+    return result;
+}
+
+
+
 /*
  * Writes functional annotation hits to results folder as .tree.count.txt files
  */
@@ -228,8 +245,10 @@ void MPAnnotateParser::writeFunctionalHierarchyFiles(WRITER_DATA_ANNOT *writer_d
     string db_name = "";
     string ending = ".tree.count.txt";
     string filename = "";
-    string header = "ID\tcount";
+    string header = "ID\talias\tcount";
     string sample_name = options.sample_name;
+    string alias_name = "";
+    map<string, string> db_hierarchy_id_map;
     
     int total = 0;
     
@@ -240,6 +259,16 @@ void MPAnnotateParser::writeFunctionalHierarchyFiles(WRITER_DATA_ANNOT *writer_d
         db_itr ++ ) {
             
         db_name = db_itr->first;
+        string temp_db_str = "";
+        temp_db_str = to_upper(db_name);
+
+        if (writer_data->dbNamesToHierarchyIdentifierMaps.find(db_name) != writer_data->dbNamesToHierarchyIdentifierMaps.end()) {
+            db_hierarchy_id_map = writer_data->dbNamesToHierarchyIdentifierMaps[db_name];
+        } else if ( temp_db_str.find("REFSEQ") != std::string::npos ) {
+            db_hierarchy_id_map = writer_data->ncbi_tree->NCBI_ID_to_Common;
+        } else {
+            db_hierarchy_id_map = map<string, string>();
+        }
         
         if (writer_data->globalDbNamesToHierachyIdentifierCounts[db_itr->first].size() >= 0) {
             
@@ -255,13 +284,21 @@ void MPAnnotateParser::writeFunctionalHierarchyFiles(WRITER_DATA_ANNOT *writer_d
             output << header << endl;
             
             total = 0;
-            
             // Iterate through ids
             for (map<string, int>::iterator id_itr = writer_data->globalDbNamesToHierachyIdentifierCounts[db_itr->first].begin();
                       id_itr != writer_data->globalDbNamesToHierachyIdentifierCounts[db_itr->first].end();
                       id_itr++) {
                 total += id_itr->second;
-                output << id_itr->first << "\t" << id_itr->second << endl;
+                if (db_hierarchy_id_map.size() > 0) {
+                    if (db_hierarchy_id_map.find(id_itr->first) != db_hierarchy_id_map.end()) {
+                        if (temp_db_str.find("REFSEQ") != std::string::npos) {
+                            alias_name = prepareRefSeqTaxonomy(id_itr->first, db_hierarchy_id_map, writer_data->ncbi_tree);
+                        } else {
+                            alias_name = db_hierarchy_id_map[id_itr->first];
+                        }
+                    }
+                }
+                output << id_itr->first << "\t" << alias_name << "\t" << id_itr->second << endl;
                 
             }
             output.close();

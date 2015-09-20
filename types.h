@@ -235,6 +235,8 @@ typedef struct _WRITER_DATA_ANNOT {
     map<string, map<string, int> > globalDbNamesToHierachyIdentifierCounts;
     map<string, ANNOTATION > globalMetaCycNamesToAnnotations;
     map<string, map<string, int> > globalMetaCycNamesToDbCounts;
+    map<string, map<string, string> > dbNamesToHierarchyIdentifierMaps;
+    NCBITree* ncbi_tree;
     MPAnnotateOptions options;
     
 } WRITER_DATA_ANNOT;

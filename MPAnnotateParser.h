@@ -7,6 +7,7 @@
 #include <math.h>
 #include <map>
 #include <regex.h>
+#include <algorithm>
 
 #include "utilities.h"
 #include "types.h"
@@ -41,6 +42,7 @@ public:
       void closeBatchReading();
       void initializeBatchReading();
       void distributeInput(THREAD_DATA_ANNOT  *thread_data);
+      string prepareRefSeqTaxonomy(string ncbi_id, map<string, string> NCBI_ID_to_Common, NCBITree* ncbi_tree);
       void writeFunctionalHierarchyFiles(WRITER_DATA_ANNOT *writer_data, MPAnnotateOptions options);
 };
 

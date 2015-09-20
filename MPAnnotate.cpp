@@ -22,7 +22,7 @@ int main( int argc, char** argv) {
         options.printOptions();
     }
 
-    // Determine database and load matching functional hierarchy information if present
+    // Determine databases and load matching functional hierarchy information if present
     DB_INFO db_info;
     
     // Detect BLAST.parsed.txt files and information 
@@ -43,31 +43,28 @@ int main( int argc, char** argv) {
     }
 
     // Build NCBI Tree if RefSeq results found
-    NCBITree *ncbi_tree = new NCBITree(options.ncbi_catalog, options.ncbi_catalog_names_map, options.ncbi_nodes);
+    NCBITree* ncbi_tree = new NCBITree(options.ncbi_catalog, options.ncbi_catalog_names_map, options.ncbi_nodes);
     string temp_db_str = "";
 
     for (unsigned int i =0; i < db_info.input_blastouts.size(); i++ ) {
         temp_db_str = to_upper(db_info.db_names[i]);
-        if ( (temp_db_str.find("REFSEQ") != std::string::npos) && (ncbi_tree->built == false)) {
+        if ( (temp_db_str.find("REFSEQ") != std::string::npos) && !ncbi_tree->built) {
             // build tree
-            if (options.taxonomy) {
-                cout << "Building NCBI Taxonomy Database Hierarchy" << endl;
-            }
+            if (options.debug) cout << "Building NCBI Taxonomy Database Hierarchy" << endl;
             ncbi_tree->init();
         }
     }
 
-    // Extract and create functional and taxonomic hierachy maps
+    // Extract and create functional and taxonomic hierarchy maps
     vector<string> functional_hierarchy_files = getFunctionalHierarchyFiles(options.functional_categories, options);
     
-    // Datastructure to pass database functional hierarchy information to threads
+    // Data structures to pass database functional hierarchy information to threads
     map<string, map<string, string> > dbNamesToHierarchyIdentifierMaps;
     map<string, IDTREE*> dbNamesToHierarchyIdTree;
-    vector<string> db_id_list; // idlist for custom parser for idtree
+    vector<string> db_id_list; // list of database ids to generate general parser
 
     string full_path = "";
     string db_name = "";
-        
     for ( unsigned int i = 0; i < functional_hierarchy_files.size(); i++ ) {
         full_path = options.functional_categories + "/" + functional_hierarchy_files[i];
         db_name = removeEnding(functional_hierarchy_files[i], ".tree.txt");
@@ -76,15 +73,17 @@ int main( int argc, char** argv) {
                 dbNamesToHierarchyIdentifierMaps[db_name] = makeHierarchyIdentifierMap(full_path);
                 if (db_info.idextractors.find(db_name) == db_info.idextractors.end()) {
                     // Specific parser not found, use genertic idtree parser
-                    cout << "Specific extractor not found for " << db_name << endl;
+                    if (options.debug) cout << "No specific extractor not found for " << db_name << endl;
                     db_id_list.clear();
+
                     // Get identifers from database
                     for(map<string, string>::iterator itr = dbNamesToHierarchyIdentifierMaps[db_name].begin();
                         itr != dbNamesToHierarchyIdentifierMaps[db_name].end();
                         itr++) {
                         db_id_list.push_back(itr->first);
                     }
-                    // Create idTree
+
+                    // Create general idTree from ids
                     IDTREE *idtree = new IDTREE;
                     idtree->createTrie(db_id_list);
                     
@@ -166,8 +165,10 @@ int main( int argc, char** argv) {
     writer_data->num_threads = options.num_threads;
     writer_data->db_info = db_info;
     writer_data->options = options;
+    writer_data->ncbi_tree = ncbi_tree;
+    writer_data->dbNamesToHierarchyIdentifierMaps = dbNamesToHierarchyIdentifierMaps;
 
-    if (options.debug) cout << "Begin processing: " << endl;
+    if (options.debug) cout << "Begin processing ORF annotations: " << endl;
     parser.initializeBatchReading();
 
     while(parser.readBatch()) {  // main loop

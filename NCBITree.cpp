@@ -133,6 +133,19 @@ bool NCBITree::CreateNCBITree() {
     return true;
 }
 
+vector<string> NCBITree::getLineage(string ncbi_id) {
+    TREENODE *cur_node;
+    vector<string> lineage_ids = vector<string>();
+    if (this->treeNodeLookup.find(ncbi_id) != this->treeNodeLookup.end()) {
+        cur_node = this->treeNodeLookup[ncbi_id];
+        while(cur_node != 0) {
+            lineage_ids.push_back(cur_node->taxa_id);
+            cur_node = cur_node->parent;
+        }
+    }
+    return lineage_ids;
+}
+
 string NCBITree::getLCA(vector<string> ncbi_ids) {
     vector<string> ncbi_ids_clean; // confirmed ids
     for(vector<string>::iterator itr = ncbi_ids.begin(); itr != ncbi_ids.end(); ++itr) {

@@ -55,6 +55,7 @@ class NCBITree {
         bool BuildCatalogNamesMap();
         bool BuildRefSeqCatalog();
         bool CreateNCBITree();
+        vector<string> getLineage(string ncbi_id);
         string getLCA(vector<string> ncbi_ids);
 };
 
