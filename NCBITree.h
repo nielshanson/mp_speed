@@ -43,6 +43,7 @@ class NCBITree {
     string ncbi_catalog_file;
     string ncbi_catalog_names_map_file;
     string ncbi_nodes_file;
+    string megan_map_file;
     public:
         // members
         map<string, string> NCBI_ID_to_Common;
@@ -50,7 +51,7 @@ class NCBITree {
         map<string, TREENODE*> treeNodeLookup;
         bool built;
         // methods
-        NCBITree(string ncbi_catalog, string ncbi_catalog_names_map, string ncbi_nodes); // constructor
+        NCBITree(string ncbi_catalog, string ncbi_catalog_names_map, string ncbi_nodes, string megan_map_file); // constructor
         bool init(); // build NCBI Tree
         bool BuildCatalogNamesMap();
         bool BuildRefSeqCatalog();

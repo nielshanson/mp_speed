@@ -43,7 +43,7 @@ int main( int argc, char** argv) {
     }
 
     // Build NCBI Tree if RefSeq results found
-    NCBITree* ncbi_tree = new NCBITree(options.ncbi_catalog, options.ncbi_catalog_names_map, options.ncbi_nodes);
+    NCBITree* ncbi_tree = new NCBITree(options.ncbi_catalog, options.ncbi_catalog_names_map, options.ncbi_nodes, options.megan_map);
     string temp_db_str = "";
 
     for (unsigned int i =0; i < db_info.input_blastouts.size(); i++ ) {
@@ -76,7 +76,7 @@ int main( int argc, char** argv) {
                     if (options.debug) cout << "No specific extractor not found for " << db_name << endl;
                     db_id_list.clear();
 
-                    // Get identifers from database
+                    // Get identifier from database
                     for(map<string, string>::iterator itr = dbNamesToHierarchyIdentifierMaps[db_name].begin();
                         itr != dbNamesToHierarchyIdentifierMaps[db_name].end();
                         itr++) {

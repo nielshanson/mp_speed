@@ -76,6 +76,9 @@ bool MPAnnotateOptions::SetOptions(int argc, char *argv[]) {
         else if ( strncmp(argv[i], "--ncbi_nodes", strlen("--ncbi_nodes")) == 0 ) {
             this->ncbi_nodes = argv[++i];
         }
+        else if ( strncmp(argv[i], "--megan_map", strlen("--megan_map")) == 0 ) {
+            this->megan_map = argv[++i];
+        }
         else if( strncmp(argv[i], "--num_threads", strlen("--num_threads")) == 0 ) {
             this->num_threads = atoi(argv[++i]);
         }
@@ -112,6 +115,7 @@ void MPAnnotateOptions::printOptions() {
          << "weight_db:         " <<  weight_db << "\n"\
          << "ncbi_catalog_map:      " <<  ncbi_catalog << "\n"\
          << "ncbi_catalog_names_map: " <<  ncbi_catalog_names_map << "\n"\
+         << "megan_map:      " <<  megan_map << "\n"\
          << "ncbi_nodes:        " <<  ncbi_nodes << "\n"\
          << "debug:             " <<  debug << "\n"
          << "---------------\n\n";

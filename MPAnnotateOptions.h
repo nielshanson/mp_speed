@@ -33,6 +33,7 @@ struct MPAnnotateOptions {
     string ncbi_catalog;
     string ncbi_catalog_names_map;
     string ncbi_nodes;
+    string megan_map;
 
     // Threading options
     unsigned int num_threads;
@@ -51,6 +52,7 @@ struct MPAnnotateOptions {
         ptools_rxn_file = "";
         ptools_dir = "";
         results_dir = "";
+        megan_map = "";
         num_threads = 1;
         weight_db = 1.0;
         debug = false;

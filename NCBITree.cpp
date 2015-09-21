@@ -4,10 +4,14 @@
 
 #include "NCBITree.h"
 
-NCBITree::NCBITree(string ncbi_catalog_file = "", string ncbi_catalog_names_map_file = "", string ncbi_nodes_file = "") {
+NCBITree::NCBITree(string ncbi_catalog_file = "",
+                   string ncbi_catalog_names_map_file = "",
+                   string ncbi_nodes_file = "",
+                   string megan_map_file = "") {
     this->ncbi_catalog_file = ncbi_catalog_file;
     this->ncbi_catalog_names_map_file = ncbi_catalog_names_map_file;
     this->ncbi_nodes_file = ncbi_nodes_file;
+    this->megan_map_file = megan_map_file;
     this->built = false;
 }
 
@@ -34,6 +38,8 @@ bool NCBITree::BuildRefSeqCatalog() {
         return false;
     }
 
+    // this->NCBI_ID_to_Common['-1'] = "unknown taxonomy"; // no match
+
     // split NCBI_ID and common_name
     while( std::getline( input, line ).good() ) {
         split(line, fields, buf, '\t');
@@ -42,6 +48,24 @@ bool NCBITree::BuildRefSeqCatalog() {
         }
     }
     input.close();
+
+    if (this->megan_map_file != "") {
+        filename = this->megan_map_file;
+        fields.clear();
+        input.open(filename.c_str(), std::ifstream::in);
+        if(!input.good()){
+            cerr << "Error opening '"<< filename << "'. " << endl;
+            return false;
+        }
+        // split NCBI_ID and common_name
+        while( std::getline( input, line ).good() ) {
+            split(line, fields, buf, '\t');
+            if(this->NCBI_ID_to_Common.find(fields[0]) == this->NCBI_ID_to_Common.end()) {
+                this->NCBI_ID_to_Common[fields[0]] = fields[1];
+            }
+        }
+        input.close();
+    }
 
     return true;
 }
@@ -154,52 +178,43 @@ string NCBITree::getLCA(vector<string> ncbi_ids) {
         }
     }
 
-    TREENODE *cur_node;
-
-//    cout << "Original IDs: " << endl;
-//    for(vector<string>::iterator itr = ncbi_ids_clean.begin(); itr != ncbi_ids_clean.end(); ++itr) {
-//        cout << *itr << "\t";
-//    }
-//    cout << endl;
-    bool lca_flag;
     string lca = "-1"; // no answer
 
-    if (ncbi_ids_clean.size() == 1) {
-        lca = ncbi_ids_clean[0];
-    }
-
-    for(vector<string>::iterator itr = ncbi_ids_clean.begin(); itr != ncbi_ids_clean.end(); ++itr) {
-        cur_node = this->treeNodeLookup[*itr];
-//        cout << "Original: " << *itr << " Lineage: " << endl;
-//        cout << "My_ID: " << cur_node->taxa_id << endl;
-        lca_flag = false;
-        while (cur_node != 0) {
-            // cout << cur_node->taxa_id << "\t";
-            cur_node->count++;
-            if (!cur_node->seen) {
-                cur_node->seen = true;
-            } else {
-                if (!lca_flag && cur_node->count == ncbi_ids_clean.size()) {
-                    lca = cur_node->taxa_id;
-                    lca_flag = true;
+    if (ncbi_ids_clean.size() == 0) {
+        return lca;
+    } else if (ncbi_ids_clean.size() == 1) {
+        return ncbi_ids_clean[0];
+    } else {
+        bool lca_flag;
+        TREENODE *cur_node;
+        for(vector<string>::iterator itr = ncbi_ids_clean.begin(); itr != ncbi_ids_clean.end(); ++itr) {
+            cur_node = this->treeNodeLookup[*itr];
+            lca_flag = false;
+            while (cur_node != 0) {
+                cur_node->count++;
+                if (!cur_node->seen) {
+                    cur_node->seen = true;
+                } else {
+                    if (!lca_flag && cur_node->count == ncbi_ids_clean.size()) {
+                        lca = cur_node->taxa_id;
+                        lca_flag = true;
+                    }
                 }
+                cur_node = cur_node->parent;
             }
-            cur_node = cur_node->parent;
-        }
-        // cout << endl;
-    }
-//    cout << "lca: " << lca << endl;
-
-    // reset lca tree
-    for(vector<string>::iterator itr = ncbi_ids_clean.begin(); itr != ncbi_ids_clean.end(); ++itr) {
-        cur_node = this->treeNodeLookup[*itr];
-        while (cur_node != 0) {
-            cur_node->seen = false;
-            cur_node->count = 0;
-
-            cur_node = cur_node->parent;
         }
 
+        // reset lca tree
+        for(vector<string>::iterator itr = ncbi_ids_clean.begin(); itr != ncbi_ids_clean.end(); ++itr) {
+            cur_node = this->treeNodeLookup[*itr];
+            while (cur_node != 0) {
+                cur_node->seen = false;
+                cur_node->count = 0;
+
+                cur_node = cur_node->parent;
+            }
+
+        }
     }
 
     return lca;
