@@ -82,6 +82,9 @@ bool MPAnnotateOptions::SetOptions(int argc, char *argv[]) {
         else if( strncmp(argv[i], "--num_threads", strlen("--num_threads")) == 0 ) {
             this->num_threads = atoi(argv[++i]);
         }
+        else if( strncmp(argv[i], "--core_batch_size", strlen("--core_batch_size")) == 0 ) {
+            this->core_batch_size = atoi(argv[++i]);
+        }
         else if( strncmp(argv[i], "--debug", strlen("--debug")) == 0 ) {
             this->debug = true;
         }
@@ -120,6 +123,7 @@ void MPAnnotateOptions::printOptions() {
          << "debug:             " <<  debug << "\n"
          << "---------------\n\n";
 }
+
 
 /*
  * Print usage information.

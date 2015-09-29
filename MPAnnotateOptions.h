@@ -34,6 +34,7 @@ struct MPAnnotateOptions {
     string ncbi_catalog_names_map;
     string ncbi_nodes;
     string megan_map;
+    int core_batch_size;
 
     // Threading options
     unsigned int num_threads;
@@ -55,6 +56,7 @@ struct MPAnnotateOptions {
         megan_map = "";
         num_threads = 1;
         weight_db = 1.0;
+        core_batch_size = 500000;
         debug = false;
     };
 

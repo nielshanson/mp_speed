@@ -131,10 +131,10 @@ my_cmd="./mp_annotate --input_gff /Users/nielshanson/Documents/pycharm/metapathw
  --sample_name bench_90k \
  --algorithm LAST \
  --tax \
- --ncbi_catalog_map /Users/nielshanson/Documents/pycharm/metapathways3/resources/RefSeq-release69.catalog.small.txt \
- --ncbi_catalog_names_map /Users/nielshanson/Documents/pycharm/metapathways3/resources/RefSeq-release69.catalog.taxid2taxa.txt \
+ --ncbi_catalog_map /Users/nielshanson/Documents/pycharm/metapathways3/resources/RefSeq-release72.catalog.small.txt \
+ --ncbi_catalog_names_map /Users/nielshanson/Documents/pycharm/metapathways3/resources/RefSeq-release72.catalog.taxid2taxa.txt \
  --megan_map /Users/nielshanson/Documents/pycharm/metapathways3/resources/ncbi.map
- --ncbi_nodes /Users/nielshanson/Documents/pycharm/metapathways3/resources/ncbi_nodes_parent_child_ids.txt \
+ --ncbi_nodes /Users/nielshanson/Documents/pycharm/metapathways3/resources/ncbi_nodes_parent_child_ids_21-9-2015.txt \
  --debug \
  --num_threads 4"
 

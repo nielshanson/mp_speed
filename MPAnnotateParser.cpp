@@ -10,7 +10,8 @@ using namespace std;
  */
 MPAnnotateParser::MPAnnotateParser(const MPAnnotateOptions &options, const DB_INFO & db_info){
     this->options = options;
-    this->BATCH_SIZE = options.num_threads*BATCH_SIZE_PER_CORE;
+    // this->BATCH_SIZE = options.num_threads*BATCH_SIZE_PER_CORE;
+    this->BATCH_SIZE = options.num_threads*options.core_batch_size;
     this->db_info = db_info;
 }
 
