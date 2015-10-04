@@ -999,6 +999,9 @@ string getRefSeqTaxonomiesForPtools(string &metacyc_anno,
                                     string &taxaline,
                                     string &full_name,
                                     string &taxa) {
+    taxaline = "";
+    full_name = "";
+    taxa = "";
     if (writer_data->globalMetaCycHitToNCBITaxonomy.find(metacyc_anno) != writer_data->globalMetaCycHitToNCBITaxonomy.end()) {
 
         map<string, int> taxacounts = writer_data->globalMetaCycHitToNCBITaxonomy[metacyc_anno];
@@ -1049,7 +1052,7 @@ void writePToolsResults(WRITER_DATA_ANNOT* writer_data, string ptools_dir, strin
     char end_base_str[30];
     string derived_orf_id;
 
-    map<string, string> anno_to_frameid = map<string, string>();
+//    map<string, string> anno_to_frameid = map<string, string>();
 
     // Writeout metaCycHits to 0.pf file
     int i = 0;
@@ -1065,9 +1068,9 @@ void writePToolsResults(WRITER_DATA_ANNOT* writer_data, string ptools_dir, strin
          ss << i;
          derived_orf_id = "DIR_" + sample_name + "_" + ss.str(); // modified orf_id
 
-         if (anno_to_frameid.find(derived_orf_id) == anno_to_frameid.end()) {
-             anno_to_frameid[derived_orf_id] = anno.product;
-         }
+//         if (anno_to_frameid.find(derived_orf_id) == anno_to_frameid.end()) {
+//             anno_to_frameid[derived_orf_id] = anno.product;
+//         }
 
          writePfEntry(derived_orf_id,
                       anno.product,
@@ -1093,7 +1096,7 @@ void writePToolsResults(WRITER_DATA_ANNOT* writer_data, string ptools_dir, strin
     }
 
     // Header line with database names
-    string header_line = "FrameID\tAnnotation";
+    string header_line = "Annotation";
     for (unsigned int i = 0; i < writer_data->db_info.db_names.size(); ++i) {
         header_line = header_line + "\t" + writer_data->db_info.db_names[i];
     }
@@ -1104,20 +1107,16 @@ void writePToolsResults(WRITER_DATA_ANNOT* writer_data, string ptools_dir, strin
     string taxaline = "";
     string full_name = "";
     string taxa = "";
+    string metacyc_anno = "";
 
     // Create count line
     for (map<string, map<string, int> >::iterator mc_itr =  writer_data->globalMetaCycNamesToDbCounts.begin();
          mc_itr != writer_data->globalMetaCycNamesToDbCounts.end();
          mc_itr++) {
          string line = "";
-         string metacyc_anno = mc_itr->first;
-         if (anno_to_frameid.find(metacyc_anno) != anno_to_frameid.end()) {
-             line = anno_to_frameid[metacyc_anno];
-             line = line + "\t" + metacyc_anno;
-         } else {
-             // should not run by default
-             line = metacyc_anno;
-         }
+         metacyc_anno = "";
+         line = mc_itr->first;
+         metacyc_anno = mc_itr->first;
 
          int total = 0;
          map<string, int> db_counts = mc_itr->second;
