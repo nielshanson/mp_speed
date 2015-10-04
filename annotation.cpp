@@ -994,24 +994,29 @@ void writePfEntry(string orf_id, string annotation_product, string ec_number, st
 /*
  * Creates string of taxonomies and counts for output
  */
-string getRefSeqTaxonomiesForPtools(string metacyc_anno, map< string, map< string, int > > globalMetaCycHitToNCBITaxonomy) {
-    string taxaline = "";
+string getRefSeqTaxonomiesForPtools(string &metacyc_anno,
+                                    WRITER_DATA_ANNOT* writer_data,
+                                    string &taxaline,
+                                    string &full_name,
+                                    string &taxa) {
+    if (writer_data->globalMetaCycHitToNCBITaxonomy.find(metacyc_anno) != writer_data->globalMetaCycHitToNCBITaxonomy.end()) {
 
-    if (globalMetaCycHitToNCBITaxonomy.find(metacyc_anno) != globalMetaCycHitToNCBITaxonomy.end()) {
-
-        map<string, int> taxacounts = globalMetaCycHitToNCBITaxonomy[metacyc_anno];
+        map<string, int> taxacounts = writer_data->globalMetaCycHitToNCBITaxonomy[metacyc_anno];
         taxaline = "{ ";
         int lin_count = 0;
         for (map<string, int>::iterator itr = taxacounts.begin(); itr != taxacounts.end(); itr++) {
-            string taxa = itr->first;
-            int count = itr->second;
+            taxa = itr->first;
             ostringstream ss3;
-            ss3 << count;
-            cout << taxa << " : " << count << endl;
+            ss3 << itr->second;
+            full_name = "";
+            if (writer_data->ncbi_tree->NCBI_ID_to_Common.find(taxa) != writer_data->ncbi_tree->NCBI_ID_to_Common.end()) {
+                full_name = writer_data->ncbi_tree->NCBI_ID_to_Common[taxa];
+            }
+            taxa = full_name + " (" + taxa + ")";
             if (lin_count == 0) {
                 taxaline = taxaline + taxa + ":" + ss3.str();
             } else {
-                taxaline = taxaline + " , " + taxa + ":" + ss3.str();
+                taxaline = taxaline + ", " + taxa + ":" + ss3.str();
             }
             lin_count++;
             ss3.clear();
@@ -1096,6 +1101,10 @@ void writePToolsResults(WRITER_DATA_ANNOT* writer_data, string ptools_dir, strin
     header_line = header_line + "\n";
     pf_output << header_line;
 
+    string taxaline = "";
+    string full_name = "";
+    string taxa = "";
+
     // Create count line
     for (map<string, map<string, int> >::iterator mc_itr =  writer_data->globalMetaCycNamesToDbCounts.begin();
          mc_itr != writer_data->globalMetaCycNamesToDbCounts.end();
@@ -1123,7 +1132,7 @@ void writePToolsResults(WRITER_DATA_ANNOT* writer_data, string ptools_dir, strin
              }
          }
 
-         string taxonomies = getRefSeqTaxonomiesForPtools(metacyc_anno, writer_data->globalMetaCycHitToNCBITaxonomy);
+         string taxonomies = getRefSeqTaxonomiesForPtools(metacyc_anno, writer_data, taxaline, full_name, taxa);
          ostringstream ss2;
          ss2 << total;
          line = line + "\t" + ss2.str();

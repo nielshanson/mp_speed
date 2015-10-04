@@ -38,7 +38,7 @@ bool NCBITree::BuildRefSeqCatalog() {
         return false;
     }
 
-    // this->NCBI_ID_to_Common['-1'] = "unknown taxonomy"; // no match
+    this->NCBI_ID_to_Common["-1"] = "unknown taxonomy"; // no match
 
     // split NCBI_ID and common_name
     while( std::getline( input, line ).good() ) {
