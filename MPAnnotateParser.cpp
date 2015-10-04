@@ -238,7 +238,6 @@ string MPAnnotateParser::prepareRefSeqTaxonomy(string ncbi_id, NCBITree* ncbi_tr
 }
 
 
-
 /*
  * Writes functional annotation hits to results folder as .tree.count.txt files
  */

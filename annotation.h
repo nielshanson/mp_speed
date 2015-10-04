@@ -64,6 +64,8 @@ bool pushWordForward(string word, PTOOLS_NODE *& ptools_ptr);
 
 void writePfEntry(string orf_id, string annotation_product, string ec_number, string start_base, string end_base, std::ofstream &output);
 
+string getRefSeqTaxonomiesForPtools(string metacyc_anno, map< string, map< string, int > > globalMetaCycHitToNCBITaxonomy);
+
 void writePToolsResults(WRITER_DATA_ANNOT* writer_data, string ptools_dir, string sample_name);
 
 bool  createFunctionWeights(const string &intpufile, const string &outputfile);

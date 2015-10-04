@@ -566,6 +566,7 @@ void* annotateOrfsForDBs(void *_data) {
     vector <char *> annotation_words; // Vector of annotation words
     string annotation_product;
     string metacyc_annotation_product;
+    bool found_ptools_annotation = false; // Variable to flag of RefSeq annotation (taxa info for later WTD calculation)
 
     // LCA calculation variables
     NCBITree *ncbi_tree = data->ncbi_tree; // NCBI Taxonomy Tree
@@ -582,13 +583,14 @@ void* annotateOrfsForDBs(void *_data) {
 
         // Clear previous annotation data
         *annotation = ANNOTATION(); // clear
-        *metacyc_annotation = ANNOTATION();
         db_name = "";
 
         for( unsigned int j = 0; j < data->db_info.db_names.size(); j++ ) { 
             // For each database j
             db_name = data->db_info.db_names[j];
             db_name_upper = to_upper(db_name);
+            found_ptools_annotation = false;
+            *metacyc_annotation = ANNOTATION();
 
             // Add database to map if new
             if (data->dbNamesToHierachyIdentifierCounts.find(db_name) == data->dbNamesToHierachyIdentifierCounts.end()) {
@@ -632,10 +634,13 @@ void* annotateOrfsForDBs(void *_data) {
                     metacyc_annotation->product = metacyc_annotation_product;
                     metacyc_annotation->ptools_match = true;
                     data->metaCycHits.push_back(*metacyc_annotation);
+                    found_ptools_annotation = true;
                 } else if ( annotation->ec != "" ) {
                     // Valid EC number
+                    *metacyc_annotation = *annotation;
                     annotation->ptools_match = false;
                     data->metaCycHits.push_back(*annotation);
+                    found_ptools_annotation = true;
                 }
                 
                 // Extract db_id from annotation text
@@ -681,6 +686,29 @@ void* annotateOrfsForDBs(void *_data) {
 
                     lca = ncbi_tree->getLCA(ncbi_taxa_ids); // search tree
 
+                    // Associate LCA to ptools annotation (refseq only)
+                    if (found_ptools_annotation) {
+                        // Get ptools annotaiton string
+                        string ptools_key = "";
+                        if(metacyc_annotation->ptools_match) {
+                            ptools_key = metacyc_annotation->product;
+                        } else {
+                            ptools_key = metacyc_annotation->ec;
+                        }
+
+                        if (ptools_key != "") {
+                            // Add string to map if needed
+                            if (data->metaCycHitToNCBITaxonomy.find(ptools_key) == data->metaCycHitToNCBITaxonomy.end()) {
+                                data->metaCycHitToNCBITaxonomy[ptools_key] = map<string, int>();
+                            }
+
+                            if (data->metaCycHitToNCBITaxonomy[ptools_key].find(lca) == data->metaCycHitToNCBITaxonomy[ptools_key].end()) {
+                                data->metaCycHitToNCBITaxonomy[ptools_key][lca] = 0;
+                            }
+                            data->metaCycHitToNCBITaxonomy[ptools_key][lca]++;
+                        }
+                    }
+
                     // Add LCA to the Hierarchy count
                     if (data->dbNamesToHierachyIdentifierCounts[db_name].find(lca) == data->dbNamesToHierachyIdentifierCounts[db_name].end()) {
                         // First time seeing db_id
@@ -716,7 +744,7 @@ void *reduceAnnotations( void *_writer_data) {
         std::cout << "Reducing DbNamesToHierachyIdentifierCounts results from thread " << i << std::endl;
         for ( map<string, map<string, int> >::iterator db_itr = thread_data[i].dbNamesToHierachyIdentifierCounts.begin();
               db_itr != thread_data[i].dbNamesToHierachyIdentifierCounts.end();
-              db_itr ++
+              db_itr++
               ) {
 
             // For each db_name
@@ -769,8 +797,31 @@ void *reduceAnnotations( void *_writer_data) {
              writer_data->globalMetaCycNamesToDbCounts[metacyc_label][mc_itr->dbname]++;
         }
 
+        // Calculate global NCBI Taxonomy counts
+        metacyc_label = "";
+        string taxa_string = "";
+        for (map< string, map< string, int > >::iterator itr = thread_data[i].metaCycHitToNCBITaxonomy.begin();
+                itr != thread_data[i].metaCycHitToNCBITaxonomy.end();
+                itr++) {
+            metacyc_label = itr->first;
+            if (writer_data->globalMetaCycHitToNCBITaxonomy.find(metacyc_label) ==
+                writer_data->globalMetaCycHitToNCBITaxonomy.end()) {
+                writer_data->globalMetaCycHitToNCBITaxonomy[metacyc_label] = map<string, int>();
+            }
+
+            for (map<string, int>::iterator itr2 = itr->second.begin();
+                 itr2 != itr->second.end();
+                 itr2++) {
+                taxa_string = itr2->first;
+                if (writer_data->globalMetaCycHitToNCBITaxonomy[metacyc_label].find(taxa_string) ==
+                    writer_data->globalMetaCycHitToNCBITaxonomy[metacyc_label].end()) {
+                    writer_data->globalMetaCycHitToNCBITaxonomy[metacyc_label][taxa_string] = 0;
+                }
+                writer_data->globalMetaCycHitToNCBITaxonomy[metacyc_label][taxa_string] += itr2->second;
+
+            }
+        }
         thread_data[i].clear();
-        
     }
     
     return (void *)NULL;
@@ -939,6 +990,40 @@ void writePfEntry(string orf_id, string annotation_product, string ec_number, st
     output << pf_entry;
 }
 
+
+/*
+ * Creates string of taxonomies and counts for output
+ */
+string getRefSeqTaxonomiesForPtools(string metacyc_anno, map< string, map< string, int > > globalMetaCycHitToNCBITaxonomy) {
+    string taxaline = "";
+
+    if (globalMetaCycHitToNCBITaxonomy.find(metacyc_anno) != globalMetaCycHitToNCBITaxonomy.end()) {
+
+        map<string, int> taxacounts = globalMetaCycHitToNCBITaxonomy[metacyc_anno];
+        taxaline = "{ ";
+        int lin_count = 0;
+        for (map<string, int>::iterator itr = taxacounts.begin(); itr != taxacounts.end(); itr++) {
+            string taxa = itr->first;
+            int count = itr->second;
+            ostringstream ss3;
+            ss3 << count;
+            cout << taxa << " : " << count << endl;
+            if (lin_count == 0) {
+                taxaline = taxaline + taxa + ":" + ss3.str();
+            } else {
+                taxaline = taxaline + " , " + taxa + ":" + ss3.str();
+            }
+            lin_count++;
+            ss3.clear();
+        }
+
+        taxaline = taxaline + " }";
+    }
+
+    return taxaline;
+}
+
+
 /*
  * Creates the inputs for the ptools folder from the writer_data:
  * 0.pf file, ptools_counts.txt, genetic-elements.dat, organism-params.dat
@@ -959,6 +1044,8 @@ void writePToolsResults(WRITER_DATA_ANNOT* writer_data, string ptools_dir, strin
     char end_base_str[30];
     string derived_orf_id;
 
+    map<string, string> anno_to_frameid = map<string, string>();
+
     // Writeout metaCycHits to 0.pf file
     int i = 0;
     for (map<string, ANNOTATION>::iterator mc_itr =  writer_data->globalMetaCycNamesToAnnotations.begin();
@@ -972,6 +1059,11 @@ void writePToolsResults(WRITER_DATA_ANNOT* writer_data, string ptools_dir, strin
          ostringstream ss;
          ss << i;
          derived_orf_id = "DIR_" + sample_name + "_" + ss.str(); // modified orf_id
+
+         if (anno_to_frameid.find(derived_orf_id) == anno_to_frameid.end()) {
+             anno_to_frameid[derived_orf_id] = anno.product;
+         }
+
          writePfEntry(derived_orf_id,
                       anno.product,
                       anno.ec,
@@ -996,11 +1088,11 @@ void writePToolsResults(WRITER_DATA_ANNOT* writer_data, string ptools_dir, strin
     }
 
     // Header line with database names
-    string header_line = "Annotation";
+    string header_line = "FrameID\tAnnotation";
     for (unsigned int i = 0; i < writer_data->db_info.db_names.size(); ++i) {
         header_line = header_line + "\t" + writer_data->db_info.db_names[i];
     }
-    header_line = header_line + "\t" + "total";
+    header_line = header_line + "\t" + "Total" + "\t" + "Taxa";
     header_line = header_line + "\n";
     pf_output << header_line;
 
@@ -1008,7 +1100,16 @@ void writePToolsResults(WRITER_DATA_ANNOT* writer_data, string ptools_dir, strin
     for (map<string, map<string, int> >::iterator mc_itr =  writer_data->globalMetaCycNamesToDbCounts.begin();
          mc_itr != writer_data->globalMetaCycNamesToDbCounts.end();
          mc_itr++) {
-         string line = mc_itr->first;
+         string line = "";
+         string metacyc_anno = mc_itr->first;
+         if (anno_to_frameid.find(metacyc_anno) != anno_to_frameid.end()) {
+             line = anno_to_frameid[metacyc_anno];
+             line = line + "\t" + metacyc_anno;
+         } else {
+             // should not run by default
+             line = metacyc_anno;
+         }
+
          int total = 0;
          map<string, int> db_counts = mc_itr->second;
          for (unsigned int i = 0; i < writer_data->db_info.db_names.size(); ++i) {
@@ -1021,9 +1122,12 @@ void writePToolsResults(WRITER_DATA_ANNOT* writer_data, string ptools_dir, strin
                  total += db_counts[writer_data->db_info.db_names[i]];
              }
          }
+
+         string taxonomies = getRefSeqTaxonomiesForPtools(metacyc_anno, writer_data->globalMetaCycHitToNCBITaxonomy);
          ostringstream ss2;
          ss2 << total;
          line = line + "\t" + ss2.str();
+         line = line + "\t" + taxonomies;
          line = line + "\n";
          pf_output << line;
     }

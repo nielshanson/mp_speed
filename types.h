@@ -201,6 +201,7 @@ typedef struct _THREAD_DATA_ANNOT {
     // map<string, map<string, string> > dbNamesToHierarchyIdentifierMaps;
     map<string, map<string, int> > dbNamesToHierachyIdentifierCounts;
     vector<ANNOTATION> metaCycHits;
+    map<string, map<string, int> > metaCycHitToNCBITaxonomy;
     PTOOLS_NODE *root;
     NCBITree *ncbi_tree; // formatted NCBI hierarchy for calculating LCA
 
@@ -235,7 +236,10 @@ typedef struct _WRITER_DATA_ANNOT {
     map<string, map<string, int> > globalDbNamesToHierachyIdentifierCounts;
     map<string, ANNOTATION > globalMetaCycNamesToAnnotations;
     map<string, map<string, int> > globalMetaCycNamesToDbCounts;
+    map<string, map<string, int> > globalMetaCycHitToNCBITaxonomy;
     map<string, map<string, string> > dbNamesToHierarchyIdentifierMaps;
+
+
     NCBITree* ncbi_tree;
     MPAnnotateOptions options;
     
