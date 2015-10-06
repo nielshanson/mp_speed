@@ -978,14 +978,14 @@ void writePfEntry(string orf_id, string annotation_product, string ec_number, st
     // cout << "start_base: " << start_base << " end_base: " << end_base << endl;
 
     string pf_entry = "";
-    pf_entry = pf_entry + "ID " + orf_id + "\n";
-    pf_entry = pf_entry + "NAME " + orf_id + "\n";
-    pf_entry = pf_entry + "STARTBASE " + start_base + "\n";
-    pf_entry = pf_entry + "ENDBASE " + end_base + "\n";
-    pf_entry = pf_entry + "PRODUCT-TYPE P" + "\n";
-    pf_entry = pf_entry + "FUNCTION " + annotation_product + "\n"; // remove extract character
+    pf_entry = pf_entry + "ID\t" + orf_id + "\n";
+    pf_entry = pf_entry + "NAME\t" + orf_id + "\n";
+    pf_entry = pf_entry + "STARTBASE\t" + start_base + "\n";
+    pf_entry = pf_entry + "ENDBASE\t" + end_base + "\n";
+    pf_entry = pf_entry + "PRODUCT-TYPE\tP" + "\n";
+    pf_entry = pf_entry + "FUNCTION\t" + annotation_product + "\n"; // remove extract character
     if (ec_number != "")
-        pf_entry = pf_entry + "EC " + ec_number + "\n";
+        pf_entry = pf_entry + "EC\t" + ec_number + "\n";
     pf_entry = pf_entry + "//" + "\n";
     output << pf_entry;
 }
@@ -1156,10 +1156,10 @@ void writePToolsResults(WRITER_DATA_ANNOT* writer_data, string ptools_dir, strin
     }
 
     string genetic_elements_text = "";
-    genetic_elements_text = genetic_elements_text + "ID      0" + "\n";
-    genetic_elements_text = genetic_elements_text + "NAME    0" + "\n";
-    genetic_elements_text = genetic_elements_text + "TYPE    :READ/CONTIG" + "\n";
-    genetic_elements_text = genetic_elements_text + "ANNOT-FILE      0.pf" + "\n";
+    genetic_elements_text = genetic_elements_text + "ID\t0" + "\n";
+    genetic_elements_text = genetic_elements_text + "NAME\t0" + "\n";
+    genetic_elements_text = genetic_elements_text + "TYPE\t:READ/CONTIG" + "\n";
+    genetic_elements_text = genetic_elements_text + "ANNOT-FILE\t0.pf" + "\n";
 
     output << genetic_elements_text;
 
@@ -1182,13 +1182,13 @@ void writePToolsResults(WRITER_DATA_ANNOT* writer_data, string ptools_dir, strin
     }
 
     string organism_params_text = "";
-    organism_params_text = organism_params_text + "ID      " + sample_name + "\n";
+    organism_params_text = organism_params_text + "ID\t" + sample_name + "\n";
     organism_params_text = organism_params_text + "STORAGE FILE" + "\n";
-    organism_params_text = organism_params_text + "NAME    " + sample_name + "\n";
-    organism_params_text = organism_params_text + "ABBREV-NAME     " + sample_name + "\n";
-    organism_params_text = organism_params_text + "STRAIN  1" + "\n";
-    organism_params_text = organism_params_text + "RANK    |species|" + "\n";
-    organism_params_text = organism_params_text + "NCBI-TAXON-ID   12908" + "\n";
+    organism_params_text = organism_params_text + "NAME\t" + sample_name + "\n";
+    organism_params_text = organism_params_text + "ABBREV-NAME\t" + sample_name + "\n";
+    organism_params_text = organism_params_text + "STRAIN\t1" + "\n";
+    organism_params_text = organism_params_text + "RANK\t|species|" + "\n";
+    organism_params_text = organism_params_text + "NCBI-TAXON-ID\t12908" + "\n";
 
     output << organism_params_text;
 
