@@ -1052,7 +1052,7 @@ void writePToolsResults(WRITER_DATA_ANNOT* writer_data, string ptools_dir, strin
     char end_base_str[30];
     string derived_orf_id;
 
-//    map<string, string> anno_to_frameid = map<string, string>();
+    map<string, string> anno_to_frameid = map<string, string>();
 
     // Writeout metaCycHits to 0.pf file
     int i = 0;
@@ -1068,9 +1068,15 @@ void writePToolsResults(WRITER_DATA_ANNOT* writer_data, string ptools_dir, strin
          ss << i;
          derived_orf_id = "DIR_" + sample_name + "_" + ss.str(); // modified orf_id
 
-//         if (anno_to_frameid.find(derived_orf_id) == anno_to_frameid.end()) {
-//             anno_to_frameid[derived_orf_id] = anno.product;
-//         }
+
+        if (anno.ec != "") {
+             if (anno_to_frameid.find(anno.ec) == anno_to_frameid.end()) {
+                 anno_to_frameid[anno.ec] = derived_orf_id;
+             }
+        }
+        if (anno_to_frameid.find(anno.product) == anno_to_frameid.end()) {
+            anno_to_frameid[anno.product] = derived_orf_id;
+        }
 
          writePfEntry(derived_orf_id,
                       anno.product,
@@ -1096,7 +1102,7 @@ void writePToolsResults(WRITER_DATA_ANNOT* writer_data, string ptools_dir, strin
     }
 
     // Header line with database names
-    string header_line = "Annotation";
+    string header_line = "FrameID\tAnnotation";
     for (unsigned int i = 0; i < writer_data->db_info.db_names.size(); ++i) {
         header_line = header_line + "\t" + writer_data->db_info.db_names[i];
     }
@@ -1108,6 +1114,7 @@ void writePToolsResults(WRITER_DATA_ANNOT* writer_data, string ptools_dir, strin
     string full_name = "";
     string taxa = "";
     string metacyc_anno = "";
+    string metacyc_id = "";
 
     // Create count line
     for (map<string, map<string, int> >::iterator mc_itr =  writer_data->globalMetaCycNamesToDbCounts.begin();
@@ -1115,8 +1122,9 @@ void writePToolsResults(WRITER_DATA_ANNOT* writer_data, string ptools_dir, strin
          mc_itr++) {
          string line = "";
          metacyc_anno = "";
-         line = mc_itr->first;
          metacyc_anno = mc_itr->first;
+         metacyc_id = anno_to_frameid[metacyc_anno];
+         line = metacyc_id + "\t" + metacyc_anno;
 
          int total = 0;
          map<string, int> db_counts = mc_itr->second;
