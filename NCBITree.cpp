@@ -124,8 +124,8 @@ bool NCBITree::CreateNCBITree() {
         split(line, fields, buf, '\t');
         // NCBI_ID second field
         count++;
-        string child = fields[0];
-        string parent = fields[1];
+        string child = fields[1];
+        string parent = fields[2];
 
         if (child != parent) {
             // Create child node (if needed)
