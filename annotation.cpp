@@ -1191,7 +1191,7 @@ void writePToolsResults(WRITER_DATA_ANNOT* writer_data, string ptools_dir, strin
 
     string organism_params_text = "";
     organism_params_text = organism_params_text + "ID\t" + sample_name + "\n";
-    organism_params_text = organism_params_text + "STORAGE FILE" + "\n";
+    organism_params_text = organism_params_text + "STORAGE\tFILE" + "\n";
     organism_params_text = organism_params_text + "NAME\t" + sample_name + "\n";
     organism_params_text = organism_params_text + "ABBREV-NAME\t" + sample_name + "\n";
     organism_params_text = organism_params_text + "STRAIN\t1" + "\n";
