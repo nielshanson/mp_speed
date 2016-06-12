@@ -303,9 +303,9 @@ void MPAnnotateParser::writeFunctionalHierarchyFiles(WRITER_DATA_ANNOT *writer_d
             }
             output.close();
             
-            if (options.debug) cout << sample_name + "." + db_name + ending << ": " << total << " functional hierachy IDs" << endl;
+            if (options.debug) cout << sample_name + "." + db_name + ending << ": " << total << " functional hierarchy IDs" << endl;
         } else {
-            if (options.debug) cout << "Warning: " << sample_name + "." + db_name + ending << " contains no functional hierachy IDs!" << endl;
+            if (options.debug) cout << "Warning: " << sample_name + "." + db_name + ending << " contains no functional hierarchy IDs!" << endl;
         }
     }
 }

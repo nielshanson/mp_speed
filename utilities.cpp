@@ -331,7 +331,7 @@ string getTaxonomyFromProduct(const char *str) {
     c = str;
 
     bool front = false;
-// TODO: Basic implementaiton. Occassionally will run into problems with double taxonomies and '[[' ']]'
+// TODO: Basic implementaiton. Occasionally will run into problems with double taxonomies and '[[' ']]'
     while( *c!='\0') {
         // continue iterating through string until end
         if(*c=='[') {
